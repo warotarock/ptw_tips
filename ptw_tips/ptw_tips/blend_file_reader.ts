@@ -376,9 +376,9 @@ namespace BlendFileReader {
 
     export class DNA {
 
-        private structureTypeInfos: Dictionary<StructureTypeInfo> = new Dictionary<StructureTypeInfo>();
-        private structureTypeInfoList = new List<StructureTypeInfo>();
-        private reader = new BinaryReader();
+        structureTypeInfos: Dictionary<StructureTypeInfo> = new Dictionary<StructureTypeInfo>();
+        structureTypeInfoList = new List<StructureTypeInfo>();
+        reader = new BinaryReader();
 
         parse(reader: BinaryReader) {
 
