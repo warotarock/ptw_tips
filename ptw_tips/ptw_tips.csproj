@@ -26,7 +26,7 @@
     <Content Include="basic_webgl_ts\package_main.js" />
     <Content Include="blend_file_reader_sample\index.html" />
     <Content Include="blend_file_reader_sample\package_main.js" />
-    <Content Include="lib\glmatrix\gl-matrix-min.js" />
+    <Content Include="external\glmatrix\gl-matrix-min.js" />
     <Content Include="ptw_tips\app.css" />
     <Content Include="web.config" />
   </ItemGroup>
@@ -45,7 +45,7 @@
     <TypeScriptCompile Include="basic_webgl_ts\render.ts" />
     <TypeScriptCompile Include="basic_webgl_ts\main.ts" />
     <TypeScriptCompile Include="blend_file_reader_sample\main.ts" />
-    <TypeScriptCompile Include="lib\glmatrix\gl-matrix.d.ts" />
+    <TypeScriptCompile Include="external\glmatrix\gl-matrix.d.ts" />
     <TypeScriptCompile Include="ptw_tips\blend_file_reader.ts" />
     <TypeScriptCompile Include="ptw_tips\conversion.ts" />
   </ItemGroup>
