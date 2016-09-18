@@ -30,7 +30,7 @@
     "!./node_modules/**/*.ts",
     "!./bower_components/**/*.ts",
     "!./typings/**/*.ts",
-    "../lib/**/*.ts"
+    "../external/**/*.ts"
   ],
   "files": [
     "./*.ts"
