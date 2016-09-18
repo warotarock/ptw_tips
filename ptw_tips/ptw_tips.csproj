@@ -23,17 +23,16 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="basic_webgl_ts\index.html" />
-    <Content Include="basic_webgl_ts\package_main.js" />
     <Content Include="blend_file_reader_sample\index.html" />
-    <Content Include="blend_file_reader_sample\package_main.js" />
     <Content Include="external\glmatrix\gl-matrix-min.js" />
     <Content Include="ptw_tips\app.css" />
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="basic_webgl_ts\package.json" />
-    <Content Include="blend_file_reader_sample\package.json" />
     <Content Include="blend_file_reader_sample\sample.blend" />
+    <Content Include="basic_webgl_ts\README.md" />
+    <Content Include="blend_file_reader_sample\README.md" />
+    <Content Include="ptw_tips\README.md" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -42,13 +41,14 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="basic_webgl_ts\render.ts" />
+    <TypeScriptCompile Include="ptw_tips\render.ts" />
     <TypeScriptCompile Include="basic_webgl_ts\main.ts" />
     <TypeScriptCompile Include="blend_file_reader_sample\main.ts" />
     <TypeScriptCompile Include="external\glmatrix\gl-matrix.d.ts" />
     <TypeScriptCompile Include="ptw_tips\blend_file_reader.ts" />
     <TypeScriptCompile Include="ptw_tips\conversion.ts" />
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">12.0</VisualStudioVersion>
   </PropertyGroup>
@@ -81,7 +81,7 @@
     <TypeScriptTarget>ES5</TypeScriptTarget>
     <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
     <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
-    <TypeScriptNoImplicitAny>True</TypeScriptNoImplicitAny>
+    <TypeScriptNoImplicitAny>False</TypeScriptNoImplicitAny>
     <TypeScriptModuleKind>CommonJS</TypeScriptModuleKind>
     <TypeScriptOutFile />
     <TypeScriptOutDir>.\bin\</TypeScriptOutDir>
