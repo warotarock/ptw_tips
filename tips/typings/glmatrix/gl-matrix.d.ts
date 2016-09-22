@@ -1,4 +1,4 @@
-// written by @warotarock (gl-matrix.js 2.2.1)
+// written by @warotarock for gl-matrix.js 2.2.1
 
 type Vec2 = Float32Array;
 type Vec3 = Float32Array;

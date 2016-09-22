@@ -24,15 +24,14 @@
   <ItemGroup>
     <Content Include="basic_webgl_ts\index.html" />
     <Content Include="blend_file_reader_sample\index.html" />
-    <Content Include="external\glmatrix\gl-matrix-min.js" />
-    <Content Include="ptw_tips\app.css" />
+    <Content Include="tips_core\app.css" />
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="blend_file_reader_sample\sample.blend" />
     <Content Include="basic_webgl_ts\README.md" />
     <Content Include="blend_file_reader_sample\README.md" />
-    <Content Include="ptw_tips\README.md" />
+    <Content Include="tips_core\README.md" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -41,19 +40,22 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="ptw_tips\render.ts" />
+    <TypeScriptCompile Include="tips_core\render.ts" />
     <TypeScriptCompile Include="basic_webgl_ts\main.ts" />
     <TypeScriptCompile Include="blend_file_reader_sample\main.ts" />
-    <TypeScriptCompile Include="external\glmatrix\gl-matrix.d.ts" />
-    <TypeScriptCompile Include="ptw_tips\blend_file_reader.ts" />
-    <TypeScriptCompile Include="ptw_tips\conversion.ts" />
+    <TypeScriptCompile Include="tips_core\blend_file_reader.ts" />
+    <TypeScriptCompile Include="tips_core\conversion.ts" />
+    <TypeScriptCompile Include="typings\github-electron\github-electron.d.ts" />
+    <TypeScriptCompile Include="typings\glmatrix\gl-matrix.d.ts" />
+    <TypeScriptCompile Include="typings\jagenjo_collada\collada.d.ts" />
+    <TypeScriptCompile Include="typings\node\node.d.ts" />
   </ItemGroup>
   <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">12.0</VisualStudioVersion>
   </PropertyGroup>
   <PropertyGroup>
-    <RootNamespace>ptw_tips</RootNamespace>
+    <RootNamespace>tips</RootNamespace>
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\WebApplications\Microsoft.WebApplication.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\WebApplications\Microsoft.WebApplication.targets')" />
@@ -84,7 +86,7 @@
     <TypeScriptNoImplicitAny>False</TypeScriptNoImplicitAny>
     <TypeScriptModuleKind>CommonJS</TypeScriptModuleKind>
     <TypeScriptOutFile />
-    <TypeScriptOutDir>.\bin\</TypeScriptOutDir>
+    <TypeScriptOutDir>..\bin\</TypeScriptOutDir>
     <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
     <TypeScriptNoEmitOnError>False</TypeScriptNoEmitOnError>
     <TypeScriptMapRoot />

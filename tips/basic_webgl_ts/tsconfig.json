@@ -8,6 +8,7 @@
     "noLib": false,
     "preserveConstEnums": true,
     "suppressImplicitAnyIndexErrors": true,
+    "sourceMap": true,
 	"outDir": "../bin/"
   },
   "formatCodeOptions": {
@@ -30,8 +31,8 @@
     "!./node_modules/**/*.ts",
     "!./bower_components/**/*.ts",
     "!./typings/**/*.ts",
-    "../external/**/*.ts",
-    "../ptw_tips/*.ts"
+    "../typings/**/*.ts",
+    "../tips_core/*.ts"
   ],
   "files": [
     "./*.ts"

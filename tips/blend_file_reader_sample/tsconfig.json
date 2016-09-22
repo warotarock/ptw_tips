@@ -8,7 +8,9 @@
     "noLib": false,
     "preserveConstEnums": true,
     "suppressImplicitAnyIndexErrors": true,
-	"outDir": "../bin/ptw_tips/"
+    "sourceMap": true,
+	"outDir": "../bin/"
+
   },
   "formatCodeOptions": {
     "indentSize": 4,
@@ -30,7 +32,8 @@
     "!./node_modules/**/*.ts",
     "!./bower_components/**/*.ts",
     "!./typings/**/*.ts",
-    "../external/**/*.ts"
+    "../typings/**/*.ts",
+    "../tips_core/*.ts"
   ],
   "files": [
     "./*.ts"
