@@ -22,6 +22,11 @@
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="basic_model_converter\index.html" />
+    <Content Include="basic_model_converter\README.md" />
+    <Content Include="basic_model_converter\sample.blend" />
+    <Content Include="basic_model_converter\sample.dae" />
+    <Content Include="basic_model_converter\texture.png" />
     <Content Include="basic_webgl_ts\index.html" />
     <Content Include="blend_file_reader_sample\index.html" />
     <Content Include="tips_core\app.css" />
@@ -40,6 +45,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="basic_model_converter\main.ts" />
     <TypeScriptCompile Include="tips_core\render.ts" />
     <TypeScriptCompile Include="basic_webgl_ts\main.ts" />
     <TypeScriptCompile Include="blend_file_reader_sample\main.ts" />
