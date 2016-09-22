@@ -5,6 +5,7 @@
 Collada形式(.dae)のファイルからモデル情報を抽出し、json形式(.json)で出力します。
 
 .daeファイルはBlenderから標準のエクスポータで以下の設定でエクスポートしたものです。
+
 Export Data Options
   Apply Modifiers: View
   Selection Only: false
