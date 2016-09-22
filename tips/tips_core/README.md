@@ -1,3 +1,3 @@
 # PTWTips - Core
 
-PTWTips全体で使用するファイルです。
+tips全体で使用するファイルです。

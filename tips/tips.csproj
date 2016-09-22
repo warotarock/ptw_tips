@@ -46,7 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="basic_model_converter\main.ts" />
-    <TypeScriptCompile Include="tips_core\render.ts" />
+    <TypeScriptCompile Include="basic_webgl_ts\render.ts" />
     <TypeScriptCompile Include="basic_webgl_ts\main.ts" />
     <TypeScriptCompile Include="blend_file_reader_sample\main.ts" />
     <TypeScriptCompile Include="tips_core\blend_file_reader.ts" />
