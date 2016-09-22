@@ -14,7 +14,7 @@ window.onload = () => {
         }
 
         var colladaScene: ColladaParser.Scene = Collada.parse(data);
-        var outFileName = getExtensionChangedFileName('../../temp/' + fileName, 'json');
+        var outFileName = getExtensionChangedFileName('../temp/' + fileName, 'json');
 
         outputModle(colladaScene, outFileName);
     });
