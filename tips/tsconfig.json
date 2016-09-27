@@ -9,8 +9,7 @@
     "preserveConstEnums": true,
     "suppressImplicitAnyIndexErrors": true,
     "sourceMap": true,
-	"outDir": "../bin/"
-
+    "outDir": "./bin/"
   },
   "formatCodeOptions": {
     "indentSize": 4,
@@ -32,8 +31,7 @@
     "!./node_modules/**/*.ts",
     "!./bower_components/**/*.ts",
     "!./typings/**/*.ts",
-    "../typings/**/*.ts",
-    "../tips_core/*.ts"
+    "./typings/**/*.ts",
   ],
   "files": [
     "./*.ts"

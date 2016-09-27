@@ -1,16 +1,18 @@
 var RenderModel = (function () {
     function RenderModel() {
-        this.vertexData = null;
-        this.indexData = null;
         this.vertexBuffer = null;
         this.indexBuffer = null;
+        this.vertexData = null;
+        this.indexData = null;
+        this.indexCount = 0;
+        this.vertexDataStride = 0;
     }
     return RenderModel;
 }());
 var RenderImage = (function () {
     function RenderImage() {
-        this.imageData = null;
         this.texture = null;
+        this.imageData = null;
     }
     return RenderImage;
 }());
@@ -38,18 +40,32 @@ var RenderShader = (function () {
         // override method
     };
     RenderShader.prototype.initializeAttributes = function (gl) {
-        // override method
+        this.initializeAttributes_RenderShader(gl);
     };
-    RenderShader.prototype.getAttribute = function (name, gl) {
+    RenderShader.prototype.initializeAttributes_RenderShader = function (gl) {
+        this.uPMatrix = this.getUniformLocation("uPMatrix", gl);
+        this.uMVMatrix = this.getUniformLocation("uMVMatrix", gl);
+    };
+    RenderShader.prototype.getAttribLocation = function (name, gl) {
         var attribLocation = gl.getAttribLocation(this.program, name);
         this.AttribLocationList.push(attribLocation);
         return attribLocation;
     };
-    RenderShader.prototype.getUniform = function (name, gl) {
+    RenderShader.prototype.getUniformLocation = function (name, gl) {
         return gl.getUniformLocation(this.program, name);
     };
     RenderShader.prototype.setBuffers = function (model, images, gl) {
         // override methodr
+    };
+    RenderShader.prototype.enableVertexAttributes = function (gl) {
+        for (var i = 0; i < this.AttribLocationList.length; i++) {
+            gl.enableVertexAttribArray(this.AttribLocationList[i]);
+        }
+    };
+    RenderShader.prototype.disableVertexAttributes = function (gl) {
+        for (var i = 0; i < this.AttribLocationList.length; i++) {
+            gl.disableVertexAttribArray(this.AttribLocationList[i]);
+        }
     };
     return RenderShader;
 }());
@@ -64,11 +80,13 @@ var WebGLRender = (function () {
         var format = this.gl.getShaderPrecisionFormat(this.gl.FRAGMENT_SHADER, this.gl.HIGH_FLOAT);
         this.floatPrecisionText = format.precision != 0 ? "highp" : "mediump";
     };
-    WebGLRender.prototype.initializeModelBuffer = function (model, vertexData, indexData) {
-        model.vertexData = vertexData;
+    WebGLRender.prototype.initializeModelBuffer = function (model, vertexData, indexData, vertexDataStride) {
         model.vertexBuffer = this.createVertexBuffer(vertexData, this.gl);
-        model.indexData = indexData;
         model.indexBuffer = this.createIndexBuffer(indexData, this.gl);
+        model.indexBuffer = vertexData;
+        model.vertexData = indexData;
+        model.indexCount = indexData.length;
+        model.vertexDataStride = vertexDataStride;
     };
     WebGLRender.prototype.createVertexBuffer = function (data, gl) {
         var vertexBuffer = gl.createBuffer();
@@ -129,8 +147,12 @@ var WebGLRender = (function () {
         }
     };
     WebGLRender.prototype.setShader = function (shader) {
+        var lastShader = this.currentShader;
         this.gl.useProgram(shader.program);
         this.currentShader = shader;
+        if (lastShader != null && lastShader.AttribLocationList.length != this.currentShader.AttribLocationList.length) {
+            lastShader.disableVertexAttributes(this.gl);
+        }
     };
     WebGLRender.prototype.setBuffers = function (model, images) {
         this.currentShader.setBuffers(model, images, this.gl);
@@ -159,7 +181,7 @@ var WebGLRender = (function () {
         gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
     };
     WebGLRender.prototype.drawElements = function (model) {
-        this.gl.drawElements(this.gl.TRIANGLES, model.indexData.length, this.gl.UNSIGNED_SHORT, 0);
+        this.gl.drawElements(this.gl.TRIANGLES, model.indexCount, this.gl.UNSIGNED_SHORT, 0);
     };
     return WebGLRender;
 }());

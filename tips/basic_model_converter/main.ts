@@ -6,18 +6,17 @@ import fs = require('fs');
 window.onload = () => {
 
     var fileName = 'sample.dae';
+    var outFileName = getExtensionChangedFileName('../temp/' + fileName, 'json');
 
-    fs.readFile(fileName, function (error, data) {
-        if (error != null) {
-            alert('error : ' + error);
-            return;
+    var collada_loader = new THREE.ColladaLoader();
+    collada_loader.load(
+        fileName,
+        function (threeJSCollada) {
+            var helper = new Converters.ThreeJSColladaConverterHelper();
+            helper.attach(threeJSCollada);
+            outputModle(helper, outFileName);
         }
-
-        var colladaScene: ColladaParser.Scene = Collada.parse(data);
-        var outFileName = getExtensionChangedFileName('../temp/' + fileName, 'json');
-
-        outputModle(colladaScene, outFileName);
-    });
+    );
 };
 
 function getExtensionChangedFileName(fileName: string, newExtension) {
@@ -35,36 +34,41 @@ function jsonStringifyReplacer(key: string, value: any): any {
     }
 }
 
-function outputModle(colladaScene: ColladaParser.Scene, outFileName: string) {
+function outputModle(helper: Converters.ModelConverterHelper, outFileName: string) {
+
+    var modelMeshes = helper.modelMeshes;
 
     var meshes = [];
-    for (var meshName in colladaScene.meshes) {
-        var colladaMesh: ColladaParser.Mesh = colladaScene.meshes[meshName];
+    for (var meshIndex = 0; meshIndex < modelMeshes.length; meshIndex++) {
+        var modelMesh = modelMeshes[meshIndex];
 
         var vertexData = [];
-        for (var i = 0; i < colladaMesh.vertices.length / 3; i++) {
+        for (var i = 0; i < modelMesh.vertices.length; i++) {
+            var modelVertex = modelMesh.vertices[i];
 
-            var vec3Index = i * 3;
-            vertexData.push(colladaMesh.vertices[vec3Index]);
-            vertexData.push(colladaMesh.vertices[vec3Index + 1]);
-            vertexData.push(colladaMesh.vertices[vec3Index + 2]);
+            vertexData.push(modelVertex.position[0]);
+            vertexData.push(modelVertex.position[1]);
+            vertexData.push(modelVertex.position[2]);
 
-            vertexData.push(colladaMesh.normals[vec3Index]);
-            vertexData.push(colladaMesh.normals[vec3Index + 1]);
-            vertexData.push(colladaMesh.normals[vec3Index + 2]);
+            vertexData.push(modelVertex.normal[0]);
+            vertexData.push(modelVertex.normal[1]);
+            vertexData.push(modelVertex.normal[2]);
 
-            var vec2Index = i * 2;
-            vertexData.push(colladaMesh.coords[vec2Index]);
-            vertexData.push(colladaMesh.coords[vec2Index + 1]);
+            vertexData.push(modelVertex.texcoord[0]);
+            vertexData.push(modelVertex.texcoord[1]);
         }
 
         var indexData = [];
-        for (var i = 0; i < colladaMesh.triangles.length; i++) {
-            indexData.push(colladaMesh.triangles[i]);
+        for (var i = 0; i < modelMesh.faces.length; i++) {
+            var modelFace = modelMesh.faces[i];
+
+            for (var k = 0; k < modelFace.vertexIndeces.length; k++) {
+                indexData.push(modelFace.vertexIndeces[k]);
+            }
         }
 
         meshes.push({
-            name: colladaMesh.name,
+            name: modelMesh.name,
             vertex: vertexData,
             index: indexData
         });

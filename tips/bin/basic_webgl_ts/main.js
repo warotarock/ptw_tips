@@ -50,7 +50,7 @@ var GameMain = (function () {
         }
         this.render.attach(this.gl);
         this.render.initializeShader(this.shader);
-        this.render.initializeModelBuffer(this.modelResource, this.vertexData, this.indexData);
+        this.render.initializeModelBuffer(this.modelResource, this.vertexData, this.indexData, 4 * 5); // 4 (=sizeof float) * 5 (elements)
         var image = new RenderImage();
         this.loadTexture(image, "./texture.png");
         this.imageResources.push(image);
@@ -124,18 +124,19 @@ var BasicShader = (function (_super) {
             + "}";
     };
     BasicShader.prototype.initializeAttributes = function (gl) {
-        this.aPosition = this.getAttribute("aPosition", gl);
-        this.aTexCoord = this.getAttribute("aTexCoord", gl);
-        this.uPMatrix = this.getUniform("uPMatrix", gl);
-        this.uMVMatrix = this.getUniform("uMVMatrix", gl);
-        this.uTexture0 = this.getUniform("uTexture0", gl);
+        this.initializeAttributes_RenderShader(gl);
+        this.initializeAttributes_BasicShader(gl);
+    };
+    BasicShader.prototype.initializeAttributes_BasicShader = function (gl) {
+        this.aPosition = this.getAttribLocation("aPosition", gl);
+        this.aTexCoord = this.getAttribLocation("aTexCoord", gl);
+        this.uTexture0 = this.getUniformLocation("uTexture0", gl);
     };
     BasicShader.prototype.setBuffers = function (model, images, gl) {
         gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexBuffer);
-        gl.enableVertexAttribArray(this.aPosition);
-        gl.enableVertexAttribArray(this.aTexCoord);
-        gl.vertexAttribPointer(this.aPosition, 3, gl.FLOAT, false, 4 * 5, 0);
-        gl.vertexAttribPointer(this.aTexCoord, 2, gl.FLOAT, false, 4 * 5, 12);
+        this.enableVertexAttributes(gl);
+        gl.vertexAttribPointer(this.aPosition, 3, gl.FLOAT, false, model.vertexDataStride, 0);
+        gl.vertexAttribPointer(this.aTexCoord, 2, gl.FLOAT, false, model.vertexDataStride, 12);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, images[0].texture);

@@ -1,17 +1,20 @@
 
 class RenderModel {
 
-    vertexData: Array<number> = null;
-    indexData: Array<number> = null;
-
     vertexBuffer: WebGLBuffer = null;
     indexBuffer: WebGLBuffer = null;
+
+    vertexData: Array<number> = null;
+    indexData: Array<number> = null;
+    indexCount: int = 0;
+    vertexDataStride: int = 0;
 }
 
 class RenderImage {
 
-    imageData: HTMLImageElement = null;
     texture: WebGLTexture = null;
+
+    imageData: HTMLImageElement = null;
 }
 
 class RenderShader {
@@ -47,10 +50,17 @@ class RenderShader {
     }
 
     initializeAttributes(gl: WebGLRenderingContext) {
-        // override method
+
+        this.initializeAttributes_RenderShader(gl);
     }
 
-    protected getAttribute(name: string, gl: WebGLRenderingContext): int {
+    initializeAttributes_RenderShader(gl: WebGLRenderingContext) {
+
+        this.uPMatrix = this.getUniformLocation("uPMatrix", gl);
+        this.uMVMatrix = this.getUniformLocation("uMVMatrix", gl);
+    }
+
+    protected getAttribLocation(name: string, gl: WebGLRenderingContext): int {
 
         var attribLocation = gl.getAttribLocation(this.program, name);
         this.AttribLocationList.push(attribLocation);
@@ -58,13 +68,27 @@ class RenderShader {
         return attribLocation;
     }
 
-    protected getUniform(name: string, gl: WebGLRenderingContext): WebGLUniformLocation {
+    protected getUniformLocation(name: string, gl: WebGLRenderingContext): WebGLUniformLocation {
 
         return gl.getUniformLocation(this.program, name);
     }
 
     setBuffers(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
         // override methodr
+    }
+
+    enableVertexAttributes(gl: WebGLRenderingContext) {
+
+        for (var i = 0; i < this.AttribLocationList.length; i++) {
+            gl.enableVertexAttribArray(this.AttribLocationList[i]);
+        }
+    }
+
+    disableVertexAttributes(gl: WebGLRenderingContext) {
+
+        for (var i = 0; i < this.AttribLocationList.length; i++) {
+            gl.disableVertexAttribArray(this.AttribLocationList[i]);
+        }
     }
 }
 
@@ -83,13 +107,15 @@ class WebGLRender {
         this.floatPrecisionText = format.precision != 0 ? "highp" : "mediump";
     }
 
-    initializeModelBuffer(model: RenderModel, vertexData: Array<float>, indexData: Array<int>) {
+    initializeModelBuffer(model: RenderModel, vertexData: Array<float>, indexData: Array<int>, vertexDataStride: int) {
 
-        model.vertexData = vertexData;
         model.vertexBuffer = this.createVertexBuffer(vertexData, this.gl);
-
-        model.indexData = indexData;
         model.indexBuffer = this.createIndexBuffer(indexData, this.gl);
+
+        model.indexBuffer = vertexData;
+        model.vertexData = indexData;
+        model.indexCount = indexData.length;
+        model.vertexDataStride = vertexDataStride;
     }
 
     private createVertexBuffer(data: Array<float>, gl: WebGLRenderingContext) {
@@ -176,8 +202,14 @@ class WebGLRender {
 
     setShader(shader: RenderShader) {
 
+        var lastShader = this.currentShader;
+
         this.gl.useProgram(shader.program);
         this.currentShader = shader;
+
+        if (lastShader != null && lastShader.AttribLocationList.length != this.currentShader.AttribLocationList.length) {
+            lastShader.disableVertexAttributes(this.gl);
+        }
     }
 
     setBuffers(model: RenderModel, images: List<RenderImage>) {
@@ -219,7 +251,7 @@ class WebGLRender {
     }
 
     drawElements(model: RenderModel) {
-        this.gl.drawElements(this.gl.TRIANGLES, model.indexData.length, this.gl.UNSIGNED_SHORT, 0);
+        this.gl.drawElements(this.gl.TRIANGLES, model.indexCount, this.gl.UNSIGNED_SHORT, 0);
     }
 }
 

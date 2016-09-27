@@ -37,6 +37,7 @@
     <Content Include="basic_webgl_ts\README.md" />
     <Content Include="blend_file_reader_sample\README.md" />
     <Content Include="tips_core\README.md" />
+    <Content Include="README.md" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -51,6 +52,7 @@
     <TypeScriptCompile Include="blend_file_reader_sample\main.ts" />
     <TypeScriptCompile Include="tips_core\blend_file_reader.ts" />
     <TypeScriptCompile Include="tips_core\conversion.ts" />
+    <TypeScriptCompile Include="tips_core\model_converters.ts" />
     <TypeScriptCompile Include="typings\github-electron\github-electron.d.ts" />
     <TypeScriptCompile Include="typings\glmatrix\gl-matrix.d.ts" />
     <TypeScriptCompile Include="typings\jagenjo_collada\collada.d.ts" />
