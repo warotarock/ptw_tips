@@ -112,8 +112,8 @@ class WebGLRender {
         model.vertexBuffer = this.createVertexBuffer(vertexData, this.gl);
         model.indexBuffer = this.createIndexBuffer(indexData, this.gl);
 
-        model.indexBuffer = vertexData;
-        model.vertexData = indexData;
+        model.vertexData = vertexData;
+        model.indexData = indexData;
         model.indexCount = indexData.length;
         model.vertexDataStride = vertexDataStride;
     }
@@ -254,4 +254,3 @@ class WebGLRender {
         this.gl.drawElements(this.gl.TRIANGLES, model.indexCount, this.gl.UNSIGNED_SHORT, 0);
     }
 }
-

@@ -83,8 +83,8 @@ var WebGLRender = (function () {
     WebGLRender.prototype.initializeModelBuffer = function (model, vertexData, indexData, vertexDataStride) {
         model.vertexBuffer = this.createVertexBuffer(vertexData, this.gl);
         model.indexBuffer = this.createIndexBuffer(indexData, this.gl);
-        model.indexBuffer = vertexData;
-        model.vertexData = indexData;
+        model.vertexData = vertexData;
+        model.indexData = indexData;
         model.indexCount = indexData.length;
         model.vertexDataStride = vertexDataStride;
     };
