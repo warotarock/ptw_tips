@@ -1,212 +1,215 @@
 
-class GameMain {
+namespace BasicWebGL {
 
-    logicalScreenWidth = 640.0;
-    logicalScreenHeight = 360.0;
+    class GameMain {
 
-    canvas: HTMLCanvasElement = null;
-    gl: WebGLRenderingContext = null;
+        logicalScreenWidth = 640.0;
+        logicalScreenHeight = 360.0;
 
-    render = new WebGLRender();
-    shader = new BasicShader();
-    modelResource = new RenderModel();
-    imageResources = new List<RenderImage>();
+        canvas: HTMLCanvasElement = null;
+        gl: WebGLRenderingContext = null;
 
-    // x, y, z, u, v
-    vertexData = [
-        0.0, -0.2, 0.20, 0.00, 0.00,
-        0.0, 0.20, 0.20, 1.00, 0.00,
-        0.0, -0.2, -0.2, 0.00, 1.00,
-        0.0, 0.20, -0.2, 1.00, 1.00
-    ];
+        render = new WebGLRender();
+        shader = new BasicShader();
+        modelResource = new RenderModel();
+        imageResources = new List<RenderImage>();
 
-    indexData = [
-        0, 1, 2,
-        3, 2, 1
-    ];
+        // x, y, z, u, v
+        vertexData = [
+            0.0, -0.2, 0.20, 0.00, 0.00,
+            0.0, 0.20, 0.20, 1.00, 0.00,
+            0.0, -0.2, -0.2, 0.00, 1.00,
+            0.0, 0.20, -0.2, 1.00, 1.00
+        ];
 
-    eyeLocation = vec3.create();
-    lookatLocation = vec3.create();
-    upVector = vec3.create();
+        indexData = [
+            0, 1, 2,
+            3, 2, 1
+        ];
 
-    modelMatrix = mat4.create();
-    viewMatrix = mat4.create();
-    pMatrix = mat4.create();
-    mvMatrix = mat4.create();
+        eyeLocation = vec3.create();
+        lookatLocation = vec3.create();
+        upVector = vec3.create();
 
-    animationTime = 0.0;
+        modelMatrix = mat4.create();
+        viewMatrix = mat4.create();
+        pMatrix = mat4.create();
+        mvMatrix = mat4.create();
 
-    initialize(canvas: HTMLCanvasElement) {
+        animationTime = 0.0;
 
-        this.canvas = canvas;
-        this.canvas.width = this.logicalScreenWidth;
-        this.canvas.height = this.logicalScreenHeight;
+        initialize(canvas: HTMLCanvasElement) {
 
-        try {
-            var option = { preserveDrawingBuffer: true, antialias: true };
+            this.canvas = canvas;
+            this.canvas.width = this.logicalScreenWidth;
+            this.canvas.height = this.logicalScreenHeight;
 
-            this.gl = <WebGLRenderingContext>(
-                canvas.getContext("webgl", option)
-                || canvas.getContext("experimental-webgl", option)
-            );
+            try {
+                var option = { preserveDrawingBuffer: true, antialias: true };
 
-            if (this.gl == null) {
+                this.gl = <WebGLRenderingContext>(
+                    canvas.getContext("webgl", option)
+                    || canvas.getContext("experimental-webgl", option)
+                );
+
+                if (this.gl == null) {
+                    return;
+                }
+            }
+            catch (e) {
                 return;
             }
-        }
-        catch (e) {
-            return;
-        }
 
-        this.render.attach(this.gl);
-        this.render.initializeShader(this.shader);
-        this.render.initializeModelBuffer(this.modelResource, this.vertexData, this.indexData, 4 * 5); // 4 (=sizeof float) * 5 (elements)
+            this.render.attach(this.gl);
+            this.render.initializeShader(this.shader);
+            this.render.initializeModelBuffer(this.modelResource, this.vertexData, this.indexData, 4 * 5); // 4 (=sizeof float) * 5 (elements)
 
-        var image = new RenderImage();
-        this.loadTexture(image, "./texture.png");
-        this.imageResources.push(image);
-    }
-
-    run() {
-
-        this.animationTime += 1.0;
-
-        vec3.set(this.eyeLocation, 0.6, 0.0, 0.3);
-        vec3.set(this.lookatLocation, 0.0, 0.0, 0.0);
-        vec3.set(this.upVector, 0.0, 0.0, 1.0);
-    }
-
-    draw() {
-
-        var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
-        mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.0, 5.0);
-        //mat4.ortho(this.pMatrix, -aspect * 0.3, aspect * 0.3, -0.3, 0.3, 0.0, 5.0);
-        mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
-
-        this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
-
-        if (this.imageResources[0].texture == null) {
-            return;
+            var image = new RenderImage();
+            this.loadTexture(image, "./texture.png");
+            this.imageResources.push(image);
         }
 
-        this.render.setShader(this.shader);
-        this.render.setBuffers(this.modelResource, this.imageResources);
-        this.render.setProjectionMatrix(this.pMatrix);
+        run() {
 
-        this.drawModel(this.animationTime * 0.02);
+            this.animationTime += 1.0;
+
+            vec3.set(this.eyeLocation, 0.6, 0.0, 0.3);
+            vec3.set(this.lookatLocation, 0.0, 0.0, 0.0);
+            vec3.set(this.upVector, 0.0, 0.0, 1.0);
+        }
+
+        draw() {
+
+            var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
+            mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.0, 5.0);
+            //mat4.ortho(this.pMatrix, -aspect * 0.3, aspect * 0.3, -0.3, 0.3, 0.0, 5.0);
+            mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
+
+            this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
+
+            if (this.imageResources[0].texture == null) {
+                return;
+            }
+
+            this.render.setShader(this.shader);
+            this.render.setBuffers(this.modelResource, this.imageResources);
+            this.render.setProjectionMatrix(this.pMatrix);
+
+            this.drawModel(this.animationTime * 0.02);
+        }
+
+        private drawModel(angle: float) {
+
+            mat4.identity(this.modelMatrix);
+            mat4.rotateZ(this.modelMatrix, this.modelMatrix, angle * 3);
+
+            mat4.multiply(this.mvMatrix, this.viewMatrix, this.modelMatrix);
+
+            this.render.setModelViewMatrix(this.mvMatrix);
+
+            this.render.resetBasicParameters();
+
+            this.render.drawElements(this.modelResource);
+        }
+
+        private loadTexture(image: RenderImage, url: string) {
+
+            image.imageData = new Image();
+
+            image.imageData.addEventListener("load", () => {
+                this.render.initializeImageTexture(image);
+            });
+
+            image.imageData.src = url;
+        }
     }
 
-    private drawModel(angle: float) {
+    class BasicShader extends RenderShader {
 
-        mat4.identity(this.modelMatrix);
-        mat4.rotateZ(this.modelMatrix, this.modelMatrix, angle * 3);
+        aPosition = 0;
+        aTexCoord = 0;
 
-        mat4.multiply(this.mvMatrix, this.viewMatrix, this.modelMatrix);
+        uTexture0: WebGLUniformLocation = null;
 
-        this.render.setModelViewMatrix(this.mvMatrix);
+        initializeVertexSourceCode() {
 
-        this.render.resetBasicParameters();
+            this.vertexShaderSourceCode = ""
+                + this.floatPrecisionDefinitionCode
 
-        this.render.drawElements(this.modelResource);
+                + "attribute vec3 aPosition;"
+                + "attribute vec2 aTexCoord;"
+
+                + "uniform mat4 uPMatrix;"
+                + "uniform mat4 uMVMatrix;"
+
+                + "varying vec2 vTexCoord;"
+
+                + "void main(void) {"
+                + "	   gl_Position = uPMatrix * uMVMatrix * vec4(aPosition, 1.0);"
+                + "    vTexCoord = aTexCoord;"
+                + "}";
+        }
+
+        initializeFragmentSourceCode() {
+
+            this.fragmentShaderSourceCode = ""
+                + this.floatPrecisionDefinitionCode
+
+                + "varying vec2 vTexCoord;"
+
+                + "uniform sampler2D uTexture0;"
+
+                + "void main(void) {"
+                + "    gl_FragColor = texture2D(uTexture0, vTexCoord);"
+                + "}";
+        }
+
+        initializeAttributes(gl: WebGLRenderingContext) {
+
+            this.initializeAttributes_RenderShader(gl);
+            this.initializeAttributes_BasicShader(gl);
+        }
+
+        initializeAttributes_BasicShader(gl: WebGLRenderingContext) {
+
+            this.aPosition = this.getAttribLocation("aPosition", gl);
+            this.aTexCoord = this.getAttribLocation("aTexCoord", gl);
+
+            this.uTexture0 = this.getUniformLocation("uTexture0", gl);
+        }
+
+        setBuffers(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexBuffer);
+
+            this.enableVertexAttributes(gl);
+
+            gl.vertexAttribPointer(this.aPosition, 3, gl.FLOAT, false, model.vertexDataStride, 0);
+            gl.vertexAttribPointer(this.aTexCoord, 2, gl.FLOAT, false, model.vertexDataStride, 12);
+
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, images[0].texture);
+            gl.uniform1i(this.uTexture0, 0);
+        }
     }
 
-    private loadTexture(image: RenderImage, url: string) {
+    var gameMain: GameMain;
 
-        image.imageData = new Image();
+    window.onload = () => {
 
-        image.imageData.addEventListener("load", () => {
-            this.render.initializeImageTexture(image);
-        });
+        var canvas = <HTMLCanvasElement>document.getElementById("canvas");
+        gameMain = new GameMain();
+        gameMain.initialize(canvas);
 
-        image.imageData.src = url;
+        setTimeout(run, 1000 / 30);
+    };
+
+    function run() {
+        gameMain.run();
+        gameMain.draw();
+
+        setTimeout(run, 1000 / 30);
     }
-}
-
-class BasicShader extends RenderShader {
-
-    aPosition = 0;
-    aTexCoord = 0;
-
-    uTexture0: WebGLUniformLocation = null;
-
-    initializeVertexSourceCode() {
-
-        this.vertexShaderSourceCode = ""
-            + this.floatPrecisionDefinitionCode
-
-            + "attribute vec3 aPosition;"
-            + "attribute vec2 aTexCoord;"
-
-            + "uniform mat4 uPMatrix;"
-            + "uniform mat4 uMVMatrix;"
-
-            + "varying vec2 vTexCoord;"
-
-            + "void main(void) {"
-            + "	   gl_Position = uPMatrix * uMVMatrix * vec4(aPosition, 1.0);"
-            + "    vTexCoord = aTexCoord;"
-            + "}";
-    }
-
-    initializeFragmentSourceCode() {
-
-        this.fragmentShaderSourceCode = ""
-            + this.floatPrecisionDefinitionCode
-
-            + "varying vec2 vTexCoord;"
-
-            + "uniform sampler2D uTexture0;"
-
-            + "void main(void) {"
-            + "    gl_FragColor = texture2D(uTexture0, vTexCoord);"
-            + "}";
-    }
-
-    initializeAttributes(gl: WebGLRenderingContext) {
-
-        this.initializeAttributes_RenderShader(gl);
-        this.initializeAttributes_BasicShader(gl);
-    }
-
-    initializeAttributes_BasicShader(gl: WebGLRenderingContext) {
-
-        this.aPosition = this.getAttribLocation("aPosition", gl);
-        this.aTexCoord = this.getAttribLocation("aTexCoord", gl);
-
-        this.uTexture0 = this.getUniformLocation("uTexture0", gl);
-    }
-
-    setBuffers(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexBuffer);
-
-        this.enableVertexAttributes(gl);
-
-        gl.vertexAttribPointer(this.aPosition, 3, gl.FLOAT, false, model.vertexDataStride, 0);
-        gl.vertexAttribPointer(this.aTexCoord, 2, gl.FLOAT, false, model.vertexDataStride, 12);
-
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, images[0].texture);
-        gl.uniform1i(this.uTexture0, 0);
-    }
-}
-
-var gameMain: GameMain;
-
-window.onload = () => {
-
-    var canvas = <HTMLCanvasElement>document.getElementById("canvas");
-    gameMain = new GameMain();
-    gameMain.initialize(canvas);
-
-    setTimeout(run, 1000 / 30);
-};
-
-function run() {
-    gameMain.run();
-    gameMain.draw();
-
-    setTimeout(run, 1000 / 30);
 }

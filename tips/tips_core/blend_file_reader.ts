@@ -38,6 +38,10 @@ namespace BlendFileReader {
             this.readPointer += offset;
         }
 
+        seekTo(offset: uint) {
+            this.readPointer = offset;
+        }
+
         snapTo4ByteBoundary() {
             if ((this.readPointer % 4) != 0) {
                 this.readPointer += 4 - this.readPointer % 4;
@@ -170,6 +174,18 @@ namespace BlendFileReader {
         readPointerWord(): long {
 
             return (this.pointerBitSize == 32 ? this.readUInt32() : this.readUInt64());
+        }
+
+        readPointerWordArray(length: uint): List<long> {
+
+            var result = new List<long>();
+
+            for (var i = 0; i < length; i++) {
+
+                result[i] = this.readPointerWord();
+            }
+
+            return result;
         }
 
         readFloat(): float {
@@ -372,6 +388,7 @@ namespace BlendFileReader {
         bhead: BHead;
         baseOffset: uint;
         reader: BinaryReader;
+        elementCount: uint;
     }
 
     export class DNA {
@@ -446,7 +463,7 @@ namespace BlendFileReader {
                 for (var k = 0; k < typeInfo.fieldInfoList.length; k++) {
                     var fieldInfo = typeInfo.fieldInfoList[k];
 
-                    fieldInfo.isStructure = (fieldInfo.typeName in this.structureTypeInfos);
+                    fieldInfo.isStructure = (!fieldInfo.isPointer && (fieldInfo.typeName in this.structureTypeInfos));
                 }
             }
 
@@ -457,7 +474,7 @@ namespace BlendFileReader {
         private createStructureFieldInfo(typeName: string, definitionName: string, size: uint, pointerByteSize: uint, offset: uint): StructureFieldInfo {
 
             var isPointer = false;
-            if (definitionName.indexOf("*") != -1) {
+            if (definitionName.indexOf('*') != -1) {
                 size = pointerByteSize;
                 isPointer = true;
             }
@@ -511,7 +528,7 @@ namespace BlendFileReader {
                             property_DataSet = dataSet[fieldValuePropertyName];
                         }
                         else {
-                            property_DataSet = dna.createDataSet(dna.structureTypeInfos[fieldInfo.typeName], dataSet.bhead, fieldInfo.offset);
+                            property_DataSet = dna.createDataSetFromTypeInfo(dna.structureTypeInfos[fieldInfo.typeName], dataSet.bhead, fieldInfo.offset);
                             dataSet[fieldValuePropertyName] = property_DataSet;
                         }
 
@@ -534,11 +551,16 @@ namespace BlendFileReader {
                         }
                         else {
 
-                            dataSet.reader.seek(dataSet.baseOffset + fieldInfo.offset);
+                            dataSet.reader.seekTo(dataSet.baseOffset + fieldInfo.offset);
 
                             var value: any;
                             if (fieldInfo.isPointer) {
-                                value = dataSet.reader.readPointerWord();;
+                                if (fieldInfo.elementCount == 1) {
+                                    value = dataSet.reader.readPointerWord();
+                                }
+                                else {
+                                    value = dataSet.reader.readPointerWordArray(fieldInfo.elementCount);
+                                }
                             }
                             else if (fieldInfo.typeName == "float") {
                                 if (fieldInfo.elementCount == 1) {
@@ -618,10 +640,10 @@ namespace BlendFileReader {
                 endIndex = definitionName.length;
             }
             else {
-                endIndex = endIndex - 1;
+                endIndex = endIndex;
             }
 
-            return definitionName.substring(startIndex, endIndex - startIndex + 1);
+            return definitionName.substring(startIndex, endIndex);
         }
 
         getSDNAIndex(name: string): uint {
@@ -645,11 +667,45 @@ namespace BlendFileReader {
             }
         }
 
-        createDataSet(typeInfo: StructureTypeInfo, bHead: BHead, offset: uint): SDNADataSet {
+        getStructureTypeInfoByID(sdnaIndex: uint): StructureTypeInfo {
+
+            return this.structureTypeInfoList[sdnaIndex];
+        }
+
+        createDataSetFromBHead(bHead: BHead): SDNADataSet | any {
+
+            var typeInfo = this.getStructureTypeInfoByID(bHead.SDNAnr)
+
+            var dataSet = this.createDataSetFromTypeInfo(typeInfo, bHead, 0);
+
+            // accessor like array in a data block
+            if (typeInfo.sdnaIndex == 0) {
+                dataSet.elementCount = bHead.len / (bHead.pointerBitSize / 8);
+                for (var i = 0; i < dataSet.elementCount; i++) {
+                    dataSet[i] = dataSet.reader.readPointerWord();
+                }
+            }
+            else {
+                for (var i = 0; i < dataSet.elementCount; i++) {
+                    if (i == 0) {
+                        dataSet[i] = dataSet;
+                    }
+                    else {
+                        var offset = i * bHead.len / bHead.nr;
+                        dataSet[i] = this.createDataSetFromTypeInfo(typeInfo, bHead, offset);
+                    }
+                }
+            }
+
+            return dataSet;
+        }
+
+        createDataSetFromTypeInfo(typeInfo: StructureTypeInfo, bHead: BHead, offset: uint): SDNADataSet {
 
             var dataSet: SDNADataSet = new typeInfo.datasetPrototype();
             dataSet.bhead = bHead;
             dataSet.baseOffset = offset;
+            dataSet.elementCount = bHead.nr;
             dataSet.reader = new BinaryReader();
             dataSet.reader.setBinaryFormat(bHead.pointerBitSize, bHead.littleEndian);
             dataSet.reader.attach(bHead.data);

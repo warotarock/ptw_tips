@@ -24,20 +24,18 @@
   <ItemGroup>
     <Content Include="basic_model_converter\index.html" />
     <Content Include="basic_model_converter\README.md" />
-    <Content Include="basic_model_converter\sample.blend" />
-    <Content Include="basic_model_converter\sample.dae" />
-    <Content Include="basic_model_converter\texture.png" />
     <Content Include="basic_webgl_ts\index.html" />
     <Content Include="blend_file_reader_sample\index.html" />
+    <Content Include="skinning_model_converter\index.html" />
     <Content Include="tips_core\app.css" />
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="blend_file_reader_sample\sample.blend" />
     <Content Include="basic_webgl_ts\README.md" />
     <Content Include="blend_file_reader_sample\README.md" />
     <Content Include="tips_core\README.md" />
     <Content Include="README.md" />
+    <Content Include="skinning_model_converter\README.md" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -50,12 +48,13 @@
     <TypeScriptCompile Include="basic_webgl_ts\render.ts" />
     <TypeScriptCompile Include="basic_webgl_ts\main.ts" />
     <TypeScriptCompile Include="blend_file_reader_sample\main.ts" />
+    <TypeScriptCompile Include="skinning_model_converter\main.ts" />
     <TypeScriptCompile Include="tips_core\blend_file_reader.ts" />
     <TypeScriptCompile Include="tips_core\conversion.ts" />
     <TypeScriptCompile Include="tips_core\model_converters.ts" />
     <TypeScriptCompile Include="typings\github-electron\github-electron.d.ts" />
     <TypeScriptCompile Include="typings\glmatrix\gl-matrix.d.ts" />
-    <TypeScriptCompile Include="typings\jagenjo_collada\collada.d.ts" />
+    <TypeScriptCompile Include="typings\linq\linq.d.ts" />
     <TypeScriptCompile Include="typings\node\node.d.ts" />
   </ItemGroup>
   <ItemGroup />

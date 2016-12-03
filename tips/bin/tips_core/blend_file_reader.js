@@ -28,6 +28,9 @@ var BlendFileReader;
         BinaryReader.prototype.seek = function (offset) {
             this.readPointer += offset;
         };
+        BinaryReader.prototype.seekTo = function (offset) {
+            this.readPointer = offset;
+        };
         BinaryReader.prototype.snapTo4ByteBoundary = function () {
             if ((this.readPointer % 4) != 0) {
                 this.readPointer += 4 - this.readPointer % 4;
@@ -105,6 +108,13 @@ var BlendFileReader;
         };
         BinaryReader.prototype.readPointerWord = function () {
             return (this.pointerBitSize == 32 ? this.readUInt32() : this.readUInt64());
+        };
+        BinaryReader.prototype.readPointerWordArray = function (length) {
+            var result = new List();
+            for (var i = 0; i < length; i++) {
+                result[i] = this.readPointerWord();
+            }
+            return result;
         };
         BinaryReader.prototype.readFloat = function () {
             var result = this.data.getFloat32(this.readPointer, this.isLittleEndian());
@@ -304,7 +314,7 @@ var BlendFileReader;
                 var typeInfo = this.structureTypeInfoList[i];
                 for (var k = 0; k < typeInfo.fieldInfoList.length; k++) {
                     var fieldInfo = typeInfo.fieldInfoList[k];
-                    fieldInfo.isStructure = (fieldInfo.typeName in this.structureTypeInfos);
+                    fieldInfo.isStructure = (!fieldInfo.isPointer && (fieldInfo.typeName in this.structureTypeInfos));
                 }
             }
             // 構造体のプロトタイプの生成
@@ -312,7 +322,7 @@ var BlendFileReader;
         };
         DNA.prototype.createStructureFieldInfo = function (typeName, definitionName, size, pointerByteSize, offset) {
             var isPointer = false;
-            if (definitionName.indexOf("*") != -1) {
+            if (definitionName.indexOf('*') != -1) {
                 size = pointerByteSize;
                 isPointer = true;
             }
@@ -353,7 +363,7 @@ var BlendFileReader;
                             property_DataSet = dataSet[fieldValuePropertyName];
                         }
                         else {
-                            property_DataSet = dna.createDataSet(dna.structureTypeInfos[fieldInfo.typeName], dataSet.bhead, fieldInfo.offset);
+                            property_DataSet = dna.createDataSetFromTypeInfo(dna.structureTypeInfos[fieldInfo.typeName], dataSet.bhead, fieldInfo.offset);
                             dataSet[fieldValuePropertyName] = property_DataSet;
                         }
                         return property_DataSet;
@@ -372,11 +382,15 @@ var BlendFileReader;
                             return dataSet[fieldValuePropertyName];
                         }
                         else {
-                            dataSet.reader.seek(dataSet.baseOffset + fieldInfo.offset);
+                            dataSet.reader.seekTo(dataSet.baseOffset + fieldInfo.offset);
                             var value;
                             if (fieldInfo.isPointer) {
-                                value = dataSet.reader.readPointerWord();
-                                ;
+                                if (fieldInfo.elementCount == 1) {
+                                    value = dataSet.reader.readPointerWord();
+                                }
+                                else {
+                                    value = dataSet.reader.readPointerWordArray(fieldInfo.elementCount);
+                                }
                             }
                             else if (fieldInfo.typeName == "float") {
                                 if (fieldInfo.elementCount == 1) {
@@ -448,9 +462,9 @@ var BlendFileReader;
                 endIndex = definitionName.length;
             }
             else {
-                endIndex = endIndex - 1;
+                endIndex = endIndex;
             }
-            return definitionName.substring(startIndex, endIndex - startIndex + 1);
+            return definitionName.substring(startIndex, endIndex);
         };
         DNA.prototype.getSDNAIndex = function (name) {
             if (name in this.structureTypeInfos) {
@@ -469,10 +483,37 @@ var BlendFileReader;
                 return undefined;
             }
         };
-        DNA.prototype.createDataSet = function (typeInfo, bHead, offset) {
+        DNA.prototype.getStructureTypeInfoByID = function (sdnaIndex) {
+            return this.structureTypeInfoList[sdnaIndex];
+        };
+        DNA.prototype.createDataSetFromBHead = function (bHead) {
+            var typeInfo = this.getStructureTypeInfoByID(bHead.SDNAnr);
+            var dataSet = this.createDataSetFromTypeInfo(typeInfo, bHead, 0);
+            // accessor like array in a data block
+            if (typeInfo.sdnaIndex == 0) {
+                dataSet.elementCount = bHead.len / (bHead.pointerBitSize / 8);
+                for (var i = 0; i < dataSet.elementCount; i++) {
+                    dataSet[i] = dataSet.reader.readPointerWord();
+                }
+            }
+            else {
+                for (var i = 0; i < dataSet.elementCount; i++) {
+                    if (i == 0) {
+                        dataSet[i] = dataSet;
+                    }
+                    else {
+                        var offset = i * bHead.len / bHead.nr;
+                        dataSet[i] = this.createDataSetFromTypeInfo(typeInfo, bHead, offset);
+                    }
+                }
+            }
+            return dataSet;
+        };
+        DNA.prototype.createDataSetFromTypeInfo = function (typeInfo, bHead, offset) {
             var dataSet = new typeInfo.datasetPrototype();
             dataSet.bhead = bHead;
             dataSet.baseOffset = offset;
+            dataSet.elementCount = bHead.nr;
             dataSet.reader = new BinaryReader();
             dataSet.reader.setBinaryFormat(bHead.pointerBitSize, bHead.littleEndian);
             dataSet.reader.attach(bHead.data);
