@@ -1,7 +1,7 @@
 
 namespace BasicWebGL {
 
-    class GameMain {
+    class Main {
 
         logicalScreenWidth = 640.0;
         logicalScreenHeight = 360.0;
@@ -48,8 +48,8 @@ namespace BasicWebGL {
                 var option = { preserveDrawingBuffer: true, antialias: true };
 
                 this.gl = <WebGLRenderingContext>(
-                    canvas.getContext("webgl", option)
-                    || canvas.getContext("experimental-webgl", option)
+                    canvas.getContext('webgl', option)
+                    || canvas.getContext('experimental-webgl', option)
                 );
 
                 if (this.gl == null) {
@@ -65,7 +65,7 @@ namespace BasicWebGL {
             this.render.initializeModelBuffer(this.modelResource, this.vertexData, this.indexData, 4 * 5); // 4 (=sizeof float) * 5 (elements)
 
             var image = new RenderImage();
-            this.loadTexture(image, "./texture.png");
+            this.loadTexture(image, './texture.png');
             this.imageResources.push(image);
         }
 
@@ -76,13 +76,15 @@ namespace BasicWebGL {
             vec3.set(this.eyeLocation, 0.6, 0.0, 0.3);
             vec3.set(this.lookatLocation, 0.0, 0.0, 0.0);
             vec3.set(this.upVector, 0.0, 0.0, 1.0);
+
+            mat4.identity(this.modelMatrix);
+            mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.animationTime * 0.02);
         }
 
         draw() {
 
             var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
             mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.0, 5.0);
-            //mat4.ortho(this.pMatrix, -aspect * 0.3, aspect * 0.3, -0.3, 0.3, 0.0, 5.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
 
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
@@ -95,28 +97,25 @@ namespace BasicWebGL {
             this.render.setBuffers(this.modelResource, this.imageResources);
             this.render.setProjectionMatrix(this.pMatrix);
 
-            this.drawModel(this.animationTime * 0.02);
+            this.drawModel(this.modelMatrix, this.modelResource);
         }
 
-        private drawModel(angle: float) {
+        private drawModel(modelMatrix: Mat4, modelResource: RenderModel) {
 
-            mat4.identity(this.modelMatrix);
-            mat4.rotateZ(this.modelMatrix, this.modelMatrix, angle * 3);
-
-            mat4.multiply(this.mvMatrix, this.viewMatrix, this.modelMatrix);
+            mat4.multiply(this.mvMatrix, this.viewMatrix, modelMatrix);
 
             this.render.setModelViewMatrix(this.mvMatrix);
 
             this.render.resetBasicParameters();
 
-            this.render.drawElements(this.modelResource);
+            this.render.drawElements(modelResource);
         }
 
         private loadTexture(image: RenderImage, url: string) {
 
             image.imageData = new Image();
 
-            image.imageData.addEventListener("load", () => {
+            image.imageData.addEventListener('load', () => {
                 this.render.initializeImageTexture(image);
             });
 
@@ -126,42 +125,42 @@ namespace BasicWebGL {
 
     class BasicShader extends RenderShader {
 
-        aPosition = 0;
-        aTexCoord = 0;
+        aPosition = -1;
+        aTexCoord = -1;
 
         uTexture0: WebGLUniformLocation = null;
 
         initializeVertexSourceCode() {
 
-            this.vertexShaderSourceCode = ""
+            this.vertexShaderSourceCode = ''
                 + this.floatPrecisionDefinitionCode
 
-                + "attribute vec3 aPosition;"
-                + "attribute vec2 aTexCoord;"
+                + 'attribute vec3 aPosition;'
+                + 'attribute vec2 aTexCoord;'
 
-                + "uniform mat4 uPMatrix;"
-                + "uniform mat4 uMVMatrix;"
+                + 'uniform mat4 uPMatrix;'
+                + 'uniform mat4 uMVMatrix;'
 
-                + "varying vec2 vTexCoord;"
+                + 'varying vec2 vTexCoord;'
 
-                + "void main(void) {"
-                + "	   gl_Position = uPMatrix * uMVMatrix * vec4(aPosition, 1.0);"
-                + "    vTexCoord = aTexCoord;"
-                + "}";
+                + 'void main(void) {'
+                + '	   gl_Position = uPMatrix * uMVMatrix * vec4(aPosition, 1.0);'
+                + '    vTexCoord = aTexCoord;'
+                + '}';
         }
 
         initializeFragmentSourceCode() {
 
-            this.fragmentShaderSourceCode = ""
+            this.fragmentShaderSourceCode = ''
                 + this.floatPrecisionDefinitionCode
 
-                + "varying vec2 vTexCoord;"
+                + 'varying vec2 vTexCoord;'
 
-                + "uniform sampler2D uTexture0;"
+                + 'uniform sampler2D uTexture0;'
 
-                + "void main(void) {"
-                + "    gl_FragColor = texture2D(uTexture0, vTexCoord);"
-                + "}";
+                + 'void main(void) {'
+                + '    gl_FragColor = texture2D(uTexture0, vTexCoord);'
+                + '}';
         }
 
         initializeAttributes(gl: WebGLRenderingContext) {
@@ -172,10 +171,10 @@ namespace BasicWebGL {
 
         initializeAttributes_BasicShader(gl: WebGLRenderingContext) {
 
-            this.aPosition = this.getAttribLocation("aPosition", gl);
-            this.aTexCoord = this.getAttribLocation("aTexCoord", gl);
+            this.aPosition = this.getAttribLocation('aPosition', gl);
+            this.aTexCoord = this.getAttribLocation('aTexCoord', gl);
 
-            this.uTexture0 = this.getUniformLocation("uTexture0", gl);
+            this.uTexture0 = this.getUniformLocation('uTexture0', gl);
         }
 
         setBuffers(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
@@ -195,20 +194,20 @@ namespace BasicWebGL {
         }
     }
 
-    var gameMain: GameMain;
+    var _Main: Main;
 
     window.onload = () => {
 
-        var canvas = <HTMLCanvasElement>document.getElementById("canvas");
-        gameMain = new GameMain();
-        gameMain.initialize(canvas);
+        var canvas = <HTMLCanvasElement>document.getElementById('canvas');
+        _Main = new Main();
+        _Main.initialize(canvas);
 
         setTimeout(run, 1000 / 30);
     };
 
     function run() {
-        gameMain.run();
-        gameMain.draw();
+        _Main.run();
+        _Main.draw();
 
         setTimeout(run, 1000 / 30);
     }

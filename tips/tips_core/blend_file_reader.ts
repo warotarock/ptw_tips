@@ -289,23 +289,23 @@ namespace BlendFileReader {
         }
 
         isBrendFile(): boolean {
-            return (this.identifier == "BLENDER")
+            return (this.identifier == 'BLENDER')
         }
 
         isBigEndian(): boolean {
-            return (this.endianness == "V")
+            return (this.endianness == 'V')
         }
 
         isLittleEndian(): boolean {
-            return (this.endianness == "v")
+            return (this.endianness == 'v')
         }
 
         getPointerBitSize(): uint {
-            return (this.pointer_size == "_" ? 32 : 64)
+            return (this.pointer_size == '_' ? 32 : 64)
         }
 
         getPointerByteSize(): uint {
-            return (this.pointer_size == "_" ? 4 : 8)
+            return (this.pointer_size == '_' ? 4 : 8)
         }
     }
 
@@ -345,10 +345,10 @@ namespace BlendFileReader {
             this.pointerBitSize = reader.getPointerBitSize();
             this.littleEndian = reader.isLittleEndian();
 
-            if (this.code == "DNA1") {
+            if (this.code == 'DNA1') {
                 this.blockCode = BHeadBlockCodes.DNA1;
             }
-            else if (this.code == "ENDB") {
+            else if (this.code == 'ENDB') {
                 this.blockCode = BHeadBlockCodes.ENDB;
             }
             else {
@@ -511,7 +511,7 @@ namespace BlendFileReader {
         private defineStructureProperty(typeInfo: StructureTypeInfo, fieldInfo: StructureFieldInfo) {
 
             var dna = this;
-            var fieldValuePropertyName = "_" + fieldInfo.name;
+            var fieldValuePropertyName = '_' + fieldInfo.name;
 
             if (fieldInfo.isStructure) {
                 // 構造体であるメンバにアクセスするプロパティの定義
@@ -562,7 +562,7 @@ namespace BlendFileReader {
                                     value = dataSet.reader.readPointerWordArray(fieldInfo.elementCount);
                                 }
                             }
-                            else if (fieldInfo.typeName == "float") {
+                            else if (fieldInfo.typeName == 'float') {
                                 if (fieldInfo.elementCount == 1) {
                                     value = dataSet.reader.readFloat();
                                 }
@@ -570,7 +570,7 @@ namespace BlendFileReader {
                                     value = dataSet.reader.readFloatArray(fieldInfo.elementCount);
                                 }
                             }
-                            else if (fieldInfo.typeName == "int") {
+                            else if (fieldInfo.typeName == 'int') {
                                 if (fieldInfo.elementCount == 1) {
                                     value = dataSet.reader.readInt32();
                                 }
@@ -578,7 +578,7 @@ namespace BlendFileReader {
                                     value = dataSet.reader.readInt32Array(fieldInfo.elementCount);
                                 }
                             }
-                            else if (fieldInfo.typeName == "short") {
+                            else if (fieldInfo.typeName == 'short') {
                                 if (fieldInfo.elementCount == 1) {
                                     value = dataSet.reader.readInt16();
                                 }
@@ -586,7 +586,7 @@ namespace BlendFileReader {
                                     value = dataSet.reader.readInt16Array(fieldInfo.elementCount);
                                 }
                             }
-                            else if (fieldInfo.typeName == "char") {
+                            else if (fieldInfo.typeName == 'char') {
                                 if (fieldInfo.elementCount == 1) {
                                     value = dataSet.reader.readInt8();
                                 }
@@ -610,10 +610,10 @@ namespace BlendFileReader {
 
         getElementCountFromName(definitionName: string): uint {
 
-            if (definitionName.indexOf("[") == -1) {
+            if (definitionName.indexOf('[') == -1) {
                 return 1;
             }
-            var regex = new RegExp("\[[0-9]+\]", "g");
+            var regex = new RegExp('\[[0-9]+\]', 'g');
             var maches = definitionName.match(regex);
 
             var count = 1;

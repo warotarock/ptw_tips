@@ -185,19 +185,19 @@ var BlendFileReader;
             this.version_number = reader.readString(3);
         };
         BlendFileHeader.prototype.isBrendFile = function () {
-            return (this.identifier == "BLENDER");
+            return (this.identifier == 'BLENDER');
         };
         BlendFileHeader.prototype.isBigEndian = function () {
-            return (this.endianness == "V");
+            return (this.endianness == 'V');
         };
         BlendFileHeader.prototype.isLittleEndian = function () {
-            return (this.endianness == "v");
+            return (this.endianness == 'v');
         };
         BlendFileHeader.prototype.getPointerBitSize = function () {
-            return (this.pointer_size == "_" ? 32 : 64);
+            return (this.pointer_size == '_' ? 32 : 64);
         };
         BlendFileHeader.prototype.getPointerByteSize = function () {
-            return (this.pointer_size == "_" ? 4 : 8);
+            return (this.pointer_size == '_' ? 4 : 8);
         };
         return BlendFileHeader;
     }());
@@ -224,10 +224,10 @@ var BlendFileReader;
             this.data = null;
             this.pointerBitSize = reader.getPointerBitSize();
             this.littleEndian = reader.isLittleEndian();
-            if (this.code == "DNA1") {
+            if (this.code == 'DNA1') {
                 this.blockCode = BHeadBlockCodes.DNA1;
             }
-            else if (this.code == "ENDB") {
+            else if (this.code == 'ENDB') {
                 this.blockCode = BHeadBlockCodes.ENDB;
             }
             else {
@@ -350,7 +350,7 @@ var BlendFileReader;
         };
         DNA.prototype.defineStructureProperty = function (typeInfo, fieldInfo) {
             var dna = this;
-            var fieldValuePropertyName = "_" + fieldInfo.name;
+            var fieldValuePropertyName = '_' + fieldInfo.name;
             if (fieldInfo.isStructure) {
                 // 構造体であるメンバにアクセスするプロパティの定義
                 Object.defineProperty(typeInfo.datasetPrototype.prototype, fieldInfo.name, {
@@ -392,7 +392,7 @@ var BlendFileReader;
                                     value = dataSet.reader.readPointerWordArray(fieldInfo.elementCount);
                                 }
                             }
-                            else if (fieldInfo.typeName == "float") {
+                            else if (fieldInfo.typeName == 'float') {
                                 if (fieldInfo.elementCount == 1) {
                                     value = dataSet.reader.readFloat();
                                 }
@@ -400,7 +400,7 @@ var BlendFileReader;
                                     value = dataSet.reader.readFloatArray(fieldInfo.elementCount);
                                 }
                             }
-                            else if (fieldInfo.typeName == "int") {
+                            else if (fieldInfo.typeName == 'int') {
                                 if (fieldInfo.elementCount == 1) {
                                     value = dataSet.reader.readInt32();
                                 }
@@ -408,7 +408,7 @@ var BlendFileReader;
                                     value = dataSet.reader.readInt32Array(fieldInfo.elementCount);
                                 }
                             }
-                            else if (fieldInfo.typeName == "short") {
+                            else if (fieldInfo.typeName == 'short') {
                                 if (fieldInfo.elementCount == 1) {
                                     value = dataSet.reader.readInt16();
                                 }
@@ -416,7 +416,7 @@ var BlendFileReader;
                                     value = dataSet.reader.readInt16Array(fieldInfo.elementCount);
                                 }
                             }
-                            else if (fieldInfo.typeName == "char") {
+                            else if (fieldInfo.typeName == 'char') {
                                 if (fieldInfo.elementCount == 1) {
                                     value = dataSet.reader.readInt8();
                                 }
@@ -437,10 +437,10 @@ var BlendFileReader;
             }
         };
         DNA.prototype.getElementCountFromName = function (definitionName) {
-            if (definitionName.indexOf("[") == -1) {
+            if (definitionName.indexOf('[') == -1) {
                 return 1;
             }
-            var regex = new RegExp("\[[0-9]+\]", "g");
+            var regex = new RegExp('\[[0-9]+\]', 'g');
             var maches = definitionName.match(regex);
             var count = 1;
             for (var i = 0; i < maches.length; i++) {

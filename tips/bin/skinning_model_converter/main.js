@@ -126,6 +126,15 @@ var SkinningModelConverter;
                         vertices.push(vpos.normal[1]);
                         vertices.push(vpos.normal[2]);
                     }
+                    if (skinVertex.positions.length == 1 || skinVertex.positions.length == 3) {
+                        vertices.push(0.0);
+                        vertices.push(0.0);
+                        vertices.push(0.0);
+                        vertices.push(0.0);
+                        vertices.push(0.0);
+                        vertices.push(0.0);
+                        vertices.push(0.0);
+                    }
                 }
                 var indices = [];
                 for (var modelIndex = 0; modelIndex < skinPart.faces.length; modelIndex++) {
@@ -159,6 +168,17 @@ var SkinningModelConverter;
         }
         return convetedModels;
     }
+    function getBoneParentIndex(boneList, parent) {
+        if (parent == null) {
+            return -1;
+        }
+        for (var i = 0; i < boneList.length; i++) {
+            if (boneList[i].name == parent.name) {
+                return i;
+            }
+        }
+        return -1;
+    }
     function output(convetedModels, outFileName) {
         var out = [];
         out.push('{');
@@ -181,7 +201,7 @@ var SkinningModelConverter;
                 var bone = convetedModel.bones[boneIndex];
                 out.push('      {' +
                     '\"name\": \"' + bone.name + '\"' +
-                    ', \"parent\": ' + bone.parent +
+                    ', \"parent\": ' + getBoneParentIndex(convetedModel.bones, bone.parent) +
                     ', \"matrix\": ' + JSON.stringify(floatArrayToArray(bone.localMatrix), jsonStringifyReplacer) +
                     '}' + (boneIndex < convetedModel.bones.length - 1 ? ',' : ''));
             }

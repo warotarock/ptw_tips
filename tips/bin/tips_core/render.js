@@ -18,9 +18,9 @@ var RenderImage = (function () {
 }());
 var RenderShader = (function () {
     function RenderShader() {
-        this.floatPrecisionDefinitionCode = "";
-        this.vertexShaderSourceCode = "";
-        this.fragmentShaderSourceCode = "";
+        this.floatPrecisionDefinitionCode = '';
+        this.vertexShaderSourceCode = '';
+        this.fragmentShaderSourceCode = '';
         this.vertexShader = null;
         this.fragmentShader = null;
         this.program = null;
@@ -29,7 +29,7 @@ var RenderShader = (function () {
         this.uMVMatrix = null;
     }
     RenderShader.prototype.initializeSourceCode = function (precisionText) {
-        this.floatPrecisionDefinitionCode = "#ifdef GL_ES\n precision " + precisionText + " float;\n #endif\n";
+        this.floatPrecisionDefinitionCode = '#ifdef GL_ES\n precision ' + precisionText + ' float;\n #endif\n';
         this.initializeVertexSourceCode();
         this.initializeFragmentSourceCode();
     };
@@ -43,8 +43,8 @@ var RenderShader = (function () {
         this.initializeAttributes_RenderShader(gl);
     };
     RenderShader.prototype.initializeAttributes_RenderShader = function (gl) {
-        this.uPMatrix = this.getUniformLocation("uPMatrix", gl);
-        this.uMVMatrix = this.getUniformLocation("uMVMatrix", gl);
+        this.uPMatrix = this.getUniformLocation('uPMatrix', gl);
+        this.uMVMatrix = this.getUniformLocation('uMVMatrix', gl);
     };
     RenderShader.prototype.getAttribLocation = function (name, gl) {
         var attribLocation = gl.getAttribLocation(this.program, name);
@@ -72,13 +72,13 @@ var RenderShader = (function () {
 var WebGLRender = (function () {
     function WebGLRender() {
         this.gl = null;
-        this.floatPrecisionText = "";
+        this.floatPrecisionText = '';
         this.currentShader = null;
     }
     WebGLRender.prototype.attach = function (gl) {
         this.gl = gl;
         var format = this.gl.getShaderPrecisionFormat(this.gl.FRAGMENT_SHADER, this.gl.HIGH_FLOAT);
-        this.floatPrecisionText = format.precision != 0 ? "highp" : "mediump";
+        this.floatPrecisionText = format.precision != 0 ? 'highp' : 'mediump';
     };
     WebGLRender.prototype.initializeModelBuffer = function (model, vertexData, indexData, vertexDataStride) {
         model.vertexBuffer = this.createVertexBuffer(vertexData, this.gl);
@@ -165,7 +165,6 @@ var WebGLRender = (function () {
     };
     WebGLRender.prototype.clearColorBufferDepthBuffer = function (r, g, b, a) {
         this.gl.clearColor(r, g, b, a);
-        this.gl.clearDepth(1.0);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     };
     WebGLRender.prototype.resetBasicParameters = function () {

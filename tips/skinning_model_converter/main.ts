@@ -169,6 +169,18 @@ namespace SkinningModelConverter {
                         vertices.push(vpos.normal[1]);
                         vertices.push(vpos.normal[2]);
                     }
+
+                    if (skinVertex.positions.length == 1 || skinVertex.positions.length == 3) {
+                        vertices.push(0.0);
+
+                        vertices.push(0.0);
+                        vertices.push(0.0);
+                        vertices.push(0.0);
+
+                        vertices.push(0.0);
+                        vertices.push(0.0);
+                        vertices.push(0.0);
+                    }
                 }
 
                 var indices = [];
@@ -209,6 +221,22 @@ namespace SkinningModelConverter {
         return convetedModels;
     }
 
+    function getBoneParentIndex(boneList: List<Converters.SkinningBone>, parent: Converters.SkinningBone) {
+
+        if (parent == null) {
+            return -1;
+        }
+
+        for (var i = 0; i < boneList.length; i++) {
+
+            if (boneList[i].name == parent.name) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
     function output(convetedModels: List<ConvertedModel>, outFileName: string) {
 
         var out = [];
@@ -235,7 +263,7 @@ namespace SkinningModelConverter {
                 var bone = convetedModel.bones[boneIndex];
                 out.push('      {' +
                     '\"name\": \"' + bone.name + '\"' +
-                    ', \"parent\": ' + bone.parent +
+                    ', \"parent\": ' + getBoneParentIndex(convetedModel.bones, bone.parent) +
                     ', \"matrix\": ' + JSON.stringify(floatArrayToArray(bone.localMatrix), jsonStringifyReplacer) +
                     '}' + (boneIndex < convetedModel.bones.length - 1 ? ',' : ''));
             }

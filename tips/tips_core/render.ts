@@ -19,9 +19,9 @@ class RenderImage {
 
 class RenderShader {
 
-    floatPrecisionDefinitionCode: string = "";
-    vertexShaderSourceCode = "";
-    fragmentShaderSourceCode = "";
+    floatPrecisionDefinitionCode: string = '';
+    vertexShaderSourceCode = '';
+    fragmentShaderSourceCode = '';
 
     vertexShader: WebGLShader = null;
     fragmentShader: WebGLShader = null;
@@ -34,7 +34,7 @@ class RenderShader {
 
     initializeSourceCode(precisionText: string) {
 
-        this.floatPrecisionDefinitionCode = "#ifdef GL_ES\n precision " + precisionText + " float;\n #endif\n";
+        this.floatPrecisionDefinitionCode = '#ifdef GL_ES\n precision ' + precisionText + ' float;\n #endif\n';
 
         this.initializeVertexSourceCode();
 
@@ -56,8 +56,8 @@ class RenderShader {
 
     initializeAttributes_RenderShader(gl: WebGLRenderingContext) {
 
-        this.uPMatrix = this.getUniformLocation("uPMatrix", gl);
-        this.uMVMatrix = this.getUniformLocation("uMVMatrix", gl);
+        this.uPMatrix = this.getUniformLocation('uPMatrix', gl);
+        this.uMVMatrix = this.getUniformLocation('uMVMatrix', gl);
     }
 
     protected getAttribLocation(name: string, gl: WebGLRenderingContext): int {
@@ -95,7 +95,7 @@ class RenderShader {
 class WebGLRender {
 
     gl: WebGLRenderingContext = null;
-    floatPrecisionText: string = "";
+    floatPrecisionText: string = '';
 
     currentShader: RenderShader = null;
 
@@ -104,7 +104,7 @@ class WebGLRender {
         this.gl = gl;
 
         var format = this.gl.getShaderPrecisionFormat(this.gl.FRAGMENT_SHADER, this.gl.HIGH_FLOAT);
-        this.floatPrecisionText = format.precision != 0 ? "highp" : "mediump";
+        this.floatPrecisionText = format.precision != 0 ? 'highp' : 'mediump';
     }
 
     initializeModelBuffer(model: RenderModel, vertexData: Array<float>, indexData: Array<int>, vertexDataStride: int) {
@@ -230,7 +230,6 @@ class WebGLRender {
     clearColorBufferDepthBuffer(r: float, g: float, b: float, a: float) {
 
         this.gl.clearColor(r, g, b, a);
-        this.gl.clearDepth(1.0);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     }
 

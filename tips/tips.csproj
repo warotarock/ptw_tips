@@ -26,6 +26,7 @@
     <Content Include="basic_model_converter\README.md" />
     <Content Include="basic_webgl_ts\index.html" />
     <Content Include="blend_file_reader_sample\index.html" />
+    <Content Include="skinning_model_drawing\index.html" />
     <Content Include="skinning_model_converter\index.html" />
     <Content Include="tips_core\app.css" />
     <Content Include="web.config" />
@@ -36,6 +37,7 @@
     <Content Include="tips_core\README.md" />
     <Content Include="README.md" />
     <Content Include="skinning_model_converter\README.md" />
+    <Content Include="skinning_model_drawing\README.md" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -45,13 +47,14 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="basic_model_converter\main.ts" />
-    <TypeScriptCompile Include="basic_webgl_ts\render.ts" />
     <TypeScriptCompile Include="basic_webgl_ts\main.ts" />
     <TypeScriptCompile Include="blend_file_reader_sample\main.ts" />
+    <TypeScriptCompile Include="skinning_model_drawing\main.ts" />
     <TypeScriptCompile Include="skinning_model_converter\main.ts" />
     <TypeScriptCompile Include="tips_core\blend_file_reader.ts" />
     <TypeScriptCompile Include="tips_core\conversion.ts" />
     <TypeScriptCompile Include="tips_core\model_converters.ts" />
+    <TypeScriptCompile Include="tips_core\render.ts" />
     <TypeScriptCompile Include="typings\github-electron\github-electron.d.ts" />
     <TypeScriptCompile Include="typings\glmatrix\gl-matrix.d.ts" />
     <TypeScriptCompile Include="typings\linq\linq.d.ts" />
