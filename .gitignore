@@ -5,7 +5,6 @@
 *.sln.docstates
 *.lnk
 /.vs/
-/tips/temp/*.json
 /tips/bin/*.dll
 /tips/bin/*.pdb
 /tips/bin/*.config
