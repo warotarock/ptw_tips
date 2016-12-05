@@ -83,7 +83,7 @@ namespace SkinningModelConverter {
 
     function getMeshInfoFromBlend(blendFile: BlendFileReader.ReadBlendFileResult): Dictionary<MeshInfo> {
 
-        var bheadDictionary = new Array();
+        var bheadDictionary = new Dictionary<BlendFileReader.BHead>();
         Enumerable.From(blendFile.bheadList)
             .ForEach(bhead => bheadDictionary[bhead.old] = bhead);
 

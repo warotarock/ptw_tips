@@ -61,7 +61,7 @@ var SkinningModelConverter;
         return result;
     }
     function getMeshInfoFromBlend(blendFile) {
-        var bheadDictionary = new Array();
+        var bheadDictionary = new Dictionary();
         Enumerable.From(blendFile.bheadList)
             .ForEach(function (bhead) { return bheadDictionary[bhead.old] = bhead; });
         var mesh_TypeInfo = blendFile.dna.getStructureTypeInfo('Mesh');

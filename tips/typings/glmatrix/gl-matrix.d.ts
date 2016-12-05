@@ -3,6 +3,7 @@
 type Vec2 = Float32Array;
 type Vec3 = Float32Array;
 type Vec4 = Float32Array;
+type Quat4 = Float32Array;
 type Mat2 = Float32Array;
 type Mat2d = Float32Array;
 type Mat3 = Float32Array;
@@ -111,32 +112,32 @@ declare module vec4 {
 }
 
 declare module quat {
-    export function create(): Vec4;
-    export function clone(a: Vec4 | number[]): Vec4;
-    export function fromValues(x: number, y: number, z: number, w: number): Vec4;
-    export function copy(out: Vec4, a: Vec4 | number[]): Vec4;
-    export function set(out: Vec4, x: number, y: number, z: number, w: number): Vec4;
-    export function identity(out: Vec4): Vec4;
-    export function setAxisAngle(out: Vec4, axis: Vec3, rad: number): Vec4;
-    export function add(out: Vec4, a: Vec4 | number[], b: Vec4 | number[]): Vec4;
-    export function mul(out: Vec4, a: Vec4 | number[], b: Vec4 | number[]): Vec4;
-    export function multiply(out: Vec4, a: Vec4 | number[], b: Vec4 | number[]): Vec4;
-    export function scale(out: Vec4, a: Vec4 | number[], b: number): Vec4;
-    export function rotateX(out: Vec4, a: Vec4 | number[], rad: number): Vec4;
-    export function rotateY(out: Vec4, a: Vec4 | number[], rad: number): Vec4;
-    export function rotateZ(out: Vec4, a: Vec4 | number[], rad: number): Vec4;
-    export function calculateW(out: Vec4, a: Vec4 | number[]): Vec4;
-    export function dot(a: Vec4 | number[], b: Vec4 | number[]): number;
-    export function lerp(out: Vec4, a: Vec4 | number[], b: Vec4 | number[], t: number): Vec4;
-    export function slerp(out: Vec4, a: Vec4 | number[], b: Vec4 | number[], t: number): Vec4;
-    export function invert(out: Vec4, a: Vec4 | number[]): Vec4;
-    export function conjugate(out: Vec4, a: Vec4 | number[]): Vec4;
-    export function len(a: Vec4 | number[]): number;
-    export function length(a: Vec4 | number[]): number;
-    export function sqrLen(a: Vec4 | number[]): number;
-    export function squaredLength(a: Vec4 | number[]): number;
-    export function normalize(out: Vec4, a: Vec4 | number[]): Vec4;
-    export function str(a: Vec4 | number[]): string;
+    export function create(): Quat4;
+    export function clone(a: Quat4 | number[]): Quat4;
+    export function fromValues(x: number, y: number, z: number, w: number): Quat4;
+    export function copy(out: Quat4, a: Quat4 | number[]): Quat4;
+    export function set(out: Quat4, x: number, y: number, z: number, w: number): Quat4;
+    export function identity(out: Quat4): Quat4;
+    export function setAxisAngle(out: Quat4, axis: Vec3, rad: number): Quat4;
+    export function add(out: Quat4, a: Quat4 | number[], b: Quat4 | number[]): Quat4;
+    export function mul(out: Quat4, a: Quat4 | number[], b: Quat4 | number[]): Quat4;
+    export function multiply(out: Quat4, a: Quat4 | number[], b: Quat4 | number[]): Quat4;
+    export function scale(out: Quat4, a: Quat4 | number[], b: number): Quat4;
+    export function rotateX(out: Quat4, a: Quat4 | number[], rad: number): Quat4;
+    export function rotateY(out: Quat4, a: Quat4 | number[], rad: number): Quat4;
+    export function rotateZ(out: Quat4, a: Quat4 | number[], rad: number): Quat4;
+    export function calculateW(out: Quat4, a: Quat4 | number[]): Quat4;
+    export function dot(a: Quat4 | number[], b: Quat4 | number[]): number;
+    export function lerp(out: Quat4, a: Quat4 | number[], b: Quat4 | number[], t: number): Quat4;
+    export function slerp(out: Quat4, a: Quat4 | number[], b: Quat4 | number[], t: number): Quat4;
+    export function invert(out: Quat4, a: Quat4 | number[]): Quat4;
+    export function conjugate(out: Quat4, a: Quat4 | number[]): Quat4;
+    export function len(a: Quat4 | number[]): number;
+    export function length(a: Quat4 | number[]): number;
+    export function sqrLen(a: Quat4 | number[]): number;
+    export function squaredLength(a: Quat4 | number[]): number;
+    export function normalize(out: Quat4, a: Quat4 | number[]): Quat4;
+    export function str(a: Quat4 | number[]): string;
 }
 
 declare module mat2 {

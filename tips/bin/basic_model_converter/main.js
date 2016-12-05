@@ -9,7 +9,8 @@ var BasicModelConverter;
         collada_loader.load(fileName, function (threeJSCollada) {
             var helper = new Converters.ThreeJSColladaConverterHelper();
             helper.attach(threeJSCollada);
-            outputModelFile(helper, outFileName);
+            var convetedModels = convert(helper.staticMeshes);
+            output(convetedModels, outFileName);
         });
     };
     function getExtensionChangedFileName(fileName, newExtension) {
@@ -23,8 +24,7 @@ var BasicModelConverter;
             return value;
         }
     }
-    function outputModelFile(helper, outFileName) {
-        var staticMeshes = helper.staticMeshes;
+    function convert(staticMeshes) {
         var convetedMeshes = [];
         for (var meshIndex = 0; meshIndex < staticMeshes.length; meshIndex++) {
             var mesh = staticMeshes[meshIndex];
@@ -55,6 +55,9 @@ var BasicModelConverter;
                 indices: indices
             });
         }
+        return convetedMeshes;
+    }
+    function output(convetedMeshes, outFileName) {
         var out = [];
         out.push('{');
         for (var i = 0; i < convetedMeshes.length; i++) {

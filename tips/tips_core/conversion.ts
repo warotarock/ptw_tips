@@ -20,3 +20,11 @@ type stringvalue = string;
 type wchar = string;
 type wstring = string;
 type wstringvalue = string;
+
+function DictionaryContainsKey<T>(dic: Dictionary<T>, key: string): boolean {
+    return (key in dic);
+}
+
+function StringIsNullOrEmpty(str: string): boolean {
+    return (str == null || str == undefined || str == "");
+}

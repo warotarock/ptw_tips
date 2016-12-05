@@ -16,7 +16,9 @@ namespace BasicModelConverter {
             function (threeJSCollada) {
                 var helper = new Converters.ThreeJSColladaConverterHelper();
                 helper.attach(threeJSCollada);
-                outputModelFile(helper, outFileName);
+
+                var convetedModels = convert(helper.staticMeshes);
+                output(convetedModels, outFileName);
             }
         );
     };
@@ -36,9 +38,7 @@ namespace BasicModelConverter {
         }
     }
 
-    function outputModelFile(helper: Converters.ModelConverterHelper, outFileName: string) {
-
-        var staticMeshes = helper.staticMeshes;
+    function convert(staticMeshes: List<Converters.Mesh>): List<any> {
 
         var convetedMeshes = [];
         for (var meshIndex = 0; meshIndex < staticMeshes.length; meshIndex++) {
@@ -77,6 +77,11 @@ namespace BasicModelConverter {
                 indices: indices
             });
         }
+
+        return convetedMeshes;
+    }
+
+    function output(convetedMeshes: List<any>, outFileName: string) {
 
         var out = [];
         out.push('{')
