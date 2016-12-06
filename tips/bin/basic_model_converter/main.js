@@ -2,6 +2,11 @@
 var fs = require('fs');
 var BasicModelConverter;
 (function (BasicModelConverter) {
+    var ConvertedModel = (function () {
+        function ConvertedModel() {
+        }
+        return ConvertedModel;
+    }());
     window.onload = function () {
         var fileName = 'sample_basic_model.dae';
         var outFileName = getExtensionChangedFileName('../temp/' + fileName, 'json');
@@ -25,7 +30,7 @@ var BasicModelConverter;
         }
     }
     function convert(staticMeshes) {
-        var convetedMeshes = [];
+        var convetedModels = new List();
         for (var meshIndex = 0; meshIndex < staticMeshes.length; meshIndex++) {
             var mesh = staticMeshes[meshIndex];
             var vertices = [];
@@ -49,13 +54,14 @@ var BasicModelConverter;
                     indices.push(modelFace.vertexIndeces[k]);
                 }
             }
-            convetedMeshes.push({
+            convetedModels.push({
                 name: mesh.name,
+                vertexStride: (3 + 3) + (2 * mesh.vertices[0].texcoords.length),
                 vertices: vertices,
                 indices: indices
             });
         }
-        return convetedMeshes;
+        return convetedModels;
     }
     function output(convetedMeshes, outFileName) {
         var out = [];
@@ -63,7 +69,8 @@ var BasicModelConverter;
         for (var i = 0; i < convetedMeshes.length; i++) {
             var convetedMesh = convetedMeshes[i];
             out.push('  \"' + convetedMesh.name + '\": {');
-            out.push('    \"vertex\": ' + JSON.stringify(convetedMesh.vertices, jsonStringifyReplacer));
+            out.push('    \"vertexStride\": ' + convetedMesh.vertexStride);
+            out.push('    , \"vertex\": ' + JSON.stringify(convetedMesh.vertices, jsonStringifyReplacer));
             out.push('    , \"index\": ' + JSON.stringify(convetedMesh.indices));
             out.push('  }' + (i < convetedMeshes.length - 1 ? ',' : ''));
         }

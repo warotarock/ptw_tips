@@ -17,6 +17,7 @@ namespace SkinningModelDrawing {
     interface SkinningModelPartData {
         bone: List<int>;
         material: int;
+        vertexStride: int;
         vertex: List<float>;
         index: List<int>;
 
@@ -230,14 +231,8 @@ namespace SkinningModelDrawing {
             for (var i = 0; i < skinningModel.data.parts.length; i++) {
                 var part = skinningModel.data.parts[i];
 
-                var boneCount = (part.bone.length <= 2 ? 2 : 4); // shaders supports 2 or 4 bones only in this sample
-                var vertexSize = 1 + 3 + 3; // weight + position + normal
-                var uvCount = 3;
-                var uvSize = 2;
-                var vertexStride = 4 * (uvSize * uvCount + vertexSize * boneCount);
-
                 var renderModel = new RenderModel();
-                this.render.initializeModelBuffer(renderModel, part.vertex, part.index, vertexStride);
+                this.render.initializeModelBuffer(renderModel, part.vertex, part.index, 4 * part.vertexStride); // 4 (=size of float)
 
                 part.renderModel = renderModel;
             }
@@ -284,15 +279,15 @@ namespace SkinningModelDrawing {
             this.vertexShaderSourceCode = ''
                 + this.floatPrecisionDefinitionCode
 
-                + 'attribute vec2 aTexCoord1;'
-
-                + 'attribute vec3 aVertexPosition1;'
                 + 'attribute float aWeight1;'
+                + 'attribute vec3 aVertexPosition1;'
                 + 'attribute vec3 aVertexNormal1;'
 
-                + 'attribute vec3 aVertexPosition2;'
                 + 'attribute float aWeight2;'
+                + 'attribute vec3 aVertexPosition2;'
                 + 'attribute vec3 aVertexNormal2;'
+
+                + 'attribute vec2 aTexCoord1;'
 
                 + 'uniform mat4 uBoneMatrix1;'
                 + 'uniform mat4 uBoneMatrix2;'
@@ -339,8 +334,6 @@ namespace SkinningModelDrawing {
 
         initializeAttributes_Bone2Shader(gl: WebGLRenderingContext) {
 
-            this.aTexCoord1 = this.getAttribLocation('aTexCoord1', gl);
-
             this.aWeight1 = this.getAttribLocation('aWeight1', gl);
             this.aVertexPosition1 = this.getAttribLocation('aVertexPosition1', gl);
             this.aVertexNormal1 = this.getAttribLocation('aVertexNormal1', gl);
@@ -348,6 +341,8 @@ namespace SkinningModelDrawing {
             this.aWeight2 = this.getAttribLocation('aWeight2', gl);
             this.aVertexPosition2 = this.getAttribLocation('aVertexPosition2', gl);
             this.aVertexNormal2 = this.getAttribLocation('aVertexNormal2', gl);
+
+            this.aTexCoord1 = this.getAttribLocation('aTexCoord1', gl);
 
             this.uNormalMatrix = this.getUniformLocation('uNormalMatrix', gl);
 
@@ -360,6 +355,7 @@ namespace SkinningModelDrawing {
         setBuffers(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
 
             this.setBuffers_Bone2Shader(model, images, gl);
+            this.setBuffers_Bone2Shader_UV(model, gl);
         }
 
         setBuffers_Bone2Shader(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
@@ -367,24 +363,28 @@ namespace SkinningModelDrawing {
             gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexBuffer);
 
             this.enableVertexAttributes(gl);
+            this.resetVertexAttribPointerOffset();
 
-            gl.vertexAttribPointer(this.aTexCoord1, 2, gl.FLOAT, false, model.vertexDataStride, 0);
-            //gl.vertexAttribPointer(this.aTexCoord2, 2, gl.FLOAT, false, model.vertexDataStride, 8); skip (not used in this sample)
-            //gl.vertexAttribPointer(this.aTexCoord3, 2, gl.FLOAT, false, model.vertexDataStride, 16); skip (not used in this sample)
+            this.vertexAttribPointer(this.aWeight1, 1, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aVertexPosition1, 3, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aVertexNormal1, 3, gl.FLOAT, model.vertexDataStride, gl);
 
-            gl.vertexAttribPointer(this.aWeight1, 1, gl.FLOAT, false, model.vertexDataStride, 24);
-            gl.vertexAttribPointer(this.aVertexPosition1, 3, gl.FLOAT, false, model.vertexDataStride, 28);
-            gl.vertexAttribPointer(this.aVertexNormal1, 3, gl.FLOAT, false, model.vertexDataStride, 40);
-
-            gl.vertexAttribPointer(this.aWeight2, 1, gl.FLOAT, false, model.vertexDataStride, 52);
-            gl.vertexAttribPointer(this.aVertexPosition2, 3, gl.FLOAT, false, model.vertexDataStride, 56);
-            gl.vertexAttribPointer(this.aVertexNormal2, 3, gl.FLOAT, false, model.vertexDataStride, 68);
+            this.vertexAttribPointer(this.aWeight2, 1, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aVertexPosition2, 3, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aVertexNormal2, 3, gl.FLOAT, model.vertexDataStride, gl);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
 
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, images[0].texture);
             gl.uniform1i(this.uTexture0, 0);
+        }
+
+        setBuffers_Bone2Shader_UV(model: RenderModel, gl: WebGLRenderingContext) {
+
+            this.vertexAttribPointer(this.aTexCoord1, 2, gl.FLOAT, model.vertexDataStride, gl);
+            //this.vertexAttribPointer(this.aTexCoord2, 2, gl.FLOAT, model.vertexDataStride, gl); skip (not used in this sample)
+            //this.vertexAttribPointer(this.aTexCoord3, 2, gl.FLOAT, model.vertexDataStride, gl); skip (not used in this sample)
         }
 
         setNormalMatrix(matrix: Mat4, gl: WebGLRenderingContext) {
@@ -419,23 +419,23 @@ namespace SkinningModelDrawing {
             this.vertexShaderSourceCode = ''
                 + this.floatPrecisionDefinitionCode
 
-                + 'attribute vec2 aTexCoord1;'
-
-                + 'attribute vec3 aVertexPosition1;'
                 + 'attribute float aWeight1;'
+                + 'attribute vec3 aVertexPosition1;'
                 + 'attribute vec3 aVertexNormal1;'
 
-                + 'attribute vec3 aVertexPosition2;'
                 + 'attribute float aWeight2;'
+                + 'attribute vec3 aVertexPosition2;'
                 + 'attribute vec3 aVertexNormal2;'
 
-                + 'attribute vec3 aVertexPosition3;'
                 + 'attribute float aWeight3;'
+                + 'attribute vec3 aVertexPosition3;'
                 + 'attribute vec3 aVertexNormal3;'
 
-                + 'attribute vec3 aVertexPosition4;'
                 + 'attribute float aWeight4;'
+                + 'attribute vec3 aVertexPosition4;'
                 + 'attribute vec3 aVertexNormal4;'
+
+                + 'attribute vec2 aTexCoord1;'
 
                 + 'uniform mat4 uBoneMatrix1;'
                 + 'uniform mat4 uBoneMatrix2;'
@@ -493,17 +493,18 @@ namespace SkinningModelDrawing {
 
             this.setBuffers_Bone2Shader(model, images, gl);
             this.setBuffers_Bone4Shader(model, images, gl);
+            this.setBuffers_Bone2Shader_UV(model, gl);
         }
 
         setBuffers_Bone4Shader(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
 
-            gl.vertexAttribPointer(this.aWeight3, 1, gl.FLOAT, false, model.vertexDataStride, 80);
-            gl.vertexAttribPointer(this.aVertexPosition3, 3, gl.FLOAT, false, model.vertexDataStride, 84);
-            gl.vertexAttribPointer(this.aVertexNormal3, 3, gl.FLOAT, false, model.vertexDataStride, 96);
+            this.vertexAttribPointer(this.aWeight3, 1, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aVertexPosition3, 3, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aVertexNormal3, 3, gl.FLOAT, model.vertexDataStride, gl);
 
-            gl.vertexAttribPointer(this.aWeight4, 1, gl.FLOAT, false, model.vertexDataStride, 108);
-            gl.vertexAttribPointer(this.aVertexPosition4, 3, gl.FLOAT, false, model.vertexDataStride, 112);
-            gl.vertexAttribPointer(this.aVertexNormal4, 3, gl.FLOAT, false, model.vertexDataStride, 124);
+            this.vertexAttribPointer(this.aWeight4, 1, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aVertexPosition4, 3, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aVertexNormal4, 3, gl.FLOAT, model.vertexDataStride, gl);
         }
 
         setBoneMatrix(boneIndex: int, matrix: Mat4, gl: WebGLRenderingContext) {

@@ -19,7 +19,7 @@ class RenderImage {
 
 class RenderShader {
 
-    floatPrecisionDefinitionCode: string = '';
+    floatPrecisionDefinitionCode = '';
     vertexShaderSourceCode = '';
     fragmentShaderSourceCode = '';
 
@@ -28,6 +28,7 @@ class RenderShader {
     program: WebGLProgram = null;
 
     AttribLocationList = new List<int>();
+    VertexAttribPointerOffset = 0;
 
     uPMatrix: WebGLUniformLocation = null;
     uMVMatrix: WebGLUniformLocation = null;
@@ -88,6 +89,18 @@ class RenderShader {
 
         for (var i = 0; i < this.AttribLocationList.length; i++) {
             gl.disableVertexAttribArray(this.AttribLocationList[i]);
+        }
+    }
+
+    resetVertexAttribPointerOffset() {
+        this.VertexAttribPointerOffset = 0;
+    }
+
+    vertexAttribPointer(indx: number, size: number, type: number, stride: number, gl: WebGLRenderingContext) {
+
+        if (type == gl.FLOAT || type == gl.INT) {
+            gl.vertexAttribPointer(indx, size, type, false, stride, this.VertexAttribPointerOffset);
+            this.VertexAttribPointerOffset += 4 * size;
         }
     }
 }

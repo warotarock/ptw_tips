@@ -25,6 +25,7 @@ var RenderShader = (function () {
         this.fragmentShader = null;
         this.program = null;
         this.AttribLocationList = new List();
+        this.VertexAttribPointerOffset = 0;
         this.uPMatrix = null;
         this.uMVMatrix = null;
     }
@@ -65,6 +66,15 @@ var RenderShader = (function () {
     RenderShader.prototype.disableVertexAttributes = function (gl) {
         for (var i = 0; i < this.AttribLocationList.length; i++) {
             gl.disableVertexAttribArray(this.AttribLocationList[i]);
+        }
+    };
+    RenderShader.prototype.resetVertexAttribPointerOffset = function () {
+        this.VertexAttribPointerOffset = 0;
+    };
+    RenderShader.prototype.vertexAttribPointer = function (indx, size, type, stride, gl) {
+        if (type == gl.FLOAT || type == gl.INT) {
+            gl.vertexAttribPointer(indx, size, type, false, stride, this.VertexAttribPointerOffset);
+            this.VertexAttribPointerOffset += 4 * size;
         }
     };
     return RenderShader;

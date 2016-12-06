@@ -52,7 +52,7 @@ var BasicWebGL;
             }
             this.render.attach(this.gl);
             this.render.initializeShader(this.shader);
-            this.render.initializeModelBuffer(this.modelResource, this.vertexData, this.indexData, 4 * 5); // 4 (=sizeof float) * 5 (elements)
+            this.render.initializeModelBuffer(this.modelResource, this.vertexData, this.indexData, 4 * 5); // 4 (=size of float) * 5 (elements)
             var image = new RenderImage();
             this.loadTexture(image, './texture.png');
             this.imageResources.push(image);
@@ -136,8 +136,9 @@ var BasicWebGL;
         BasicShader.prototype.setBuffers = function (model, images, gl) {
             gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexBuffer);
             this.enableVertexAttributes(gl);
-            gl.vertexAttribPointer(this.aPosition, 3, gl.FLOAT, false, model.vertexDataStride, 0);
-            gl.vertexAttribPointer(this.aTexCoord, 2, gl.FLOAT, false, model.vertexDataStride, 12);
+            this.resetVertexAttribPointerOffset();
+            this.vertexAttribPointer(this.aPosition, 3, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aTexCoord, 2, gl.FLOAT, model.vertexDataStride, gl);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, images[0].texture);
