@@ -33,7 +33,6 @@ var SkinningModelDrawing;
             this.pMatrix = mat4.create();
             this.mvMatrix = mat4.create();
             this.boneMatrix = mat4.create();
-            this.tmpVector = vec3.create();
             this.animationTime = 0.0;
         }
         Main.prototype.initialize = function (canvas) {
@@ -91,7 +90,7 @@ var SkinningModelDrawing;
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
             // starts drawing
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
-            this.drawModel(this.modelMatrix, this.modelResource);
+            this.drawSkinningModel(this.modelMatrix, this.modelResource);
         };
         Main.prototype.calcBoneMatrix = function (out, skinningModel) {
             for (var i = 0; i < skinningModel.data.bones.length; i++) {
@@ -108,7 +107,7 @@ var SkinningModelDrawing;
                 }
             }
         };
-        Main.prototype.drawModel = function (modelMatrix, skinningModel) {
+        Main.prototype.drawSkinningModel = function (modelMatrix, skinningModel) {
             // calc base matrix (model-view matrix)
             mat4.multiply(this.mvMatrix, this.viewMatrix, this.modelMatrix);
             // set parameter not dependent on parts
@@ -192,41 +191,33 @@ var SkinningModelDrawing;
             this.uTexture0 = null;
             this.aWeight1 = -1;
             this.aVertexPosition1 = -1;
-            this.aVertexNormal1 = -1;
             this.aVertexPosition2 = -1;
             this.aWeight2 = -1;
-            this.aVertexNormal2 = -1;
+            this.uBoneMatrixList = new List();
         }
         Bone2Shader.prototype.initializeVertexSourceCode = function () {
             this.vertexShaderSourceCode = ''
                 + this.floatPrecisionDefinitionCode
                 + 'attribute float aWeight1;'
                 + 'attribute vec3 aVertexPosition1;'
-                + 'attribute vec3 aVertexNormal1;'
                 + 'attribute float aWeight2;'
                 + 'attribute vec3 aVertexPosition2;'
-                + 'attribute vec3 aVertexNormal2;'
                 + 'attribute vec2 aTexCoord1;'
                 + 'uniform mat4 uBoneMatrix1;'
                 + 'uniform mat4 uBoneMatrix2;'
                 + 'uniform mat4 uMVMatrix;'
                 + 'uniform mat4 uPMatrix;'
-                + "uniform mat4 uNormalMatrix;"
                 + 'varying vec2 vTexCoord;'
-                + 'varying vec3 vTransformedNormal;'
                 + 'void main(void) {'
                 + '    vTexCoord = aTexCoord1;'
                 + '    gl_Position = uPMatrix * uMVMatrix * (  uBoneMatrix1 * vec4(aVertexPosition1, 1.0) * aWeight1 '
                 + '                                          + uBoneMatrix2 * vec4(aVertexPosition2, 1.0) * aWeight2);'
-                + '    vTransformedNormal = (uNormalMatrix * ((uBoneMatrix1 * vec4(aVertexNormal1, 1.0) - uBoneMatrix1[3]) * aWeight1 '
-                + '                                         + (uBoneMatrix2 * vec4(aVertexNormal2, 1.0) - uBoneMatrix2[3]) * aWeight2)).xyz;'
                 + '}';
         };
         Bone2Shader.prototype.initializeFragmentSourceCode = function () {
             this.fragmentShaderSourceCode = ''
                 + this.floatPrecisionDefinitionCode
                 + 'varying vec2 vTexCoord;'
-                + 'varying vec3 vTransformedNormal;'
                 + 'uniform sampler2D uTexture0;'
                 + 'void main(void) {'
                 + '    gl_FragColor = texture2D(uTexture0, vTexCoord);'
@@ -239,14 +230,11 @@ var SkinningModelDrawing;
         Bone2Shader.prototype.initializeAttributes_Bone2Shader = function (gl) {
             this.aWeight1 = this.getAttribLocation('aWeight1', gl);
             this.aVertexPosition1 = this.getAttribLocation('aVertexPosition1', gl);
-            this.aVertexNormal1 = this.getAttribLocation('aVertexNormal1', gl);
             this.aWeight2 = this.getAttribLocation('aWeight2', gl);
             this.aVertexPosition2 = this.getAttribLocation('aVertexPosition2', gl);
-            this.aVertexNormal2 = this.getAttribLocation('aVertexNormal2', gl);
             this.aTexCoord1 = this.getAttribLocation('aTexCoord1', gl);
-            this.uNormalMatrix = this.getUniformLocation('uNormalMatrix', gl);
-            this.uBoneMatrix1 = this.getUniformLocation('uBoneMatrix1', gl);
-            this.uBoneMatrix2 = this.getUniformLocation('uBoneMatrix2', gl);
+            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix1', gl));
+            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix2', gl));
             this.uTexture0 = this.getUniformLocation('uTexture0', gl);
         };
         Bone2Shader.prototype.setBuffers = function (model, images, gl) {
@@ -259,10 +247,10 @@ var SkinningModelDrawing;
             this.resetVertexAttribPointerOffset();
             this.vertexAttribPointer(this.aWeight1, 1, gl.FLOAT, model.vertexDataStride, gl);
             this.vertexAttribPointer(this.aVertexPosition1, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aVertexNormal1, 3, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointerOffset += 4 * 3; // skip normal data
             this.vertexAttribPointer(this.aWeight2, 1, gl.FLOAT, model.vertexDataStride, gl);
             this.vertexAttribPointer(this.aVertexPosition2, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aVertexNormal2, 3, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointerOffset += 4 * 3; // skip normal data
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, images[0].texture);
@@ -273,45 +261,32 @@ var SkinningModelDrawing;
             //this.vertexAttribPointer(this.aTexCoord2, 2, gl.FLOAT, model.vertexDataStride, gl); skip (not used in this sample)
             //this.vertexAttribPointer(this.aTexCoord3, 2, gl.FLOAT, model.vertexDataStride, gl); skip (not used in this sample)
         };
-        Bone2Shader.prototype.setNormalMatrix = function (matrix, gl) {
-            gl.uniformMatrix4fv(this.uNormalMatrix, false, matrix);
-        };
         Bone2Shader.prototype.setBoneMatrix = function (boneIndex, matrix, gl) {
-            if (boneIndex == 0) {
-                gl.uniformMatrix4fv(this.uBoneMatrix1, false, matrix);
-            }
-            else if (boneIndex == 1) {
-                gl.uniformMatrix4fv(this.uBoneMatrix2, false, matrix);
-            }
+            gl.uniformMatrix4fv(this.uBoneMatrixList[boneIndex], false, matrix);
         };
         return Bone2Shader;
     }(RenderShader));
+    SkinningModelDrawing.Bone2Shader = Bone2Shader;
     var Bone4Shader = (function (_super) {
         __extends(Bone4Shader, _super);
         function Bone4Shader() {
             _super.apply(this, arguments);
-            this.aWeight3 = 999;
-            this.aVertexPosition3 = 999;
-            this.aVertexNormal3 = 999;
-            this.aVertexPosition4 = 999;
-            this.aWeight4 = 999;
-            this.aVertexNormal4 = 999;
+            this.aWeight3 = -1;
+            this.aVertexPosition3 = -1;
+            this.aVertexPosition4 = -1;
+            this.aWeight4 = -1;
         }
         Bone4Shader.prototype.initializeVertexSourceCode = function () {
             this.vertexShaderSourceCode = ''
                 + this.floatPrecisionDefinitionCode
                 + 'attribute float aWeight1;'
                 + 'attribute vec3 aVertexPosition1;'
-                + 'attribute vec3 aVertexNormal1;'
                 + 'attribute float aWeight2;'
                 + 'attribute vec3 aVertexPosition2;'
-                + 'attribute vec3 aVertexNormal2;'
                 + 'attribute float aWeight3;'
                 + 'attribute vec3 aVertexPosition3;'
-                + 'attribute vec3 aVertexNormal3;'
                 + 'attribute float aWeight4;'
                 + 'attribute vec3 aVertexPosition4;'
-                + 'attribute vec3 aVertexNormal4;'
                 + 'attribute vec2 aTexCoord1;'
                 + 'uniform mat4 uBoneMatrix1;'
                 + 'uniform mat4 uBoneMatrix2;'
@@ -319,19 +294,13 @@ var SkinningModelDrawing;
                 + 'uniform mat4 uBoneMatrix4;'
                 + 'uniform mat4 uMVMatrix;'
                 + 'uniform mat4 uPMatrix;'
-                + "uniform mat4 uNormalMatrix;"
                 + 'varying vec2 vTexCoord;'
-                + 'varying vec3 vTransformedNormal;'
                 + 'void main(void) {'
                 + '    vTexCoord = aTexCoord1;'
                 + '    gl_Position = uPMatrix * uMVMatrix * (  uBoneMatrix1 * vec4(aVertexPosition1, 1.0) * aWeight1 '
                 + '                                          + uBoneMatrix2 * vec4(aVertexPosition2, 1.0) * aWeight2 '
                 + '                                          + uBoneMatrix3 * vec4(aVertexPosition3, 1.0) * aWeight3 '
                 + '                                          + uBoneMatrix4 * vec4(aVertexPosition4, 1.0) * aWeight4);'
-                + '    vTransformedNormal = (uNormalMatrix * ((uBoneMatrix1 * vec4(aVertexNormal1, 1.0) - uBoneMatrix1[3]) * aWeight1 '
-                + '                                         + (uBoneMatrix2 * vec4(aVertexNormal2, 1.0) - uBoneMatrix2[3]) * aWeight2 '
-                + '                                         + (uBoneMatrix3 * vec4(aVertexNormal3, 1.0) - uBoneMatrix3[3]) * aWeight3 '
-                + '                                         + (uBoneMatrix4 * vec4(aVertexNormal4, 1.0) - uBoneMatrix4[3]) * aWeight4)).xyz;'
                 + '}';
         };
         Bone4Shader.prototype.initializeAttributes = function (gl) {
@@ -342,14 +311,10 @@ var SkinningModelDrawing;
         Bone4Shader.prototype.initializeAttributes_Bone4Shader = function (gl) {
             this.aWeight3 = this.getAttribLocation('aWeight3', gl);
             this.aVertexPosition3 = this.getAttribLocation('aVertexPosition3', gl);
-            this.aVertexNormal3 = this.getAttribLocation('aVertexNormal3', gl);
             this.aWeight4 = this.getAttribLocation('aWeight4', gl);
             this.aVertexPosition4 = this.getAttribLocation('aVertexPosition4', gl);
-            this.aVertexNormal4 = this.getAttribLocation('aVertexNormal4', gl);
-            this.uBoneMatrix1 = this.getUniformLocation('uBoneMatrix1', gl);
-            this.uBoneMatrix2 = this.getUniformLocation('uBoneMatrix2', gl);
-            this.uBoneMatrix3 = this.getUniformLocation('uBoneMatrix3', gl);
-            this.uBoneMatrix4 = this.getUniformLocation('uBoneMatrix4', gl);
+            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix3', gl));
+            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix4', gl));
         };
         Bone4Shader.prototype.setBuffers = function (model, images, gl) {
             this.setBuffers_Bone2Shader(model, images, gl);
@@ -359,27 +324,14 @@ var SkinningModelDrawing;
         Bone4Shader.prototype.setBuffers_Bone4Shader = function (model, images, gl) {
             this.vertexAttribPointer(this.aWeight3, 1, gl.FLOAT, model.vertexDataStride, gl);
             this.vertexAttribPointer(this.aVertexPosition3, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aVertexNormal3, 3, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointerOffset += 4 * 3; // skip normal data
             this.vertexAttribPointer(this.aWeight4, 1, gl.FLOAT, model.vertexDataStride, gl);
             this.vertexAttribPointer(this.aVertexPosition4, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aVertexNormal4, 3, gl.FLOAT, model.vertexDataStride, gl);
-        };
-        Bone4Shader.prototype.setBoneMatrix = function (boneIndex, matrix, gl) {
-            if (boneIndex == 0) {
-                gl.uniformMatrix4fv(this.uBoneMatrix1, false, matrix);
-            }
-            else if (boneIndex == 1) {
-                gl.uniformMatrix4fv(this.uBoneMatrix2, false, matrix);
-            }
-            else if (boneIndex == 2) {
-                gl.uniformMatrix4fv(this.uBoneMatrix3, false, matrix);
-            }
-            else if (boneIndex == 3) {
-                gl.uniformMatrix4fv(this.uBoneMatrix4, false, matrix);
-            }
+            this.vertexAttribPointerOffset += 4 * 3; // skip normal data
         };
         return Bone4Shader;
     }(Bone2Shader));
+    SkinningModelDrawing.Bone4Shader = Bone4Shader;
     var _Main;
     window.onload = function () {
         var canvas = document.getElementById('canvas');

@@ -24,8 +24,8 @@ var RenderShader = (function () {
         this.vertexShader = null;
         this.fragmentShader = null;
         this.program = null;
-        this.AttribLocationList = new List();
-        this.VertexAttribPointerOffset = 0;
+        this.attribLocationList = new List();
+        this.vertexAttribPointerOffset = 0;
         this.uPMatrix = null;
         this.uMVMatrix = null;
     }
@@ -49,33 +49,39 @@ var RenderShader = (function () {
     };
     RenderShader.prototype.getAttribLocation = function (name, gl) {
         var attribLocation = gl.getAttribLocation(this.program, name);
-        this.AttribLocationList.push(attribLocation);
+        this.attribLocationList.push(attribLocation);
         return attribLocation;
     };
     RenderShader.prototype.getUniformLocation = function (name, gl) {
         return gl.getUniformLocation(this.program, name);
     };
     RenderShader.prototype.setBuffers = function (model, images, gl) {
-        // override methodr
+        // override method
     };
     RenderShader.prototype.enableVertexAttributes = function (gl) {
-        for (var i = 0; i < this.AttribLocationList.length; i++) {
-            gl.enableVertexAttribArray(this.AttribLocationList[i]);
+        for (var i = 0; i < this.attribLocationList.length; i++) {
+            gl.enableVertexAttribArray(this.attribLocationList[i]);
         }
     };
     RenderShader.prototype.disableVertexAttributes = function (gl) {
-        for (var i = 0; i < this.AttribLocationList.length; i++) {
-            gl.disableVertexAttribArray(this.AttribLocationList[i]);
+        for (var i = 0; i < this.attribLocationList.length; i++) {
+            gl.disableVertexAttribArray(this.attribLocationList[i]);
         }
     };
     RenderShader.prototype.resetVertexAttribPointerOffset = function () {
-        this.VertexAttribPointerOffset = 0;
+        this.vertexAttribPointerOffset = 0;
     };
     RenderShader.prototype.vertexAttribPointer = function (indx, size, type, stride, gl) {
         if (type == gl.FLOAT || type == gl.INT) {
-            gl.vertexAttribPointer(indx, size, type, false, stride, this.VertexAttribPointerOffset);
-            this.VertexAttribPointerOffset += 4 * size;
+            gl.vertexAttribPointer(indx, size, type, false, stride, this.vertexAttribPointerOffset);
+            this.vertexAttribPointerOffset += 4 * size;
         }
+    };
+    RenderShader.prototype.setProjectionMatrix = function (matrix, gl) {
+        gl.uniformMatrix4fv(this.uPMatrix, false, matrix);
+    };
+    RenderShader.prototype.setModelViewMatrix = function (matrix, gl) {
+        gl.uniformMatrix4fv(this.uMVMatrix, false, matrix);
     };
     return RenderShader;
 }());
@@ -99,44 +105,50 @@ var WebGLRender = (function () {
         model.vertexDataStride = vertexDataStride;
     };
     WebGLRender.prototype.createVertexBuffer = function (data, gl) {
-        var vertexBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+        var glBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
-        return vertexBuffer;
+        return glBuffer;
     };
     WebGLRender.prototype.createIndexBuffer = function (data, gl) {
-        var indexBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        var glBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, glBuffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(data), gl.STATIC_DRAW);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-        return indexBuffer;
+        return glBuffer;
     };
     WebGLRender.prototype.initializeImageTexture = function (image) {
-        var tex = this.gl.createTexture();
-        this.gl.bindTexture(this.gl.TEXTURE_2D, tex);
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image.imageData);
-        this.gl.generateMipmap(this.gl.TEXTURE_2D);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, null);
-        image.texture = tex;
+        var gl = this.gl;
+        var glTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, glTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image.imageData);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        image.texture = glTexture;
     };
     WebGLRender.prototype.initializeShader = function (shader) {
+        var gl = this.gl;
         shader.initializeSourceCode(this.floatPrecisionText);
-        var program = this.gl.createProgram();
-        var vertexShader = this.createShader(shader.vertexShaderSourceCode, true, this.gl);
-        var fragmentShader = this.createShader(shader.fragmentShaderSourceCode, false, this.gl);
-        this.gl.attachShader(program, vertexShader);
-        this.gl.attachShader(program, fragmentShader);
-        this.gl.linkProgram(program);
-        if (this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
+        var program = gl.createProgram();
+        var vertexShader = this.createShader(shader.vertexShaderSourceCode, true, gl);
+        var fragmentShader = this.createShader(shader.fragmentShaderSourceCode, false, gl);
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        gl.linkProgram(program);
+        if (gl.getProgramParameter(program, gl.LINK_STATUS)) {
             shader.program = program;
             shader.vertexShader = vertexShader;
             shader.fragmentShader = fragmentShader;
-            shader.initializeAttributes(this.gl);
+            shader.initializeAttributes(gl);
             return program;
         }
         else {
-            alert(this.gl.getProgramInfoLog(program));
+            alert(gl.getProgramInfoLog(program));
         }
     };
     WebGLRender.prototype.createShader = function (glslSourceCode, isVertexShader, gl) {
@@ -160,7 +172,7 @@ var WebGLRender = (function () {
         var lastShader = this.currentShader;
         this.gl.useProgram(shader.program);
         this.currentShader = shader;
-        if (lastShader != null && lastShader.AttribLocationList.length != this.currentShader.AttribLocationList.length) {
+        if (lastShader != null && lastShader.attribLocationList.length != this.currentShader.attribLocationList.length) {
             lastShader.disableVertexAttributes(this.gl);
         }
     };
@@ -168,10 +180,10 @@ var WebGLRender = (function () {
         this.currentShader.setBuffers(model, images, this.gl);
     };
     WebGLRender.prototype.setProjectionMatrix = function (matrix) {
-        this.gl.uniformMatrix4fv(this.currentShader.uPMatrix, false, matrix);
+        this.currentShader.setProjectionMatrix(matrix, this.gl);
     };
     WebGLRender.prototype.setModelViewMatrix = function (matrix) {
-        this.gl.uniformMatrix4fv(this.currentShader.uMVMatrix, false, matrix);
+        this.currentShader.setModelViewMatrix(matrix, this.gl);
     };
     WebGLRender.prototype.clearColorBufferDepthBuffer = function (r, g, b, a) {
         this.gl.clearColor(r, g, b, a);
@@ -179,15 +191,15 @@ var WebGLRender = (function () {
     };
     WebGLRender.prototype.resetBasicParameters = function () {
         var gl = this.gl;
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
         gl.disable(gl.DEPTH_TEST);
         gl.disable(gl.CULL_FACE);
         gl.enable(gl.BLEND);
-        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE);
+        // alpha blend
+        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
         gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
+        // add blend
+        //gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE);
+        //gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
     };
     WebGLRender.prototype.drawElements = function (model) {
         this.gl.drawElements(this.gl.TRIANGLES, model.indexCount, this.gl.UNSIGNED_SHORT, 0);
