@@ -33,14 +33,13 @@ namespace SkinningModelConverter {
 
         // load collada
         var collada_loader = new THREE.ColladaLoader();
-        collada_loader.load(
-            getExtensionChangedFileName(fileName, 'dae'),
+        collada_loader.load(getExtensionChangedFileName(fileName, 'dae'),
             (threeJSCollada) => {
 
                 var helper = new Converters.ThreeJSColladaConverterHelper();
                 helper.attach(threeJSCollada);
 
-                // load blend for additional information
+                // load .blend for additional information
                 var request = new XMLHttpRequest();
                 request.open('GET', fileName, true);
                 request.responseType = 'arraybuffer';
@@ -52,6 +51,8 @@ namespace SkinningModelConverter {
                         // execute converting
                         var convetedModels = convert(helper, meshInfos);
                         output(convetedModels, outFileName);
+
+                        console.log("converting done.");
                     }
                 );
                 request.send();
@@ -144,13 +145,21 @@ namespace SkinningModelConverter {
         for (var modelIndex = 0; modelIndex < skinModels.length; modelIndex++) {
             var skinModel = skinModels[modelIndex];
 
+            var sortedParts = Enumerable.From(skinModel.parts)
+                .OrderBy(part => part.boneIndices.length)
+                .ThenBy(part => part.boneIndices[0])
+                .ThenBy(part => part.boneIndices.length > 1 ? part.boneIndices[1] : 9999)
+                .ThenBy(part => part.boneIndices.length > 2 ? part.boneIndices[2] : 9999)
+                .ThenBy(part => part.boneIndices.length > 3 ? part.boneIndices[3] : 9999)
+                .ToArray();
+
             var convetedParts = new List<ConvertedSkinningModelPart>();
-            for (var partIndex = 0; partIndex < skinModel.parts.length; partIndex++) {
-                var skinPart = skinModel.parts[partIndex];
+            for (var partIndex = 0; partIndex < sortedParts.length; partIndex++) {
+                var skinPart = sortedParts[partIndex];
 
                 var vertices = [];
-                for (var modelIndex = 0; modelIndex < skinPart.vertices.length; modelIndex++) {
-                    var skinVertex = skinPart.vertices[modelIndex];
+                for (var vertexIndex = 0; vertexIndex < skinPart.vertices.length; vertexIndex++) {
+                    var skinVertex = skinPart.vertices[vertexIndex];
 
                     for (var k = 0; k < skinVertex.positions.length; k++) {
                         var vpos = skinVertex.positions[k];
@@ -178,15 +187,15 @@ namespace SkinningModelConverter {
                         vertices.push(0.0);
                     }
 
-                    for (var m = 0; m < skinVertex.texcoords.length; m++) {
-                        vertices.push(skinVertex.texcoords[m][0]);
-                        vertices.push(skinVertex.texcoords[m][1]);
+                    for (var k = 0; k < skinVertex.texcoords.length; k++) {
+                        vertices.push(skinVertex.texcoords[k][0]);
+                        vertices.push(skinVertex.texcoords[k][1]);
                     }
                 }
 
                 var indices = [];
-                for (var modelIndex = 0; modelIndex < skinPart.faces.length; modelIndex++) {
-                    var meshFace = skinPart.faces[modelIndex];
+                for (var faceindex = 0; faceindex < skinPart.faces.length; faceindex++) {
+                    var meshFace = skinPart.faces[faceindex];
 
                     for (var k = 0; k < meshFace.vertexIndeces.length; k++) {
                         indices.push(meshFace.vertexIndeces[k]);
@@ -194,12 +203,12 @@ namespace SkinningModelConverter {
                 }
 
                 var boneIndices = [];
-                for (var modelIndex = 0; modelIndex < skinPart.boneIndices.length; modelIndex++) {
-                    if (skinPart.boneIndices[modelIndex] == -1) {
+                for (var boneIndex = 0; boneIndex < skinPart.boneIndices.length; boneIndex++) {
+                    if (skinPart.boneIndices[boneIndex] == -1) {
                         break;
                     }
                     else {
-                        boneIndices.push(skinPart.boneIndices[modelIndex]);
+                        boneIndices.push(skinPart.boneIndices[boneIndex]);
                     }
                 }
 
@@ -250,6 +259,7 @@ namespace SkinningModelConverter {
 
             out.push('  \"' + skinningModel.name + '\": {');
 
+            // images
             var imagesText = [];
             imagesText.push('    \"images\": [');
             for (var imageIndex = 0; imageIndex < skinningModel.images.length; imageIndex++) {
@@ -264,6 +274,7 @@ namespace SkinningModelConverter {
             imagesText.push('],');
             out.push(imagesText.join(''));
 
+            // bones
             out.push('    \"bones\": [');
             for (var boneIndex = 0; boneIndex < skinningModel.bones.length; boneIndex++) {
                 var bone = skinningModel.bones[boneIndex];
@@ -276,6 +287,7 @@ namespace SkinningModelConverter {
             }
             out.push('    ],');
 
+            // parts
             out.push('    \"parts\": [');
             for (var partIndex = 0; partIndex < skinningModel.parts.length; partIndex++) {
                 var convetedPart = skinningModel.parts[partIndex];

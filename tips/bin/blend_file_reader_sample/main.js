@@ -1,27 +1,30 @@
 var BlendFileReaderSample;
 (function (BlendFileReaderSample) {
     window.onload = function () {
-        var request = new XMLHttpRequest();
-        request.open('GET', 'sample.blend', true);
-        request.responseType = 'arraybuffer';
-        var onLoadRequest = function (e) {
-            var blendFile = BlendFileReader.readBlendFile(request.response);
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', 'sample.blend');
+        xhr.responseType = 'arraybuffer';
+        xhr.addEventListener('load', function (e) {
+            var blendFile = BlendFileReader.readBlendFile(xhr.response);
             ouputSample(blendFile);
-        };
-        request.addEventListener('load', onLoadRequest);
-        request.send();
+        });
+        xhr.send();
     };
     function getAddressText(address) {
         var tempText = '00000000' + address.toString(16);
         return tempText.substr(tempText.length - 8);
     }
     function ouputSample(blendFile) {
-        var content_element = document.getElementById('content');
-        var blocks_element = document.getElementById('blocks');
+        var file_element = document.getElementById('file');
         var dna_element = document.getElementById('dna');
+        var blocks_element = document.getElementById('blocks');
+        var content_element = document.getElementById('content');
         var result = [];
-        // DNAの情報を出力
+        result.push(".blend version: " + blendFile.fileHeader.version_number);
+        file_element.innerHTML = result.join('<br/>');
+        // DNA
         result.push('[DNA]');
+        result = [];
         for (var i = 0; i < blendFile.dna.structureTypeInfoList.length; i++) {
             var typeInfo = blendFile.dna.structureTypeInfoList[i];
             result.push(typeInfo.name);
@@ -32,18 +35,18 @@ var BlendFileReaderSample;
             result.push('');
         }
         dna_element.innerHTML = result.join('<br/>');
+        // data blocks
+        result.push('[All data blocks]');
         result = [];
-        // ブロックの情報を出力
-        result.push('[All data bloks]');
         for (var i = 0; i < blendFile.bheadList.length; i++) {
             var bhead = blendFile.bheadList[i];
             var typeInfo = blendFile.dna.structureTypeInfoList[bhead.SDNAnr];
             result.push(bhead.code + ' ' + typeInfo.name + ' ' + getAddressText(bhead.old) + ' (' + bhead.nr.toString() + ')');
         }
         blocks_element.innerHTML = result.join('<br/>');
-        result = [];
-        // サンプルとしてマテリアル、オブジェクトの情報を出力
+        // detail data samples
         result.push('[Data samples]');
+        result = [];
         var material_TypeInfo = blendFile.dna.getStructureTypeInfo('Material');
         for (var i = 0; i < blendFile.bheadList.length; i++) {
             var bHead = blendFile.bheadList[i];

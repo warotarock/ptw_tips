@@ -17,10 +17,10 @@ var BasicWebGL;
             this.imageResources = new List();
             // x, y, z, u, v
             this.vertexData = [
-                0.0, -0.2, 0.20, 0.00, 0.00,
-                0.0, 0.20, 0.20, 1.00, 0.00,
-                0.0, -0.2, -0.2, 0.00, 1.00,
-                0.0, 0.20, -0.2, 1.00, 1.00
+                0.0, -0.2, 0.20, 0.00, 1.00,
+                0.0, 0.20, 0.20, 1.00, 1.00,
+                0.0, -0.2, -0.2, 0.00, 0.00,
+                0.0, 0.20, -0.2, 1.00, 0.00
             ];
             this.indexData = [
                 0, 1, 2,
@@ -34,6 +34,7 @@ var BasicWebGL;
             this.pMatrix = mat4.create();
             this.mvMatrix = mat4.create();
             this.animationTime = 0.0;
+            this.isLoaded = false;
         }
         Main.prototype.initialize = function (canvas) {
             this.canvas = canvas;
@@ -57,6 +58,12 @@ var BasicWebGL;
             this.loadTexture(image, './texture.png');
             this.imageResources.push(image);
         };
+        Main.prototype.processLading = function () {
+            if (this.imageResources[0].texture == null) {
+                return;
+            }
+            this.isLoaded = true;
+        };
         Main.prototype.run = function () {
             this.animationTime += 1.0;
             vec3.set(this.eyeLocation, 0.6, 0.0, 0.3);
@@ -67,21 +74,19 @@ var BasicWebGL;
         };
         Main.prototype.draw = function () {
             var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
-            mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.0, 5.0);
+            mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 2.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
+            this.render.resetBasicParameters(true, true, false, false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
-            if (this.imageResources[0].texture == null) {
-                return;
-            }
-            this.render.setShader(this.shader);
-            this.render.setBuffers(this.modelResource, this.imageResources);
-            this.render.setProjectionMatrix(this.pMatrix);
             this.drawModel(this.modelMatrix, this.modelResource);
         };
         Main.prototype.drawModel = function (modelMatrix, modelResource) {
             mat4.multiply(this.mvMatrix, this.viewMatrix, modelMatrix);
+            this.render.setShader(this.shader);
+            this.render.setProjectionMatrix(this.pMatrix);
             this.render.setModelViewMatrix(this.mvMatrix);
-            this.render.resetBasicParameters();
+            this.render.setBuffers(this.modelResource, this.imageResources);
+            this.render.resetBasicParameters(true, true, false, false);
             this.render.drawElements(modelResource);
         };
         Main.prototype.loadTexture = function (image, url) {
@@ -154,8 +159,13 @@ var BasicWebGL;
         setTimeout(run, 1000 / 30);
     };
     function run() {
-        _Main.run();
-        _Main.draw();
+        if (_Main.isLoaded) {
+            _Main.run();
+            _Main.draw();
+        }
+        else {
+            _Main.processLading();
+        }
         setTimeout(run, 1000 / 30);
     }
 })(BasicWebGL || (BasicWebGL = {}));

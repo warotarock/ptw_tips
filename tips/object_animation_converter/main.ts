@@ -5,11 +5,11 @@ namespace ObjectAnimationConverter {
 
     window.onload = () => {
 
-        var fileName = 'sample_obj_animation.blend';
-        var outFileName = getExtensionChangedFileName('../temp/' + fileName, 'json');
+        var fileName = 'model.blend';
+        var outFileName = getExtensionChangedFileName('../temp/complex_toon_animation.json', 'json');
 
         var request = new XMLHttpRequest();
-        request.open('GET', fileName, true);
+        request.open('GET', '../complex_toon_drawing/model.blend', true);
         request.responseType = 'arraybuffer';
         request.addEventListener('load',
             (e: Event) => {
@@ -66,9 +66,12 @@ namespace ObjectAnimationConverter {
             var bAction_DataSet = blendFile.dna.createDataSetFromBHead(bAction_BHead);
 
             var animation = {
-                name: bAction_DataSet.id.name,
+                name: bAction_DataSet.id.name.substr(2),
                 curves: []
             };
+
+            var lastGroupName = null;
+            var channelIndex = 0;
 
             // for each fCurve in bAction
             var fCurve_Address = bAction_DataSet.curves.first;
@@ -94,11 +97,29 @@ namespace ObjectAnimationConverter {
                     );
                 }
 
+                var isBoneAction = StringIsNullOrEmpty(getCurveName(bActionGroup_DataSet.name));
+
+                var groupName: string;
+                var channelName: string;
+                if (isBoneAction) {
+                    groupName = bActionGroup_DataSet.name
+                    if (lastGroupName != groupName) {
+                        lastGroupName = groupName;
+                        channelIndex = 0;
+                    }
+                    channelName = getBoneCurveName(channelIndex);
+                    channelIndex++;
+                }
+                else {
+                    groupName = "Object";
+                    channelName = getCurveName(bActionGroup_DataSet.name);
+                }
+
                 var curve = {
-                    group: bActionGroup_DataSet.name,
+                    group: groupName.replace(/_/g, '.'),
+                    channel: channelName,
                     array_index: fCurve_DataSet.array_index,
                     points: points
-                    //color: fCurve_DataSet.color,
                     //selected: (fCurve_DataSet.flag & 0x02) != 0,
                     //active: (fCurve_DataSet.flag & 0x04) != 0,
                     //locked: (fCurve_DataSet.flag & 0x08) != 0,
@@ -130,22 +151,39 @@ namespace ObjectAnimationConverter {
         for (var i = 0; i < convetedData.length; i++) {
             var animation = convetedData[i];
 
-            out.push("   \"" + animation.name + "\": {");
+            out.push("  \"" + animation.name + "\": {");
 
-            for (var k = 0; k < animation.curves.length; k++) {
-                var curve = animation.curves[k];
+            var channelGroup = Enumerable.From(<List<any>>animation.curves)
+                .GroupBy(curve => curve.group)
+                .Select(group => ({
+                    name: group.Key(),
+                    curves: group.source
+                }))
+                .OrderBy(group => group.name)
+                .ToArray();
 
-                var output_carve = {
-                    ipoType: 1,
-                    lastTime: 0.0,
-                    lastIndex: 0,
-                    curve: curve.points
-                };
+            for (var groupIndex = 0; groupIndex < channelGroup.length; groupIndex++) {
+                var group = channelGroup[groupIndex];
 
-                out.push("      \"" + getCurveName(curve) + "\": "
-                    + JSON.stringify(output_carve, jsonStringifyReplacer)
-                    + (k < animation.curves.length - 1 ? ',' : '')
-                );
+                out.push("    \"" + group.name + "\": {");
+
+                for (var k = 0; k < group.curves.length; k++) {
+                    var curve = group.curves[k];
+
+                    var output_carve = {
+                        ipoType: 2,
+                        lastTime: 0.0,
+                        lastIndex: 0,
+                        curve: curve.points
+                    };
+
+                    out.push("      \"" + curve.channel + "\": "
+                        + JSON.stringify(output_carve, jsonStringifyReplacer)
+                        + (k < group.curves.length - 1 ? ',' : '')
+                    );
+                }
+
+                out.push("    }" + (groupIndex < channelGroup.length - 1 ? ',' : ''));
             }
 
             out.push("  }" + (i < convetedData.length - 1 ? ',' : ''));
@@ -196,5 +234,29 @@ namespace ObjectAnimationConverter {
         }
 
         return null;
+    }
+
+    function getBoneCurveName(array_index: int) {
+        if (array_index == 0) {
+            return "quatW";
+        }
+        else if (array_index == 1) {
+            return "quatX";
+        }
+        else if (array_index == 2) {
+            return "quatY";
+        }
+        else if (array_index == 3) {
+            return "quatZ";
+        }
+        else if (array_index == 4) {
+            return "locX";
+        }
+        else if (array_index == 5) {
+            return "locY";
+        }
+        else if (array_index == 6) {
+            return "locZ";
+        }
     }
 }

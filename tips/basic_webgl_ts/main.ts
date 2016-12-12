@@ -16,10 +16,10 @@ namespace BasicWebGL {
 
         // x, y, z, u, v
         vertexData = [
-            0.0, -0.2, 0.20, 0.00, 0.00,
-            0.0, 0.20, 0.20, 1.00, 0.00,
-            0.0, -0.2, -0.2, 0.00, 1.00,
-            0.0, 0.20, -0.2, 1.00, 1.00
+            0.0, -0.2, 0.20, 0.00, 1.00,
+            0.0, 0.20, 0.20, 1.00, 1.00,
+            0.0, -0.2, -0.2, 0.00, 0.00,
+            0.0, 0.20, -0.2, 1.00, 0.00
         ];
 
         indexData = [
@@ -37,6 +37,8 @@ namespace BasicWebGL {
         mvMatrix = mat4.create();
 
         animationTime = 0.0;
+
+        isLoaded = false;
 
         initialize(canvas: HTMLCanvasElement) {
 
@@ -69,6 +71,15 @@ namespace BasicWebGL {
             this.imageResources.push(image);
         }
 
+        processLading() {
+
+            if (this.imageResources[0].texture == null) {
+                return;
+            }
+
+            this.isLoaded = true;
+        }
+
         run() {
 
             this.animationTime += 1.0;
@@ -84,18 +95,11 @@ namespace BasicWebGL {
         draw() {
 
             var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
-            mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.0, 5.0);
+            mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 2.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
 
+            this.render.resetBasicParameters(true, true, false, false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
-
-            if (this.imageResources[0].texture == null) {
-                return;
-            }
-
-            this.render.setShader(this.shader);
-            this.render.setBuffers(this.modelResource, this.imageResources);
-            this.render.setProjectionMatrix(this.pMatrix);
 
             this.drawModel(this.modelMatrix, this.modelResource);
         }
@@ -104,10 +108,13 @@ namespace BasicWebGL {
 
             mat4.multiply(this.mvMatrix, this.viewMatrix, modelMatrix);
 
+            this.render.setShader(this.shader);
+            this.render.setProjectionMatrix(this.pMatrix);
             this.render.setModelViewMatrix(this.mvMatrix);
 
-            this.render.resetBasicParameters();
+            this.render.setBuffers(this.modelResource, this.imageResources);
 
+            this.render.resetBasicParameters(true, true, false, false);
             this.render.drawElements(modelResource);
         }
 
@@ -115,9 +122,11 @@ namespace BasicWebGL {
 
             image.imageData = new Image();
 
-            image.imageData.addEventListener('load', () => {
-                this.render.initializeImageTexture(image);
-            });
+            image.imageData.addEventListener('load',
+                () => {
+                    this.render.initializeImageTexture(image);
+                }
+            );
 
             image.imageData.src = url;
         }
@@ -183,6 +192,7 @@ namespace BasicWebGL {
 
             this.enableVertexAttributes(gl);
             this.resetVertexAttribPointerOffset();
+
             this.vertexAttribPointer(this.aPosition, 3, gl.FLOAT, model.vertexDataStride, gl);
             this.vertexAttribPointer(this.aTexCoord, 2, gl.FLOAT, model.vertexDataStride, gl);
 
@@ -206,8 +216,14 @@ namespace BasicWebGL {
     };
 
     function run() {
-        _Main.run();
-        _Main.draw();
+
+        if (_Main.isLoaded) {
+            _Main.run();
+            _Main.draw();
+        }
+        else {
+            _Main.processLading();
+        }
 
         setTimeout(run, 1000 / 30);
     }

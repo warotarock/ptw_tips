@@ -169,6 +169,7 @@ class WebGLRender {
 
         var glTexture = gl.createTexture();
 
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
         gl.bindTexture(gl.TEXTURE_2D, glTexture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image.imageData);
 
@@ -267,19 +268,41 @@ class WebGLRender {
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     }
 
-    resetBasicParameters() {
+    clearDepthBuffer() {
+
+        this.gl.clear(this.gl.DEPTH_BUFFER_BIT);
+    }
+
+
+    resetBasicParameters(depthTest: boolean, depthMask: boolean, culling: boolean, addBlend: boolean) {
 
         var gl = this.gl;
 
-        gl.disable(gl.DEPTH_TEST);
-        gl.disable(gl.CULL_FACE);
+        if (depthTest) {
+            gl.enable(gl.DEPTH_TEST);
+        }
+        else {
+            gl.disable(gl.DEPTH_TEST);
+        }
+
+        gl.depthMask(depthMask);
+
+        if (culling) {
+            gl.enable(gl.CULL_FACE);
+        }
+        else {
+            gl.disable(gl.CULL_FACE);
+        }
+
         gl.enable(gl.BLEND);
-        // alpha blend
-        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
-        gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
-        // add blend
-        //gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE);
-        //gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
+        if (addBlend) {
+            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE);
+            gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD)
+        }
+        else {
+            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+            gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
+        }
     }
 
     drawElements(model: RenderModel) {

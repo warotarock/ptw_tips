@@ -275,10 +275,10 @@ namespace BlendFileReader {
 
     export class BlendFileHeader {
 
-        private identifier: string;
-        private pointer_size: string;
-        private endianness: string;
-        private version_number: string;
+        identifier: string;
+        pointer_size: string;
+        endianness: string;
+        version_number: string;
 
         read(reader: BinaryReader) {
 

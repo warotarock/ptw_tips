@@ -556,6 +556,10 @@ namespace Converters {
                     .ToArray();
 
                 face.boneCount = face.sortingIndeces.length;
+
+                if (face.boneCount > 4) {
+                    console.log("more than 4 bone count detected.");
+                }
             }
 
             // grouping by bone and material
@@ -581,21 +585,39 @@ namespace Converters {
                 }
                 else {
                     var compress_to_group: SkinningFaceGroup = null;
+                    var newBone = false;
 
-                    // search onother one bone group
-                    // or search three bone group
-                    for (var k = i + 1; k < faceGoups.length; k++) {
+                    // search another group wihich same bone have
+                    for (var k = 0; k < faceGoups.length; k++) {
                         var toGroup = faceGoups[k];
-                        if (toGroup.materialIndex == group.materialIndex && toGroup.boneCount == 1) {
-                            compress_to_group = toGroup;
-                            break;
+                        if (k != i && toGroup.materialIndex == group.materialIndex && toGroup.boneCount >= 2) {
+                            for (var m = 0; m < toGroup.boneIndices.length; m++) {
+                                if (toGroup.boneIndices[m] == group.boneIndices[0]) {
+                                    compress_to_group = toGroup;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    // search another one bone group
+                    // or search three bone group
+                    if (compress_to_group == null) {
+                        for (var k = 0; k < faceGoups.length; k++) {
+                            var toGroup = faceGoups[k];
+                            if (k != i && toGroup.materialIndex == group.materialIndex && toGroup.boneCount == 1) {
+                                compress_to_group = toGroup;
+                                newBone = true;
+                                break;
+                            }
                         }
                     }
                     if (compress_to_group == null) {
-                        for (var k = i + 1; k < faceGoups.length; k++) {
+                        for (var k = 0; k < faceGoups.length; k++) {
                             var toGroup = faceGoups[k];
-                            if (toGroup.materialIndex == group.materialIndex && toGroup.boneCount == 3) {
+                            if (k != i && toGroup.materialIndex == group.materialIndex && toGroup.boneCount == 3) {
                                 compress_to_group = toGroup;
+                                newBone = true;
                                 break;
                             }
                         }
@@ -603,8 +625,10 @@ namespace Converters {
 
                     if (compress_to_group != null) {
 
-                        compress_to_group.boneIndices.push(group.boneIndices[0]);
-                        compress_to_group.boneCount++;
+                        if (newBone) {
+                            compress_to_group.boneIndices.push(group.boneIndices[0]);
+                            compress_to_group.boneCount++;
+                        }
 
                         compress_to_group.key = getFaceGroupKey(compress_to_group.materialIndex, compress_to_group.boneIndices);
 

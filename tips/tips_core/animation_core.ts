@@ -264,7 +264,7 @@ class AnimationSolver {
                 interpolatedValue = this.calcInterpolationLiner(
                     ipoCurve.curve[sectionIndex][1][1]
                     , ipoCurve.curve[sectionIndex + 1][1][1]
-                    , timeInSection);
+                    , ipoRate);
             }
         }
 
@@ -325,33 +325,33 @@ class AnimationSolver {
                 continue;
             }
 
-            var resultBone = resultBuffer.bones[bone.name];
+            var resultBone: BoneAnimationBufferBone = resultBuffer.bones[bone.name];
 
             if (DictionaryContainsKey(animation, bone.name)) {
 
                 var animationBone: IPOBoneAnimationBone = animation[bone.name];
 
-                vec3.set(resultBone.Transtarion
+                vec3.set(resultBone.transtarion
                     , this.getIPOCurveValueIfNotNull(animationBone.locX, time, 0.0)
                     , this.getIPOCurveValueIfNotNull(animationBone.locY, time, 0.0)
                     , this.getIPOCurveValueIfNotNull(animationBone.locZ, time, 0.0));
 
-                quat.set(resultBone.Quaternion
+                quat.set(resultBone.quaternion
                     , this.getIPOCurveValueIfNotNull(animationBone.quatX, time, 0.0)
                     , this.getIPOCurveValueIfNotNull(animationBone.quatY, time, 0.0)
                     , this.getIPOCurveValueIfNotNull(animationBone.quatZ, time, 0.0)
                     , this.getIPOCurveValueIfNotNull(animationBone.quatW, time, 1.0));
-                quat.normalize(resultBone.Quaternion, resultBone.Quaternion);
+                quat.normalize(resultBone.quaternion, resultBone.quaternion);
 
-                vec3.set(resultBone.Scaling
+                vec3.set(resultBone.scaling
                     , this.getIPOCurveValueIfNotNull(animationBone.scaleX, time, 1.0)
                     , this.getIPOCurveValueIfNotNull(animationBone.scaleY, time, 1.0)
                     , this.getIPOCurveValueIfNotNull(animationBone.scaleZ, time, 1.0));
             }
             else {
-                vec3.set(resultBone.Transtarion, 0.0, 0.0, 0.0);
-                quat.set(resultBone.Quaternion, 0.0, 0.0, 0.0, 1.0);
-                vec3.set(resultBone.Scaling, 1.0, 1.0, 1.0);
+                vec3.set(resultBone.transtarion, 0.0, 0.0, 0.0);
+                quat.set(resultBone.quaternion, 0.0, 0.0, 0.0, 1.0);
+                vec3.set(resultBone.scaling, 1.0, 1.0, 1.0);
             }
         }
     }

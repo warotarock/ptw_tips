@@ -29,7 +29,7 @@ RenderModelクラスの目的はWebGLのテクスチャオブジェクトを保�
 - attribute変数の補助機能
 - 接頭辞をつけた変数名とする
 
-RenderModelクラスの主な目的は三つあります。一つめはシェーダなどのオブジェクトを保持すること。二つめはシェーダに依存するパラメータを受け取り、WebGLコンテキストに設定すること。三つめはTypeScriptのオブジェクト指向の機能を使ってシェーダプログラムの疑似的な差分プログラミングを可能にすることです。
+RenderModelクラスの主な目的は三つあります。一つめはシェーダなどのWebGLオブジェクトを保持すること。二つめはシェーダに依存するパラメータをWebGLコンテキストに設定する関数を提供すること。三つめはTypeScriptのオブジェクト指向の機能を使ってシェーダプログラムの疑似的な差分プログラミングを可能にすることです。
 
 シェーダの実装方針について、下記のサンプルをもとに説明します。これが最善ということではなく、筆者はたまたまこのようにしているとお考え下さい。
 
@@ -37,42 +37,42 @@ TypeScript
 
     class BasicShader extends RenderShader {
 
-        aPosition = 0;
-        aTexCoord = 0;
+        aPosition = -1;
+        aTexCoord = -1;
 
         uTexture0: WebGLUniformLocation = null;
 
         initializeVertexSourceCode() {
 
-            this.vertexShaderSourceCode = ""
+            this.vertexShaderSourceCode = ''
                 + this.floatPrecisionDefinitionCode
 
-                + "attribute vec3 aPosition;"
-                + "attribute vec2 aTexCoord;"
+                + 'attribute vec3 aPosition;'
+                + 'attribute vec2 aTexCoord;'
 
-                + "uniform mat4 uPMatrix;"
-                + "uniform mat4 uMVMatrix;"
+                + 'uniform mat4 uPMatrix;'
+                + 'uniform mat4 uMVMatrix;'
 
-                + "varying vec2 vTexCoord;"
+                + 'varying vec2 vTexCoord;'
 
-                + "void main(void) {"
-                + "	   gl_Position = uPMatrix * uMVMatrix * vec4(aPosition, 1.0);"
-                + "    vTexCoord = aTexCoord;"
-                + "}";
+                + 'void main(void) {'
+                + '	   gl_Position = uPMatrix * uMVMatrix * vec4(aPosition, 1.0);'
+                + '    vTexCoord = aTexCoord;'
+                + '}';
         }
 
         initializeFragmentSourceCode() {
 
-            this.fragmentShaderSourceCode = ""
+            this.fragmentShaderSourceCode = ''
                 + this.floatPrecisionDefinitionCode
 
-                + "varying vec2 vTexCoord;"
+                + 'varying vec2 vTexCoord;'
 
-                + "uniform sampler2D uTexture0;"
+                + 'uniform sampler2D uTexture0;'
 
-                + "void main(void) {"
-                + "    gl_FragColor = texture2D(uTexture0, vTexCoord);"
-                + "}";
+                + 'void main(void) {'
+                + '    gl_FragColor = texture2D(uTexture0, vTexCoord);'
+                + '}';
         }
 
         initializeAttributes(gl: WebGLRenderingContext) {
@@ -83,34 +83,35 @@ TypeScript
 
         initializeAttributes_BasicShader(gl: WebGLRenderingContext) {
 
-            this.aPosition = this.getAttribute("aPosition", gl);
-            this.aTexCoord = this.getAttribute("aTexCoord", gl);
+            this.aPosition = this.getAttribLocation('aPosition', gl);
+            this.aTexCoord = this.getAttribLocation('aTexCoord', gl);
 
-            this.uTexture0 = this.getUniform("uTexture0", gl);
+            this.uTexture0 = this.getUniformLocation('uTexture0', gl);
         }
 
-    	setBuffers(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
+        setBuffers(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
 
             gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexBuffer);
 
-            gl.enableVertexAttribArray(this.aPosition);
-            gl.enableVertexAttribArray(this.aTexCoord);
+            this.enableVertexAttributes(gl);
+            this.resetVertexAttribPointerOffset();
 
-            gl.vertexAttribPointer(this.aPosition, 3, gl.FLOAT, false, 4 * 5, 0);
-            gl.vertexAttribPointer(this.aTexCoord, 2, gl.FLOAT, false, 4 * 5, 12);
+            this.vertexAttribPointer(this.aPosition, 3, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aTexCoord, 2, gl.FLOAT, model.vertexDataStride, gl);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
 
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, images[0].texture);
             gl.uniform1i(this.uTexture0, 0);
-    	}
+        }
     }
 
-#### 疑似差分プログラミングについて
-ＧＰＵに渡されるソースコードまで差分プログラミングを行うことはできませんので、疑似的な方法です。シェーダクラスではinitializeVertexSourceCode関数とinitializeFragmentSourceCode関数でそれぞれ頂点シェーダとフラグメントシェーダのソースコード文字列を初期化しています。クラスのメンバ関数にすることで、将来的に継承先クラスで差分だけを記述して新たなソースコードを作ることができます。継承元ソースコードの一部を生成する関数を用意してオーバーライドしたり、パラメータを渡す形にすることも考えられます。
 
-また、TypeScript側のattribute変数やuniform変数の取得をinitializeAttributes関数で行います。こちらもシェーダのソースコードと同様に、差分だけを記述することができます。筆者は上記のサンプルコードのように継承元クラスと継承先クラスの関数をそれぞれ呼ぶのが単純でよいのではないかと考えています
+#### 疑似差分プログラミングについて
+GLSL ES 1.0には差分プログラミングの機能はありませんので、疑似的な方法です。シェーダクラスではinitializeVertexSourceCode関数とinitializeFragmentSourceCode関数でそれぞれ頂点シェーダとフラグメントシェーダのソースコード文字列を初期化しています。クラスのメンバ関数にすることで、将来的に継承先クラスで差分だけを記述して新たなソースコードを作ることができます。継承元ソースコードの一部を生成する関数を用意してオーバーライドしたり、パラメータを渡す形にすることも考えられます。
+
+また、TypeScript側のattribute変数やuniform変数の取得をinitializeAttributes関数で行います。こちらもシェーダのソースコードと同様に、クラスの作りしだいで差分だけを記述することができます。筆者は上記のサンプルコードのように継承元クラスと継承先クラスの関数をそれぞれ呼ぶのが単純でよいのではないかと考えています
 
 #### attribute変数の扱いについて
 attribute変数は、変数ごとにenableVertexAttribArray関数を使ってＧＰＵのレジスタを有効化する必要があります。また、必要がなくなればdisableVertexAttribArray関数を使って無効化する必要があります。この処理はRenderShaderクラスの基本機能として用意しています。  
@@ -130,4 +131,4 @@ attribute変数は、変数ごとにenableVertexAttribArray関数を使ってＧ
 ## WebGLRender クラス
 WebGLRenderクラスの主な目的はWebGLコンテキストをクラスでラップすることです。WebGLコンテキストを直接利用するのではなく、クラスでラップすることはプログラムの保守性を高める意味で有効です。
 
-また、WebGLを扱うとき重要なこととして、WebGLがステートマシンであるという事情があります。しかも、必ずしも現在の状態の全ての情報を取得できるように設計されているわけではありません。ある程度、WebGLコンテキストやGPUの状態をプログラム側で記憶しておく必要があります。例えばこのサンプルではenableVertexAttribArray関数によって有効にされたレジスタの中で使用しないレジスタを無効にする処理をsetShader関数の中で行っています。また、現在のシェーダがどれであるかを記憶しています。レンダラにはそのような記憶場所としての目的もあります。
+また、WebGLを扱うとき重要なこととして、WebGLがステートマシンであるという事情があります。しかも、必ずしも現在の状態の全ての情報を取得できるように設計されているわけではありません。ある程度、WebGLコンテキストやGPUの状態をプログラム側で記憶しておく必要があります。例えばこのサンプルではenableVertexAttribArray関数によって有効にされたレジスタの中で使用しないレジスタを無効にする処理をsetShader関数の中で行っています。また、現在のシェーダがどれであるかを記憶するメンバ変数を持っています。

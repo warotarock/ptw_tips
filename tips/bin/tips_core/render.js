@@ -121,6 +121,7 @@ var WebGLRender = (function () {
     WebGLRender.prototype.initializeImageTexture = function (image) {
         var gl = this.gl;
         var glTexture = gl.createTexture();
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
         gl.bindTexture(gl.TEXTURE_2D, glTexture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image.imageData);
         gl.generateMipmap(gl.TEXTURE_2D);
@@ -189,17 +190,33 @@ var WebGLRender = (function () {
         this.gl.clearColor(r, g, b, a);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     };
-    WebGLRender.prototype.resetBasicParameters = function () {
+    WebGLRender.prototype.clearDepthBuffer = function () {
+        this.gl.clear(this.gl.DEPTH_BUFFER_BIT);
+    };
+    WebGLRender.prototype.resetBasicParameters = function (depthTest, depthMask, culling, addBlend) {
         var gl = this.gl;
-        gl.disable(gl.DEPTH_TEST);
-        gl.disable(gl.CULL_FACE);
+        if (depthTest) {
+            gl.enable(gl.DEPTH_TEST);
+        }
+        else {
+            gl.disable(gl.DEPTH_TEST);
+        }
+        gl.depthMask(depthMask);
+        if (culling) {
+            gl.enable(gl.CULL_FACE);
+        }
+        else {
+            gl.disable(gl.CULL_FACE);
+        }
         gl.enable(gl.BLEND);
-        // alpha blend
-        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
-        gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
-        // add blend
-        //gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE);
-        //gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
+        if (addBlend) {
+            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE);
+            gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
+        }
+        else {
+            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+            gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
+        }
     };
     WebGLRender.prototype.drawElements = function (model) {
         this.gl.drawElements(this.gl.TRIANGLES, model.indexCount, this.gl.UNSIGNED_SHORT, 0);

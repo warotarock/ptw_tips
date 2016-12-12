@@ -58,6 +58,8 @@ namespace SkinningModelDrawing {
 
         animationTime = 0.0;
 
+        isLoaded = false;
+
         initialize(canvas: HTMLCanvasElement) {
 
             this.canvas = canvas;
@@ -92,9 +94,8 @@ namespace SkinningModelDrawing {
             this.imageResources.push(image);
         }
 
-        run() {
+        processLading() {
 
-            // loading
             if (!this.modelResource.initialized) {
                 if (this.modelResource.loaded) {
                     this.initializeSkinningModelBuffer(this.modelResource);
@@ -109,14 +110,17 @@ namespace SkinningModelDrawing {
                 return;
             }
 
+            this.isLoaded = true;
+        }
+
+        run() {
+
             this.animationTime += 1.0;
 
-            // camera position
             vec3.set(this.eyeLocation, 6.0, 0.0, 2.0);
             vec3.set(this.lookatLocation, 0.0, 0.0, 1.5);
             vec3.set(this.upVector, 0.0, 0.0, 1.0);
 
-            // animation
             this.calcBoneMatrix(this.boneMatrixList, this.modelResource);
 
             mat4.identity(this.modelMatrix);
@@ -125,12 +129,11 @@ namespace SkinningModelDrawing {
 
         draw() {
 
-            // calculates camera matrix
             var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
             mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 50.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
 
-            // starts drawing
+            this.render.resetBasicParameters(true, true, false, false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
 
             this.drawSkinningModel(this.modelMatrix, this.modelResource);
@@ -178,7 +181,7 @@ namespace SkinningModelDrawing {
 
                 // select shader
                 var shader: Bone2Shader;
-                if (part.bone.length == 2) {
+                if (part.bone.length <= 2) {
                     shader = this.bone2Shader;
                 }
                 else {
@@ -195,7 +198,7 @@ namespace SkinningModelDrawing {
                 // draw
                 this.render.setBuffers(part.renderModel, this.imageResources);
 
-                this.render.resetBasicParameters();
+                this.render.resetBasicParameters(true, true, false, false);
 
                 this.render.drawElements(part.renderModel);
             }
@@ -207,17 +210,20 @@ namespace SkinningModelDrawing {
             xhr.open('GET', url);
             xhr.responseType = 'json';
 
-            xhr.addEventListener('load', (e: Event) => {
-                var data: any;
-                if (xhr.responseType == 'json') {
-                    data = xhr.response;
-                } else {
-                    data = JSON.parse(xhr.response);
-                }
+            xhr.addEventListener('load',
+                (e: Event) => {
 
-                model.data = data['Cube'];
-                model.loaded = true;
-            });
+                    var data: any;
+                    if (xhr.responseType == 'json') {
+                        data = xhr.response;
+                    } else {
+                        data = JSON.parse(xhr.response);
+                    }
+
+                    model.data = data['Cube'];
+                    model.loaded = true;
+                }
+            );
 
             xhr.send();
 
@@ -246,9 +252,11 @@ namespace SkinningModelDrawing {
 
             image.imageData = new Image();
 
-            image.imageData.addEventListener('load', () => {
-                this.render.initializeImageTexture(image);
-            });
+            image.imageData.addEventListener('load',
+                () => {
+                    this.render.initializeImageTexture(image);
+                }
+            );
 
             image.imageData.src = url;
         }
@@ -261,10 +269,10 @@ namespace SkinningModelDrawing {
         uTexture0: WebGLUniformLocation = null;
 
         aWeight1 = -1;
-        aVertexPosition1 = -1;
+        aPosition1 = -1;
 
-        aVertexPosition2 = -1;
         aWeight2 = -1;
+        aPosition2 = -1;
 
         uBoneMatrixList = new List<WebGLUniformLocation>();
 
@@ -274,10 +282,10 @@ namespace SkinningModelDrawing {
                 + this.floatPrecisionDefinitionCode
 
                 + 'attribute float aWeight1;'
-                + 'attribute vec3 aVertexPosition1;'
+                + 'attribute vec3 aPosition1;'
 
                 + 'attribute float aWeight2;'
-                + 'attribute vec3 aVertexPosition2;'
+                + 'attribute vec3 aPosition2;'
 
                 + 'attribute vec2 aTexCoord1;'
 
@@ -293,8 +301,8 @@ namespace SkinningModelDrawing {
 
                 + '    vTexCoord = aTexCoord1;'
 
-                + '    gl_Position = uPMatrix * uMVMatrix * (  uBoneMatrix1 * vec4(aVertexPosition1, 1.0) * aWeight1 '
-                + '                                          + uBoneMatrix2 * vec4(aVertexPosition2, 1.0) * aWeight2);'
+                + '    gl_Position = uPMatrix * uMVMatrix * (  uBoneMatrix1 * vec4(aPosition1, 1.0) * aWeight1 '
+                + '                                          + uBoneMatrix2 * vec4(aPosition2, 1.0) * aWeight2);'
                 + '}';
         }
 
@@ -321,10 +329,10 @@ namespace SkinningModelDrawing {
         initializeAttributes_Bone2Shader(gl: WebGLRenderingContext) {
 
             this.aWeight1 = this.getAttribLocation('aWeight1', gl);
-            this.aVertexPosition1 = this.getAttribLocation('aVertexPosition1', gl);
+            this.aPosition1 = this.getAttribLocation('aPosition1', gl);
 
             this.aWeight2 = this.getAttribLocation('aWeight2', gl);
-            this.aVertexPosition2 = this.getAttribLocation('aVertexPosition2', gl);
+            this.aPosition2 = this.getAttribLocation('aPosition2', gl);
 
             this.aTexCoord1 = this.getAttribLocation('aTexCoord1', gl);
 
@@ -348,11 +356,11 @@ namespace SkinningModelDrawing {
             this.resetVertexAttribPointerOffset();
 
             this.vertexAttribPointer(this.aWeight1, 1, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aVertexPosition1, 3, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aPosition1, 3, gl.FLOAT, model.vertexDataStride, gl);
             this.vertexAttribPointerOffset += 4 * 3;// skip normal data
 
             this.vertexAttribPointer(this.aWeight2, 1, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aVertexPosition2, 3, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aPosition2, 3, gl.FLOAT, model.vertexDataStride, gl);
             this.vertexAttribPointerOffset += 4 * 3;// skip normal data
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
@@ -377,9 +385,9 @@ namespace SkinningModelDrawing {
     export class Bone4Shader extends Bone2Shader {
 
         aWeight3 = -1;
-        aVertexPosition3 = -1;
+        aPosition3 = -1;
 
-        aVertexPosition4 = -1;
+        aPosition4 = -1;
         aWeight4 = -1;
 
         initializeVertexSourceCode() {
@@ -388,16 +396,16 @@ namespace SkinningModelDrawing {
                 + this.floatPrecisionDefinitionCode
 
                 + 'attribute float aWeight1;'
-                + 'attribute vec3 aVertexPosition1;'
+                + 'attribute vec3 aPosition1;'
 
                 + 'attribute float aWeight2;'
-                + 'attribute vec3 aVertexPosition2;'
+                + 'attribute vec3 aPosition2;'
 
                 + 'attribute float aWeight3;'
-                + 'attribute vec3 aVertexPosition3;'
+                + 'attribute vec3 aPosition3;'
 
                 + 'attribute float aWeight4;'
-                + 'attribute vec3 aVertexPosition4;'
+                + 'attribute vec3 aPosition4;'
 
                 + 'attribute vec2 aTexCoord1;'
 
@@ -415,10 +423,10 @@ namespace SkinningModelDrawing {
 
                 + '    vTexCoord = aTexCoord1;'
 
-                + '    gl_Position = uPMatrix * uMVMatrix * (  uBoneMatrix1 * vec4(aVertexPosition1, 1.0) * aWeight1 '
-                + '                                          + uBoneMatrix2 * vec4(aVertexPosition2, 1.0) * aWeight2 '
-                + '                                          + uBoneMatrix3 * vec4(aVertexPosition3, 1.0) * aWeight3 '
-                + '                                          + uBoneMatrix4 * vec4(aVertexPosition4, 1.0) * aWeight4);'
+                + '    gl_Position = uPMatrix * uMVMatrix * (  uBoneMatrix1 * vec4(aPosition1, 1.0) * aWeight1 '
+                + '                                          + uBoneMatrix2 * vec4(aPosition2, 1.0) * aWeight2 '
+                + '                                          + uBoneMatrix3 * vec4(aPosition3, 1.0) * aWeight3 '
+                + '                                          + uBoneMatrix4 * vec4(aPosition4, 1.0) * aWeight4);'
 
                 + '}';
         }
@@ -433,10 +441,10 @@ namespace SkinningModelDrawing {
         initializeAttributes_Bone4Shader(gl: WebGLRenderingContext) {
 
             this.aWeight3 = this.getAttribLocation('aWeight3', gl);
-            this.aVertexPosition3 = this.getAttribLocation('aVertexPosition3', gl);
+            this.aPosition3 = this.getAttribLocation('aPosition3', gl);
 
             this.aWeight4 = this.getAttribLocation('aWeight4', gl);
-            this.aVertexPosition4 = this.getAttribLocation('aVertexPosition4', gl);
+            this.aPosition4 = this.getAttribLocation('aPosition4', gl);
 
             this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix3', gl));
             this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix4', gl));
@@ -452,11 +460,11 @@ namespace SkinningModelDrawing {
         setBuffers_Bone4Shader(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
 
             this.vertexAttribPointer(this.aWeight3, 1, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aVertexPosition3, 3, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aPosition3, 3, gl.FLOAT, model.vertexDataStride, gl);
             this.vertexAttribPointerOffset += 4 * 3;// skip normal data
 
             this.vertexAttribPointer(this.aWeight4, 1, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aVertexPosition4, 3, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aPosition4, 3, gl.FLOAT, model.vertexDataStride, gl);
             this.vertexAttribPointerOffset += 4 * 3;// skip normal data
         }
     }
@@ -473,8 +481,14 @@ namespace SkinningModelDrawing {
     };
 
     function run() {
-        _Main.run();
-        _Main.draw();
+
+        if (_Main.isLoaded) {
+            _Main.run();
+            _Main.draw();
+        }
+        else {
+            _Main.processLading();
+        }
 
         setTimeout(run, 1000 / 30);
     }
