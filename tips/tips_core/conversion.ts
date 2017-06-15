@@ -21,10 +21,34 @@ type wchar = string;
 type wstring = string;
 type wstringvalue = string;
 
+function ListAddRange<T>(destList: List<T>, addList: List<T>) {
+    Array.prototype.push.apply(destList, addList);
+}
+
+function ListRemoveAt<T>(destList: List<T>, index: int) {
+    destList.splice(index, 1);
+}
+
 function DictionaryContainsKey<T>(dic: Dictionary<T>, key: string): boolean {
     return (key in dic);
 }
 
 function StringIsNullOrEmpty(str: string): boolean {
     return (str == null || str == undefined || str == "");
+}
+
+function StringIndexOf(str: string, searchString): int {
+    return str.indexOf(searchString);
+}
+
+function StringSubstring(text: string, startIndex: int, length: int): string {
+    return text.substr(startIndex, length);
+}
+
+function StringStartsWith(text: string, searchString: string): boolean {
+    return (text.indexOf(searchString) == 0);
+}
+
+function StringContains(text: string, searchString: string): boolean {
+    return (text.indexOf(searchString) != -1);
 }
