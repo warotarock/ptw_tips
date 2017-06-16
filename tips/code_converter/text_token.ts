@@ -27,8 +27,8 @@ namespace CodeConverter {
 
         static joinToString(tokens: List<TextToken>): string {
 
-            var result = new List<string>();
-            for (var i = 0; i < tokens.length; i++) {
+            let result = new List<string>();
+            for (let i = 0; i < tokens.length; i++) {
                 result.push(tokens[i].Text);
             }
 
@@ -38,7 +38,7 @@ namespace CodeConverter {
         // Constructing methods
         static create(): TextToken {
 
-            var token = new TextToken();
+            let token = new TextToken();
             token.Type = TokenType.None;
 
             return token;
@@ -46,7 +46,7 @@ namespace CodeConverter {
 
         static fromTypeText(tokenType: TokenType, text: string): TextToken {
 
-            var token = new TextToken();
+            let token = new TextToken();
             token.Type = tokenType;
             token.Text = text;
 
@@ -55,7 +55,7 @@ namespace CodeConverter {
 
         static fromTypeTextLineNumber(tokenType: TokenType, text: string, lineNumber): TextToken {
 
-            var token = new TextToken();
+            let token = new TextToken();
             token.Type = tokenType;
             token.Text = text;
             token.LineNumber = lineNumber;
@@ -111,7 +111,7 @@ namespace CodeConverter {
 
         findIndexFrom(textList: List<string>): int {
 
-            for (var i = 0; i < textList.length; i++) {
+            for (let i = 0; i < textList.length; i++) {
                 if (this.Text == textList[i]) {
                     return i;
                 }
@@ -122,7 +122,7 @@ namespace CodeConverter {
 
         findIndexStartsWithFrom(textList: List<string>): int {
 
-            for (var i = 0; i < textList.length; i++) {
+            for (let i = 0; i < textList.length; i++) {
                 if (this.startsWith(textList[i])) {
                     return i;
                 }
@@ -144,8 +144,8 @@ namespace CodeConverter {
         // List methods
         static getIndent(tokens: List<TextToken>): string {
 
-            var result = new List<string>();
-            for (var i = 0; i < tokens.length; i++) {
+            let result = new List<string>();
+            for (let i = 0; i < tokens.length; i++) {
                 if (tokens[i].Type == TokenType.WhiteSpaces) {
                     result.push(tokens[i].Text);
                 }
@@ -159,11 +159,11 @@ namespace CodeConverter {
 
         static trim(tokens: List<TextToken>): List<TextToken> {
 
-            var newTokens = new List<TextToken>();
+            let newTokens = new List<TextToken>();
 
-            var firstIndex = -1;
-            for (var i = 0; i < tokens.length; i++) {
-                var token = tokens[i];
+            let firstIndex = -1;
+            for (let i = 0; i < tokens.length; i++) {
+                let token = tokens[i];
                 if (!token.isBlank()) {
                     firstIndex = i;
                     break;
@@ -174,9 +174,9 @@ namespace CodeConverter {
                 return newTokens;
             }
 
-            var lastIndex = -1;
-            for (var i = tokens.length - 1; i >= 0; i--) {
-                var token = tokens[i];
+            let lastIndex = -1;
+            for (let i = tokens.length - 1; i >= 0; i--) {
+                let token = tokens[i];
                 if (!token.isBlank()) {
                     lastIndex = i;
                     break;
@@ -187,7 +187,7 @@ namespace CodeConverter {
                 return newTokens;
             }
 
-            for (var i = firstIndex; i <= lastIndex; i++) {
+            for (let i = firstIndex; i <= lastIndex; i++) {
                 newTokens.push(tokens[i]);
             }
 
@@ -196,10 +196,10 @@ namespace CodeConverter {
 
         static removeBlanks(tokens: List<TextToken>): List<TextToken> {
 
-            var resultList = new List<TextToken>();
+            let resultList = new List<TextToken>();
 
-            for (var i = 0; i < tokens.length; i++) {
-                var token = tokens[i];
+            for (let i = 0; i < tokens.length; i++) {
+                let token = tokens[i];
                 resultList.push(token);
             }
 
@@ -208,13 +208,13 @@ namespace CodeConverter {
 
         static splitToLists(tokens: List<TextToken>, seperatorText: string): List<List<TextToken>> {
 
-            var resultList = new List<List<TextToken>>();
+            let resultList = new List<List<TextToken>>();
 
-            var innerList = new List<TextToken>();
+            let innerList = new List<TextToken>();
 
-            for (var i = 0; i < tokens.length; i++) {
+            for (let i = 0; i < tokens.length; i++) {
 
-                var isSeperator: boolean = (tokens[i].Text == seperatorText);
+                let isSeperator: boolean = (tokens[i].Text == seperatorText);
 
                 if (!isSeperator || i == tokens.length - 1) {
                     innerList.push(tokens[i]);
@@ -235,7 +235,7 @@ namespace CodeConverter {
                 endIndex = tokens.length - 1;
             }
 
-            for (var i = startIndex; i < endIndex; i++) {
+            for (let i = startIndex; i < endIndex; i++) {
 
                 if (tokens[i].Text == searchText) {
 
@@ -261,9 +261,9 @@ namespace CodeConverter {
 
         private static findNonBlankIndex(tokens: List<TextToken>, searchStartIndex: int, forwardSearch: boolean): int {
 
-            var resultIndex = -1;
+            let resultIndex = -1;
 
-            var i: int;
+            let i: int;
             if (forwardSearch) {
                 i = searchStartIndex;
             }
@@ -276,7 +276,7 @@ namespace CodeConverter {
             }
 
             while (true) {
-                var token = tokens[i];
+                let token = tokens[i];
 
                 if (!token.isBlank()) {
                     resultIndex = i;
@@ -304,14 +304,14 @@ namespace CodeConverter {
 
             counter.clear();
 
-            var resultIndex = -1;
+            let resultIndex = -1;
 
             if (endIndex == -1) {
                 endIndex = tokens.length - 1;
             }
 
-            for (var i = startIndex; i <= endIndex; i++) {
-                var token = tokens[i];
+            for (let i = startIndex; i <= endIndex; i++) {
+                let token = tokens[i];
 
                 if (counter.parenthesisNestCount == 0 && counter.braceNestCount == 0 && counter.angleNestCount == 0
                     && token.Text == searchLetter) {
@@ -344,7 +344,7 @@ namespace CodeConverter {
 
         static getRange(tokens: List<TextToken>, startIndex: int, length: int): List<TextToken> {
 
-            var result = tokens.slice(startIndex, startIndex + length);
+            let result = tokens.slice(startIndex, startIndex + length);
 
             return result;
         }
@@ -453,7 +453,7 @@ namespace CodeConverter {
 
         static createFrom(tokens: List<TextToken>): TextTokenListView {
 
-            var target: any = tokens.slice(0);
+            let target: any = tokens.slice(0);
 
             TextTokenListView.initialize(target);
 
@@ -462,7 +462,7 @@ namespace CodeConverter {
 
         static initialize(tokens: List<TextToken>) {
 
-            var target: any = tokens;
+            let target: any = tokens;
             target.ParenthesisCounter = new ParenthesisCounter();
             target.findIndexInZeroLevel = TextTokenListView.prototype.findIndexInZeroLevel;
             target.getRange = TextTokenListView.prototype.getRange;
