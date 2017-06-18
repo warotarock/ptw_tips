@@ -1,7 +1,7 @@
 ﻿
 namespace CodeConverter.TextTokenizer {
 
-    export class Setting {
+    export class TokenizerSetting {
 
         WhiteSpaceLetters = ' \t';
         CommentLineStartLetter = '//';
@@ -20,6 +20,26 @@ namespace CodeConverter.TextTokenizer {
         TextLiteralSurrounders = '\'\"';
     }
 
+    export class TokenizerResult {
+
+        Tokens = new List<TextToken>();
+        LineNumber = 0;
+
+        add(tokenType: TextTokenType, lineText: string, startIndex: int, length: int): TextToken {
+
+            let text = StringSubstring(lineText, startIndex, length);
+
+            let token = TextToken.fromTypeTextLineNumber(tokenType, text, this.LineNumber);
+            this.Tokens.push(token);
+
+            if (tokenType == TextTokenType.LineEnd) {
+                this.LineNumber++;
+            }
+
+            return token;
+        }
+    }
+
     export enum ProcessingMode {
         None,
         LineEnd,
@@ -32,27 +52,9 @@ namespace CodeConverter.TextTokenizer {
         TextLiteral,
     }
 
-    export class TokenizerResult {
+    export class ProcessingState {
 
-        Tokens = new List<TextToken>();
-        LineNumber = 0;
-
-        Add(tokenType: TokenType, lineText: string, startIndex: int, length: int): TextToken {
-
-            let text = StringSubstring(lineText, startIndex, length);
-
-            let token = TextToken.fromTypeTextLineNumber(tokenType, text, this.LineNumber);
-            this.Tokens.push(token);
-
-            if (tokenType == TokenType.LineEnd) {
-                this.LineNumber++;
-            }
-
-            return token;
-        }
-    }
-
-    export class ProcessingState extends Setting {
+        Setting: TokenizerSetting = null;
 
         // Temporary variables for setting
         CommentStartLetters: string = null;
@@ -67,22 +69,10 @@ namespace CodeConverter.TextTokenizer {
         // Result variables
         Result: TokenizerResult = null;
 
-        Initialize(setting: Setting) {
+        initialize(setting: TokenizerSetting) {
 
             // Initialize variables for setting
-            this.WhiteSpaceLetters = setting.WhiteSpaceLetters;
-            this.CommentLineStartLetter = setting.CommentLineStartLetter;
-            this.CommentBlockStartLetter = setting.CommentBlockStartLetter;
-            this.CommentBlockEndLetter = setting.CommentBlockEndLetter;
-
-            this.TextLiteralEscapeSeqLetters = setting.TextLiteralEscapeSeqLetters;
-            this.TextLiteralSurrounders = setting.TextLiteralSurrounders;
-
-            this.NumberSignLetterOrSeperator = setting.NumberSignLetterOrSeperator;
-            this.NumberLiteralLetters = setting.NumberLiteralLetters;
-
-            this.SingleSeperatorLetters = setting.SingleSeperatorLetters;
-            this.MultiLengthSeperators = setting.MultiLengthSeperators.slice();
+            this.Setting = setting;
 
             this.CommentStartLetters = StringSubstring(setting.CommentLineStartLetter, 0, 1);
             this.CommentStartLetters += StringSubstring(setting.CommentBlockStartLetter, 0, 1);
@@ -90,110 +80,112 @@ namespace CodeConverter.TextTokenizer {
             let letters = new List<string>();
             letters.push(setting.SingleSeperatorLetters);
             for (let i = 0; i < setting.MultiLengthSeperators.length; i++) {
-                let letter = setting.MultiLengthSeperators[i];
-                letters.push(letter[0]);
+                let seperator = setting.MultiLengthSeperators[i];
+                letters.push(seperator[0]);
             }
             this.SeperatorTopLetters = letters.join();
 
-            this.Clear();
+            this.clear();
         }
 
-        Clear() {
+        clear() {
             this.CurrentMode = ProcessingMode.None;
             this.CurrentIndex = 0;
             this.LineNumber = 1;
             this.BlockCommentStartLetter = null;
-            this.Result = new TokenizerResult();
         }
     }
 
-    export class Processer {
+    export class Tokenizer {
 
-        Tokenize(lineText: string, state: ProcessingState): TokenizerResult {
+        tokenize(result: TokenizerResult, targetText: string, state: ProcessingState): TokenizerResult {
 
-            let lineTextLength = lineText.length;
+            state.Result = result;
+
+            let lineTextLength = targetText.length;
 
             while (state.CurrentIndex < lineTextLength) {
-                let mode = this.GetProcessingMode(lineText, state);
+                let mode = this.getProcessingMode(targetText, state);
 
                 switch (mode) {
                     case ProcessingMode.LineEnd:
-                        this.ProcessLineEnd(lineText, state);
+                        this.processLineEnd(result, targetText, state);
                         break;
 
                     case ProcessingMode.BlockComment:
-                        this.ProcessBlockComment(lineText, state);
+                        this.processBlockComment(result, targetText, state);
                         break;
 
                     case ProcessingMode.LineComment:
-                        this.ProcessLineComment(lineText, state);
+                        this.processLineComment(result, targetText, state);
                         break;
 
                     case ProcessingMode.WhiteSpaces:
-                        this.ProcessWhiteSpaces(lineText, state);
+                        this.processWhiteSpaces(result, targetText, state);
                         break;
 
                     case ProcessingMode.TextLiteral:
-                        this.ProcessTextLiteral(lineText, state);
+                        this.processTextLiteral(result, targetText, state);
                         break;
 
                     case ProcessingMode.NumberLiteral:
-                        this.ProcessNumberLiteral(lineText, state);
+                        this.processNumberLiteral(result, targetText, state);
                         break;
 
                     case ProcessingMode.AlphaNumeric:
-                        this.ProcessAlphaNumeric(lineText, state);
+                        this.processAlphaNumeric(result, targetText, state);
                         break;
 
                     case ProcessingMode.Seperator:
-                        this.ProcessSeperator(lineText, state);
+                        this.processSeperator(result, targetText, state);
                         break;
                 }
             }
 
-            return state.Result;
+            return result;
         }
 
         // Getting processing mode sub
-        GetProcessingMode(lineText: string, state: ProcessingState): ProcessingMode {
+        private getProcessingMode(text: string, state: ProcessingState): ProcessingMode {
+
             let i = state.CurrentIndex;
-            let lineTextLength = lineText.length;
-            let letter = StringSubstring(lineText, i, 1);
+            let textLength = text.length;
+            let letter = StringSubstring(text, i, 1);
 
             // Line end letter
-            if (this.IsLineEndStartLetter(letter[0])) {
+            if (this.isLineEndStartLetter(letter[0])) {
                 return ProcessingMode.LineEnd;
             }
 
             // Commnent
-            if (i <= lineTextLength - 2 && StringContains(state.CommentStartLetters, letter)) {
-                let nextTwoLetters = StringSubstring(lineText, i, 2);
+            if (i <= textLength - 2 && StringContains(state.CommentStartLetters, letter)) {
+                let nextTwoLetters = StringSubstring(text, i, 2);
 
-                if (state.CommentBlockStartLetter == nextTwoLetters) {
+                if (state.Setting.CommentBlockStartLetter == nextTwoLetters) {
                     return ProcessingMode.BlockComment;
                 }
-                else if (state.CommentLineStartLetter == nextTwoLetters) {
+                else if (state.Setting.CommentLineStartLetter == nextTwoLetters) {
                     return ProcessingMode.LineComment;
                 }
             }
 
             // White spaces
-            if (StringContains(state.WhiteSpaceLetters, letter)) {
+            if (StringContains(state.Setting.WhiteSpaceLetters, letter)) {
                 return ProcessingMode.WhiteSpaces;
             }
 
             // Text literal
-            if (StringContains(state.TextLiteralSurrounders, letter)) {
+            if (StringContains(state.Setting.TextLiteralSurrounders, letter)) {
                 return ProcessingMode.TextLiteral;
             }
 
             // All seperators
             if (StringContains(state.SeperatorTopLetters, letter)) {
-                if (letter == state.NumberSignLetterOrSeperator && i + 1 < lineTextLength) {
+                if (letter == state.Setting.NumberSignLetterOrSeperator && i + 1 < textLength) {
                     // Check hyphen of negative number
                     // TODO: Check more than 1 letter after
-                    let nextLetter = StringSubstring(lineText, i + 1, 1);
-                    if (!StringContains(state.NumberLiteralLetters, letter)) {
+                    let nextLetter = StringSubstring(text, i + 1, 1);
+                    if (!StringContains(state.Setting.NumberLiteralLetters, letter)) {
                         return ProcessingMode.Seperator;
                     }
                 }
@@ -203,7 +195,7 @@ namespace CodeConverter.TextTokenizer {
             }
 
             // Number seperators
-            if (StringContains(state.NumberLiteralLetters, letter)) {
+            if (StringContains(state.Setting.NumberLiteralLetters, letter)) {
                 return ProcessingMode.NumberLiteral;
             }
 
@@ -212,19 +204,19 @@ namespace CodeConverter.TextTokenizer {
         }
 
         // Processing sub
-        ProcessLineEnd(lineText: string, state: ProcessingState) {
+        private processLineEnd(result: TokenizerResult, lineText: string, state: ProcessingState) {
 
             let i = state.CurrentIndex;
             let lineTextLength = lineText.length;
             let letter = StringSubstring(lineText, i, 1);
 
-            let lineEndLetterLength = this.GetLineEndLetterLength(lineText, i);
-            state.Result.Add(TokenType.LineEnd, lineText, i, lineEndLetterLength);
+            let lineEndLetterLength = this.getLineEndLetterLength(lineText, i);
+            result.add(TextTokenType.LineEnd, lineText, i, lineEndLetterLength);
 
             state.CurrentIndex = i + lineEndLetterLength;
         }
 
-        ProcessLineComment(lineText: string, state: ProcessingState) {
+        private processLineComment(result: TokenizerResult, lineText: string, state: ProcessingState) {
 
             let i = state.CurrentIndex;
             let topIndex = i;
@@ -232,10 +224,10 @@ namespace CodeConverter.TextTokenizer {
 
             while (true) {
                 // 改行コード
-                if (this.IsLineEndStartLetter(lineText[i])) {
+                if (this.isLineEndStartLetter(lineText[i])) {
                     if (i - topIndex > 0) {
                         // 改行コードの前までを対象とする
-                        state.Result.Add(TokenType.LineComment, lineText, topIndex, i - topIndex);
+                        result.add(TextTokenType.LineComment, lineText, topIndex, i - topIndex);
                     }
 
                     break;
@@ -243,7 +235,7 @@ namespace CodeConverter.TextTokenizer {
 
                 // テキストの終了
                 if (i == lineTextLength - 1) {
-                    state.Result.Add(TokenType.LineComment, lineText, topIndex, lineTextLength - topIndex);
+                    result.add(TextTokenType.LineComment, lineText, topIndex, lineTextLength - topIndex);
                     i = lineTextLength;
                     break;
                 }
@@ -257,15 +249,15 @@ namespace CodeConverter.TextTokenizer {
             state.CurrentIndex = i;
         }
 
-        ProcessBlockComment(lineText: string, state: ProcessingState) {
+        private processBlockComment(result: TokenizerResult, lineText: string, state: ProcessingState) {
 
             let i = state.CurrentIndex;
             let topIndex = i;
             let lineTextLength = lineText.length;
-            let currentTokenType = TokenType.BlockCommentBegin;
+            let currentTokenType = TextTokenType.BlockCommentBegin;
 
-            let commentBlockEndLetter0 = state.CommentBlockEndLetter[0];
-            let commentBlockEndLetter1 = state.CommentBlockEndLetter[1];
+            let commentBlockEndLetter0 = state.Setting.CommentBlockEndLetter[0];
+            let commentBlockEndLetter1 = state.Setting.CommentBlockEndLetter[1];
 
             // コメントの開始文字を記憶
             state.BlockCommentStartLetter = StringSubstring(lineText, i, 2);
@@ -275,19 +267,19 @@ namespace CodeConverter.TextTokenizer {
 
             while (true) {
                 // 改行コード
-                if (this.IsLineEndStartLetter(lineText[i])) {
+                if (this.isLineEndStartLetter(lineText[i])) {
                     // 改行コードの前までを出力
                     if (i - topIndex > 0) {
-                        state.Result.Add(currentTokenType, lineText, topIndex, i - topIndex);
+                        result.add(currentTokenType, lineText, topIndex, i - topIndex);
                     }
 
-                    if (currentTokenType == TokenType.BlockCommentBegin) {
-                        currentTokenType = TokenType.BlockComment;
+                    if (currentTokenType == TextTokenType.BlockCommentBegin) {
+                        currentTokenType = TextTokenType.BlockComment;
                     }
 
                     // 改行コードを出力
-                    let lineEndLetterLength = this.GetLineEndLetterLength(lineText, i);
-                    state.Result.Add(TokenType.LineEnd, lineText, i, lineEndLetterLength);
+                    let lineEndLetterLength = this.getLineEndLetterLength(lineText, i);
+                    result.add(TextTokenType.LineEnd, lineText, i, lineEndLetterLength);
 
                     i += lineEndLetterLength;
                     topIndex = i;
@@ -298,7 +290,7 @@ namespace CodeConverter.TextTokenizer {
                 // ブロックコメントの終了
                 if (i < lineTextLength - 1) {
                     if (commentBlockEndLetter0 == lineText[i] && commentBlockEndLetter1 == lineText[i + 1]) {
-                        state.Result.Add(TokenType.BlockCommentEnd, lineText, topIndex, i + 2 - topIndex);
+                        result.add(TextTokenType.BlockCommentEnd, lineText, topIndex, i + 2 - topIndex);
                         i += 2;
                         break;
                     }
@@ -306,7 +298,7 @@ namespace CodeConverter.TextTokenizer {
 
                 // テキストの終了
                 if (i == lineTextLength - 1) {
-                    state.Result.Add(TokenType.BlockCommentEnd, lineText, topIndex, lineTextLength - topIndex);
+                    result.add(TextTokenType.BlockCommentEnd, lineText, topIndex, lineTextLength - topIndex);
                     i = lineTextLength;
                     break;
                 }
@@ -320,7 +312,7 @@ namespace CodeConverter.TextTokenizer {
             state.CurrentIndex = i;
         }
 
-        ProcessWhiteSpaces(lineText: string, state: ProcessingState) {
+        private processWhiteSpaces(result: TokenizerResult, lineText: string, state: ProcessingState) {
 
             let i = state.CurrentIndex;
             let topIndex = i;
@@ -329,12 +321,12 @@ namespace CodeConverter.TextTokenizer {
             for (; i < lineTextLength; i++) {
                 let letter = StringSubstring(lineText, i, 1);
 
-                if (!StringContains(state.WhiteSpaceLetters, letter)) {
-                    state.Result.Add(TokenType.WhiteSpaces, lineText, topIndex, i - topIndex);
+                if (!StringContains(state.Setting.WhiteSpaceLetters, letter)) {
+                    result.add(TextTokenType.WhiteSpaces, lineText, topIndex, i - topIndex);
                     break;
                 }
                 else if (i == lineTextLength - 1) {
-                    state.Result.Add(TokenType.WhiteSpaces, lineText, topIndex, lineTextLength - topIndex);
+                    result.add(TextTokenType.WhiteSpaces, lineText, topIndex, lineTextLength - topIndex);
                     i = lineTextLength;
                     break;
                 }
@@ -343,7 +335,7 @@ namespace CodeConverter.TextTokenizer {
             state.CurrentIndex = i;
         }
 
-        ProcessTextLiteral(lineText: string, state: ProcessingState) {
+        private processTextLiteral(result: TokenizerResult, lineText: string, state: ProcessingState) {
 
             let i = state.CurrentIndex;
             let topIndex = i;
@@ -356,15 +348,15 @@ namespace CodeConverter.TextTokenizer {
             for (; i < lineTextLength; i++) {
                 let letter = StringSubstring(lineText, i, 1);
 
-                if (StringContains(state.TextLiteralSurrounders, letter)
-                    && (StringIsNullOrEmpty(lastLetter) || !StringContains(state.TextLiteralEscapeSeqLetters, lastLetter))) {
-                    state.Result.Add(TokenType.TextLiteral, lineText, topIndex, i + 1 - topIndex);
+                if (StringContains(state.Setting.TextLiteralSurrounders, letter)
+                    && (StringIsNullOrEmpty(lastLetter) || !StringContains(state.Setting.TextLiteralEscapeSeqLetters, lastLetter))) {
+                    result.add(TextTokenType.TextLiteral, lineText, topIndex, i + 1 - topIndex);
                     i = i + 1;
                     break;
                 }
                 else if (i == lineTextLength - 1) {
                     // TODO: 文字列の途中で行末に達した場合、例外にするか続行できるか検討する。
-                    state.Result.Add(TokenType.TextLiteral, lineText, topIndex, lineTextLength - topIndex);
+                    result.add(TextTokenType.TextLiteral, lineText, topIndex, lineTextLength - topIndex);
                     i = lineTextLength;
                     break;
                 }
@@ -375,7 +367,7 @@ namespace CodeConverter.TextTokenizer {
             state.CurrentIndex = i;
         }
 
-        ProcessNumberLiteral(lineText: string, state: ProcessingState) {
+        private processNumberLiteral(result: TokenizerResult, lineText: string, state: ProcessingState) {
 
             let i = state.CurrentIndex;
             let topIndex = i;
@@ -384,14 +376,14 @@ namespace CodeConverter.TextTokenizer {
             for (; i < lineTextLength; i++) {
                 let letter = StringSubstring(lineText, i, 1);
 
-                if (!StringContains(state.NumberLiteralLetters, letter)
+                if (!StringContains(state.Setting.NumberLiteralLetters, letter)
                     && letter != '.') // TODO: 0-1 のような書き方で正しく動かないので対応する
                 {
-                    state.Result.Add(TokenType.NumberLiteral, lineText, topIndex, i - topIndex);
+                    result.add(TextTokenType.NumberLiteral, lineText, topIndex, i - topIndex);
                     break;
                 }
                 if (i == lineTextLength - 1) {
-                    state.Result.Add(TokenType.NumberLiteral, lineText, topIndex, lineTextLength - topIndex);
+                    result.add(TextTokenType.NumberLiteral, lineText, topIndex, lineTextLength - topIndex);
                     i = lineTextLength;
                     break;
                 }
@@ -400,7 +392,7 @@ namespace CodeConverter.TextTokenizer {
             state.CurrentIndex = i;
         }
 
-        ProcessAlphaNumeric(lineText: string, state: ProcessingState) {
+        private processAlphaNumeric(result: TokenizerResult, lineText: string, state: ProcessingState) {
 
             let i = state.CurrentIndex;
             let topIndex = i;
@@ -410,12 +402,12 @@ namespace CodeConverter.TextTokenizer {
                 let letter = StringSubstring(lineText, i, 1);
 
                 if (StringContains(state.SeperatorTopLetters, letter)
-                    || this.IsLineEndStartLetter(letter[0])) {
-                    state.Result.Add(TokenType.AlphaNumeric, lineText, topIndex, i - topIndex);
+                    || this.isLineEndStartLetter(letter[0])) {
+                    result.add(TextTokenType.AlphaNumeric, lineText, topIndex, i - topIndex);
                     break;
                 }
                 else if (i == lineTextLength - 1) {
-                    state.Result.Add(TokenType.AlphaNumeric, lineText, topIndex, lineTextLength - topIndex);
+                    result.add(TextTokenType.AlphaNumeric, lineText, topIndex, lineTextLength - topIndex);
                     i = lineTextLength;
                     break;
                 }
@@ -424,7 +416,7 @@ namespace CodeConverter.TextTokenizer {
             state.CurrentIndex = i;
         }
 
-        ProcessSeperator(lineText: string, state: ProcessingState) {
+        private processSeperator(result: TokenizerResult, lineText: string, state: ProcessingState) {
 
             let i = state.CurrentIndex;
             let topIndex = i;
@@ -433,13 +425,13 @@ namespace CodeConverter.TextTokenizer {
             // Check multi-length-seperator and process letters
             let isMultiLengthSeperator = false;
 
-            for (i = 0; i < state.MultiLengthSeperators.length; i++) {
-                let seperator = state.MultiLengthSeperators[i];
+            for (i = 0; i < state.Setting.MultiLengthSeperators.length; i++) {
+                let seperator = state.Setting.MultiLengthSeperators[i];
                 let seperatorLength = seperator.length;
 
                 if (topIndex <= lineTextLength - seperatorLength
                     && seperator == StringSubstring(lineText, topIndex, seperatorLength)) {
-                    state.Result.Add(TokenType.Seperator, lineText, topIndex, seperatorLength);
+                    result.add(TextTokenType.Seperator, lineText, topIndex, seperatorLength);
                     i = topIndex + seperatorLength;
                     isMultiLengthSeperator = true;
                     break;
@@ -448,7 +440,7 @@ namespace CodeConverter.TextTokenizer {
 
             // If not multi-length, process as a single letter
             if (!isMultiLengthSeperator) {
-                state.Result.Add(TokenType.Seperator, lineText, topIndex, 1);
+                result.add(TextTokenType.Seperator, lineText, topIndex, 1);
                 i = topIndex + 1;
                 topIndex = i;
             }
@@ -457,11 +449,11 @@ namespace CodeConverter.TextTokenizer {
         }
 
         // Detail analyzing functions
-        IsLineEndStartLetter(letter: string): boolean {
+        private isLineEndStartLetter(letter: string): boolean {
             return (letter == '\n') || (letter == '\r');
         }
 
-        GetLineEndLetterLength(lineText: string, index: int): int {
+        private getLineEndLetterLength(lineText: string, index: int): int {
 
             if (lineText[index] == '\n') {
                 return 1;

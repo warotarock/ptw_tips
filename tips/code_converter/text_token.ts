@@ -1,7 +1,7 @@
 ﻿
 namespace CodeConverter {
 
-    export enum TokenType {
+    export enum TextTokenType {
         None,
         WhiteSpaces,
         LineEnd,
@@ -16,7 +16,7 @@ namespace CodeConverter {
     }
 
     export class TextToken {
-        Type: TokenType;
+        Type: TextTokenType;
         Text: string;
         LineNumber: int;
 
@@ -39,12 +39,12 @@ namespace CodeConverter {
         static create(): TextToken {
 
             let token = new TextToken();
-            token.Type = TokenType.None;
+            token.Type = TextTokenType.None;
 
             return token;
         }
 
-        static fromTypeText(tokenType: TokenType, text: string): TextToken {
+        static fromTypeText(tokenType: TextTokenType, text: string): TextToken {
 
             let token = new TextToken();
             token.Type = tokenType;
@@ -53,7 +53,7 @@ namespace CodeConverter {
             return token;
         }
 
-        static fromTypeTextLineNumber(tokenType: TokenType, text: string, lineNumber): TextToken {
+        static fromTypeTextLineNumber(tokenType: TextTokenType, text: string, lineNumber): TextToken {
 
             let token = new TextToken();
             token.Type = tokenType;
@@ -64,33 +64,43 @@ namespace CodeConverter {
         }
 
         // Distinguishing methods
+        is(type: TextTokenType, text: string): boolean {
+
+            return (this.Type == type || this.Text == text);
+        }
+
         isWhitesSpace(): boolean {
 
-            return (this.Type == TokenType.WhiteSpaces
-                || this.Type == TokenType.LineEnd);
+            return (this.Type == TextTokenType.WhiteSpaces
+                || this.Type == TextTokenType.LineEnd);
         }
 
         isLineEnd(): boolean {
 
-            return (this.Type == TokenType.LineEnd);
+            return (this.Type == TextTokenType.LineEnd);
         }
 
         isBlank(): boolean {
 
-            return (this.Type == TokenType.WhiteSpaces
-                || this.Type == TokenType.LineComment
-                || this.Type == TokenType.BlockCommentBegin
-                || this.Type == TokenType.BlockComment
-                || this.Type == TokenType.BlockCommentEnd
-                || this.Type == TokenType.LineEnd);
+            return (this.Type == TextTokenType.WhiteSpaces
+                || this.Type == TextTokenType.LineComment
+                || this.Type == TextTokenType.BlockCommentBegin
+                || this.Type == TextTokenType.BlockComment
+                || this.Type == TextTokenType.BlockCommentEnd
+                || this.Type == TextTokenType.LineEnd);
         }
 
         isComment(): boolean {
 
-            return (this.Type == TokenType.LineComment
-                || this.Type == TokenType.BlockCommentBegin
-                || this.Type == TokenType.BlockComment
-                || this.Type == TokenType.BlockCommentEnd);
+            return (this.Type == TextTokenType.LineComment
+                || this.Type == TextTokenType.BlockCommentBegin
+                || this.Type == TextTokenType.BlockComment
+                || this.Type == TextTokenType.BlockCommentEnd);
+        }
+
+        isLineComment(): boolean {
+
+            return (this.Type == TextTokenType.LineComment);
         }
 
         // Scalar methods
@@ -146,7 +156,7 @@ namespace CodeConverter {
 
             let result = new List<string>();
             for (let i = 0; i < tokens.length; i++) {
-                if (tokens[i].Type == TokenType.WhiteSpaces) {
+                if (tokens[i].Type == TextTokenType.WhiteSpaces) {
                     result.push(tokens[i].Text);
                 }
                 else {
@@ -405,7 +415,7 @@ namespace CodeConverter {
 
         countParenthesis(token: TextToken) {
 
-            if (token.Type != TokenType.Seperator) {
+            if (token.Type != TextTokenType.Seperator) {
                 return;
             }
 
@@ -438,7 +448,7 @@ namespace CodeConverter {
         }
     }
 
-    export class TextTokenListView extends List<TextToken> {
+    export class TextTokenCollection extends List<TextToken> {
 
         ParenthesisCounter: ParenthesisCounter;
 
@@ -446,28 +456,34 @@ namespace CodeConverter {
             return "length: " + this.length;
         }
 
-        static create(): TextTokenListView {
+        static create(): TextTokenCollection {
 
-            return TextTokenListView.createFrom(new List<TextToken>());
+            return TextTokenCollection.createFrom(new List<TextToken>());
         }
 
-        static createFrom(tokens: List<TextToken>): TextTokenListView {
+        static createFrom(tokens: List<TextToken>): TextTokenCollection {
 
             let target: any = tokens.slice(0);
 
-            TextTokenListView.initialize(target);
+            TextTokenCollection.initialize(target);
 
-            return <TextTokenListView>target;
+            return <TextTokenCollection>target;
         }
 
         static initialize(tokens: List<TextToken>) {
 
             let target: any = tokens;
             target.ParenthesisCounter = new ParenthesisCounter();
-            target.findIndexInZeroLevel = TextTokenListView.prototype.findIndexInZeroLevel;
-            target.getRange = TextTokenListView.prototype.getRange;
+            target.findIndexInZeroLevel = TextTokenCollection.prototype.findIndexInZeroLevel;
+            target.getRange = TextTokenCollection.prototype.getRange;
 
-            return <TextTokenListView>target;
+            target.__defineGetter__('endIndex', TextTokenCollection.prototype.endIndex);
+
+            return <TextTokenCollection>target;
+        }
+
+        get endIndex(): int {
+            return this.length - 1;
         }
 
         findIndexInZeroLevel(startIndex: int, endIndex: int, searchLetter: string): int {
