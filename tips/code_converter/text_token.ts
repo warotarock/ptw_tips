@@ -232,6 +232,11 @@ namespace CodeConverter {
 
                 if (isSeperator || i == tokens.length - 1) {
                     resultList.push(innerList);
+
+                    if (i == tokens.length - 1) {
+                        break;
+                    }
+
                     innerList = new List<TextToken>();
                 }
             }
@@ -239,7 +244,18 @@ namespace CodeConverter {
             return resultList;
         }
 
-        static findIndex(tokens: List<TextToken>, startIndex: int, endIndex: int, searchText: string, offset: int): int {
+        static getRange(tokens: List<TextToken>, startIndex: int, length: int): List<TextToken> {
+
+            if (length == -1) {
+                length = tokens.length - startIndex;
+            }
+
+            let result = tokens.slice(startIndex, startIndex + length);
+
+            return result;
+        }
+
+        static findIndex(tokens: List<TextToken>, startIndex: int, endIndex: int, searchText: string): int {
 
             if (endIndex == -1) {
                 endIndex = tokens.length - 1;
@@ -248,62 +264,47 @@ namespace CodeConverter {
             for (let i = startIndex; i < endIndex; i++) {
 
                 if (tokens[i].Text == searchText) {
-
-                    if (i + offset < tokens.length) {
-                        return i + offset;
-                    }
-                    else {
-                        return -1;
-                    }
+                    return i;
                 }
             }
 
             return -1;
         }
 
-        static findFirstNonBlankIndex(tokens: List<TextToken>, searchStartIndex: int): int {
-            return TextToken.findNonBlankIndex(tokens, searchStartIndex, true);
-        }
+        static findFirstNonBlankIndex(tokens: List<TextToken>, startIndex: int, endIndex: int): int {
 
-        static findLastNonBlankIndex(tokens: List<TextToken>, searchStartIndex: int): int {
-            return TextToken.findNonBlankIndex(tokens, searchStartIndex, false);
-        }
-
-        private static findNonBlankIndex(tokens: List<TextToken>, searchStartIndex: int, forwardSearch: boolean): int {
+            if (endIndex == -1) {
+                endIndex = tokens.length - 1;
+            }
 
             let resultIndex = -1;
 
-            let i: int;
-            if (forwardSearch) {
-                i = searchStartIndex;
-            }
-            else {
-                i = tokens.length - 1 - searchStartIndex;
-            }
-
-            if (i < 0 || i >= tokens.length) {
-                return -1;
-            }
-
-            while (true) {
+            for (let i = startIndex; i <= endIndex; i++) {
                 let token = tokens[i];
 
                 if (!token.isBlank()) {
                     resultIndex = i;
                     break;
                 }
+            }
 
-                if (forwardSearch) {
-                    i++;
-                    if (i >= tokens.length) {
-                        break;
-                    }
-                }
-                else {
-                    i--;
-                    if (i < 0) {
-                        break;
-                    }
+            return resultIndex;
+        }
+
+        static findLastNonBlankIndex(tokens: List<TextToken>, startIndex: int, endIndex: int): int {
+
+            if (endIndex == -1) {
+                endIndex = tokens.length - 1;
+            }
+
+            let resultIndex = -1;
+
+            for (let i = endIndex; i >= startIndex; i--) {
+                let token = tokens[i];
+
+                if (!token.isBlank()) {
+                    resultIndex = i;
+                    break;
                 }
             }
 
@@ -340,10 +341,6 @@ namespace CodeConverter {
                 }
             }
 
-            if (resultIndex == -1) {
-                return -1;
-            }
-
             if (resultIndex >= 0 && resultIndex <= endIndex) {
                 return resultIndex;
             }
@@ -352,11 +349,20 @@ namespace CodeConverter {
             }
         }
 
-        static getRange(tokens: List<TextToken>, startIndex: int, length: int): List<TextToken> {
+        static findNonWhiteSpaceIndex(tokens: List<TextToken>, startIndex: int, endIndex: int): int {
 
-            let result = tokens.slice(startIndex, startIndex + length);
+            if (endIndex == -1) {
+                endIndex = tokens.length - 1;
+            }
 
-            return result;
+            for (let i = startIndex; i < endIndex; i++) {
+
+                if (!tokens[i].isWhitesSpace()) {
+                    return i;
+                }
+            }
+
+            return -1;
         }
     }
 
@@ -496,5 +502,8 @@ namespace CodeConverter {
             return TextToken.getRange(this, startIndex, length);
         }
 
+        findNonWhiteSpaceIndex(startIndex: int, endIndex: int): int {
+            return TextToken.findNonWhiteSpaceIndex(this, startIndex, endIndex);
+        }
     }
 }
