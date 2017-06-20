@@ -57,8 +57,8 @@ namespace CodeConverter.StatementAnalyzer {
         Statements = new List<CodeStatement>();
 
         LineNumber = 0;
-
         CurrentStatement = new CodeStatement();
+        NeedsNewTokensBeforeAppendToken = true;
 
         SetCurrentStatementType(type: StatementType) {
             this.CurrentStatement.Type = type;
@@ -66,8 +66,13 @@ namespace CodeConverter.StatementAnalyzer {
 
         AppendToCurrentStatement(token: TextToken) {
 
-            if (this.CurrentStatement.TokensList == null) {
-                this.CurrentStatement.TokensList = new List<TextTokenCollection>();
+            if (this.NeedsNewTokensBeforeAppendToken) {
+
+                if (this.CurrentStatement.TokensList == null) {
+                    this.CurrentStatement.TokensList = new List<TextTokenCollection>();
+                }
+
+                this.NeedsNewTokensBeforeAppendToken = false;
                 this.CurrentStatement.TokensList.push(TextTokenCollection.create());
             }
 
@@ -79,8 +84,8 @@ namespace CodeConverter.StatementAnalyzer {
             this.CurrentStatement.InnerStatements = statements;
         }
 
-        NewLineToCurrentStatement() {
-            this.CurrentStatement.TokensList.push(TextTokenCollection.create());
+        FlushCurrentStatementTokens() {
+            this.NeedsNewTokensBeforeAppendToken = true;
         }
 
         FlushStatement() {
@@ -88,6 +93,7 @@ namespace CodeConverter.StatementAnalyzer {
             this.Statements.push(this.CurrentStatement);
 
             this.CurrentStatement = new CodeStatement();
+            this.NeedsNewTokensBeforeAppendToken = true;
         }
     }
 
@@ -116,6 +122,7 @@ namespace CodeConverter.StatementAnalyzer {
         CurrentMode = SyntaxProcessingMode.None;
         CurrentIndex = 0;
         LastIndex = 0;
+        SyntaxEnd = false;
         BlockEnd = false;
 
         // Result variables
@@ -168,6 +175,10 @@ namespace CodeConverter.StatementAnalyzer {
 
         private processSyntaxPart(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
 
+            let currentIndex = state.CurrentIndex;
+
+            state.SyntaxEnd = false;
+
             while (state.CurrentIndex < tokens.length) {
 
                 var mode = this.processSyntax_GetProcessingMode(tokens, state);
@@ -195,6 +206,10 @@ namespace CodeConverter.StatementAnalyzer {
                         state.CurrentIndex++;
                         break;
                 }
+
+                if (state.SyntaxEnd) {
+                    break;
+                }
             }
         }
 
@@ -207,28 +222,28 @@ namespace CodeConverter.StatementAnalyzer {
                 return SyntaxProcessingMode.Blank;
             }
 
-            if (token.is(TextTokenType.AlphaNumeric, setting.TS_module)
-                || token.is(TextTokenType.AlphaNumeric, setting.TS_namespace)) {
+            if (token.isAlphaNumericOf(setting.TS_module)
+                || token.isAlphaNumericOf(setting.TS_namespace)) {
 
                 return SyntaxProcessingMode.Module;
             }
 
-            if (token.is(TextTokenType.AlphaNumeric, setting.TS_class)) {
+            if (token.isAlphaNumericOf(setting.TS_class)) {
 
                 return SyntaxProcessingMode.Class;
             }
 
-            if (token.is(TextTokenType.AlphaNumeric, setting.TS_enum)) {
+            if (token.isAlphaNumericOf(setting.TS_enum)) {
 
                 return SyntaxProcessingMode.Enum;
             }
 
-            if (token.is(TextTokenType.AlphaNumeric, setting.TS_class)) {
+            if (token.isAlphaNumericOf(setting.TS_class)) {
 
                 return SyntaxProcessingMode.Class;
             }
 
-            if (token.is(TextTokenType.AlphaNumeric, setting.TS_interface)) {
+            if (token.isAlphaNumericOf(setting.TS_interface)) {
 
                 return SyntaxProcessingMode.Interface;
             }
@@ -238,14 +253,16 @@ namespace CodeConverter.StatementAnalyzer {
 
         private processSyntax_GeneralBlockSyntax(statementType: StatementType, result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
 
+            let currentIndex = state.CurrentIndex;
+
             result.SetCurrentStatementType(statementType);
 
             // search block start
-            let blockPartStartIndex = tokens.findIndexInZeroLevel(state.CurrentIndex + 1, tokens.endIndex, state.Setting.TS_OpenBlace);
+            let blockPartStartIndex = tokens.findIndexInZeroLevel(currentIndex + 1, tokens.endIndex, state.Setting.TS_OpenBlace);
 
             if (blockPartStartIndex == -1) {
                 state.addError('モジュールまたは名前空間の { が必要です。');
-                let nextIndex = tokens.findNonWhiteSpaceIndex(state.CurrentIndex + 1, tokens.length - 1);
+                let nextIndex = tokens.findNonWhiteSpaceIndex(currentIndex + 1, tokens.length - 1);
                 if (nextIndex == -1) {
                     state.addError('モジュールまたは名前空間には名称が必要です。');
                     return;
@@ -253,7 +270,7 @@ namespace CodeConverter.StatementAnalyzer {
                 blockPartStartIndex = nextIndex + 1;
             }
 
-            // module [module name] {
+            // module [symbol name] {
             for (let tokenIndex = state.LastIndex; tokenIndex <= blockPartStartIndex; tokenIndex++) {
                 var token = tokens[tokenIndex];
                 result.AppendToCurrentStatement(token);
@@ -270,7 +287,7 @@ namespace CodeConverter.StatementAnalyzer {
             state.CurrentIndex = innerState.CurrentIndex;
             
             // }
-            result.NewLineToCurrentStatement();
+            result.FlushCurrentStatementTokens();
             result.AppendToCurrentStatement(token);
 
             result.FlushStatement();
@@ -280,25 +297,68 @@ namespace CodeConverter.StatementAnalyzer {
 
         private processSyntax_Enum(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
 
+            let currentIndex = state.CurrentIndex;
+
             // current index is at "enum"
+
+            // search block start
+            let blockPartStartIndex = tokens.findIndexInZeroLevel(currentIndex + 1, tokens.endIndex, state.Setting.TS_OpenBlace);
+
+            if (blockPartStartIndex == -1) {
+                state.addError('列挙型の開始の { が必要です。');
+                let nextIndex = tokens.findNonWhiteSpaceIndex(currentIndex + 1, tokens.length - 1);
+                if (nextIndex == -1) {
+                    state.addError('列挙型の開始には名称が必要です。');
+                    return;
+                }
+                blockPartStartIndex = nextIndex + 1;
+            }
 
             result.SetCurrentStatementType(StatementType.Enum);
 
-            for (let tokenIndex = state.CurrentIndex; tokenIndex < tokens.length; tokenIndex++) {
+            // export enum [symbol name] {
+            for (let tokenIndex = state.LastIndex; tokenIndex <= blockPartStartIndex; tokenIndex++) {
+                var token = tokens[tokenIndex];
+                result.AppendToCurrentStatement(token);
+            }
+
+            // parse enum members
+            var innerResult = new AnalyzerResult();
+            for (let tokenIndex = blockPartStartIndex + 1; tokenIndex < tokens.length; tokenIndex++) {
                 let token = tokens[tokenIndex];
 
-                if (token.is(TextTokenType.AlphaNumeric, '}')) {
+                let isEnumEnd = (token.isSeperatorOf(state.Setting.TS_CloseBlace)
+                                    || tokenIndex == tokens.length - 1);
+
+                if (token.isSeperatorOf(',') || isEnumEnd) {
+
+                    innerResult.FlushCurrentStatementTokens();
+                    innerResult.FlushStatement();
+                }
+                else {
+                    innerResult.AppendToCurrentStatement(token);
+                }
+
+                if (isEnumEnd) {
                     state.CurrentIndex = tokenIndex + 1;
                     break;
                 }
             }
+
+            result.SetInnerStatementToCurrentStatement(innerResult.Statements);
+            result.FlushStatement();
+
+            state.SyntaxEnd = true;
         }
 
         // Code block parsing
 
         private processCodeBlock(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
 
+            let currentIndex = state.CurrentIndex;
+
             state.LastIndex = state.CurrentIndex;
+            state.BlockEnd = false;
 
             while (state.CurrentIndex < tokens.length) {
 
@@ -327,10 +387,11 @@ namespace CodeConverter.StatementAnalyzer {
 
         private processCodeBlock_GetProcessingMode(tokens: TextTokenCollection, state: AnalyzerState): CodeBlockProcessingMode {
 
-            let token = tokens[state.CurrentIndex];
+            let currentIndex = state.CurrentIndex;
+            let token = tokens[currentIndex];
             let setting = state.Setting;
 
-            if (token.is(TextTokenType.AlphaNumeric, state.Setting.TS_CloseBlace)) {
+            if (token.isAlphaNumericOf(state.Setting.TS_CloseBlace)) {
                 return CodeBlockProcessingMode.BlockEnd;
             }
 
@@ -343,7 +404,8 @@ namespace CodeConverter.StatementAnalyzer {
 
         private processCodeBlock_Continue(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
 
-            let token = tokens[state.CurrentIndex];
+            let currentIndex = state.CurrentIndex;
+            let token = tokens[currentIndex];
 
             result.AppendToCurrentStatement(token);
 
@@ -356,6 +418,8 @@ namespace CodeConverter.StatementAnalyzer {
         }
 
         private processCodeBlock_SyntaxStart(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
+
+            let currentIndex = state.CurrentIndex;
 
             result.FlushStatement();
 

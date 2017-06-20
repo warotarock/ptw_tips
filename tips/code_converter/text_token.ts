@@ -69,6 +69,16 @@ namespace CodeConverter {
             return (this.Type == type && this.Text == text);
         }
 
+        isAlphaNumericOf(text: string): boolean {
+
+            return (this.Type == TextTokenType.AlphaNumeric && this.Text == text);
+        }
+
+        isSeperatorOf(text: string): boolean {
+
+            return (this.Type == TextTokenType.Seperator && this.Text == text);
+        }
+
         isWhitesSpace(): boolean {
 
             return (this.Type == TextTokenType.WhiteSpaces
