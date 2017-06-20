@@ -102,7 +102,7 @@ namespace CodeConverter.StatementAnalyzer {
         SyntaxStart,
     }
 
-    export class ProcessingState {
+    export class AnalyzerState {
 
         Setting: AnalyzerSetting = null;
         TargetTokens: List<TextToken> = null;
@@ -131,9 +131,9 @@ namespace CodeConverter.StatementAnalyzer {
             this.Result = null;
         }
 
-        CloneForInnerState(): ProcessingState {
+        CloneForInnerState(): AnalyzerState {
 
-            var state = new ProcessingState();
+            var state = new AnalyzerState();
             state.Setting = this.Setting;
             state.TargetTokens = this.TargetTokens;
             state.Result = this.Result;
@@ -151,7 +151,7 @@ namespace CodeConverter.StatementAnalyzer {
 
     export class Analyzer {
 
-        analyze(result: AnalyzerResult, tokens: TextTokenCollection, state: ProcessingState) {
+        analyze(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
 
             state.Result = result;
             state.TargetTokens = tokens;
@@ -161,7 +161,7 @@ namespace CodeConverter.StatementAnalyzer {
 
         // Syntax part parsing
 
-        private processSyntaxPart(result: AnalyzerResult, tokens: TextTokenCollection, state: ProcessingState) {
+        private processSyntaxPart(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
 
             while (state.CurrentIndex < tokens.length) {
 
@@ -173,6 +173,10 @@ namespace CodeConverter.StatementAnalyzer {
                         this.processSyntax_Module(result, tokens, state);
                         break;
 
+                    case SyntaxProcessingMode.Enum:
+                        this.processSyntax_Module(result, tokens, state);
+                        break;
+
                     case SyntaxProcessingMode.None:
                         state.CurrentIndex++;
                         break;
@@ -180,7 +184,7 @@ namespace CodeConverter.StatementAnalyzer {
             }
         }
 
-        private processSyntax_GetProcessingMode(tokens: TextTokenCollection, state: ProcessingState): SyntaxProcessingMode {
+        private processSyntax_GetProcessingMode(tokens: TextTokenCollection, state: AnalyzerState): SyntaxProcessingMode {
 
             let token = tokens[state.CurrentIndex];
             let setting = state.Setting;
@@ -203,11 +207,7 @@ namespace CodeConverter.StatementAnalyzer {
             return SyntaxProcessingMode.Blank;
         }
 
-        private processSyntax_Module(result: AnalyzerResult, tokens: TextTokenCollection, state: ProcessingState) {
-
-            result.SetCurrentStatementType(StatementType.Module);
-
-            // current index is at "module" or "namespace"
+        private processSyntax_GeneralBlockSyntax(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
 
             // search block start
             let blockPartStartIndex = tokens.findIndexInZeroLevel(state.CurrentIndex + 1, tokens.endIndex, state.Setting.TS_OpenBlace);
@@ -237,7 +237,7 @@ namespace CodeConverter.StatementAnalyzer {
             result.SetInnerStatementToCurrentStatement(innerResult.Statements);
 
             state.CurrentIndex = innerState.CurrentIndex;
-
+            
             // }
             result.NewLineToCurrentStatement();
             result.AppendToCurrentStatement(token);
@@ -247,9 +247,27 @@ namespace CodeConverter.StatementAnalyzer {
             state.CurrentIndex = innerState.CurrentIndex + 1;
         }
 
+        private processSyntax_Module(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
+
+            // current index is at "module" or "namespace"
+
+            result.SetCurrentStatementType(StatementType.Module);
+
+            this.processSyntax_GeneralBlockSyntax(result, tokens, state);
+        }
+
+        private processSyntax_Enum(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
+
+            // current index is at "module" or "namespace"
+
+            result.SetCurrentStatementType(StatementType.Enum);
+
+            this.processSyntax_GeneralBlockSyntax(result, tokens, state);
+        }
+
         // Code block parsing
 
-        private processCodeBlock(result: AnalyzerResult, tokens: TextTokenCollection, state: ProcessingState) {
+        private processCodeBlock(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
 
             state.LastIndex = state.CurrentIndex;
 
@@ -278,7 +296,7 @@ namespace CodeConverter.StatementAnalyzer {
             }
         }
 
-        private processCodeBlock_GetProcessingMode(tokens: TextTokenCollection, state: ProcessingState): CodeBlockProcessingMode {
+        private processCodeBlock_GetProcessingMode(tokens: TextTokenCollection, state: AnalyzerState): CodeBlockProcessingMode {
 
             let token = tokens[state.CurrentIndex];
             let setting = state.Setting;
@@ -294,7 +312,7 @@ namespace CodeConverter.StatementAnalyzer {
             return CodeBlockProcessingMode.Continue;
         }
 
-        private processSyntax_Continue(result: AnalyzerResult, tokens: TextTokenCollection, state: ProcessingState) {
+        private processSyntax_Continue(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
 
             let token = tokens[state.CurrentIndex];
 
@@ -303,12 +321,12 @@ namespace CodeConverter.StatementAnalyzer {
             state.CurrentIndex++;
         }
 
-        private processSyntax_BlockEnd(result: AnalyzerResult, tokens: TextTokenCollection, state: ProcessingState) {
+        private processSyntax_BlockEnd(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
 
             state.BlockEnd = true;
         }
 
-        private processSyntax_SyntaxStart(result: AnalyzerResult, tokens: TextTokenCollection, state: ProcessingState) {
+        private processSyntax_SyntaxStart(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
 
             result.FlushStatement();
 
@@ -317,7 +335,7 @@ namespace CodeConverter.StatementAnalyzer {
 
         // Common functions
 
-        private processFollowingLineTokens(result: AnalyzerResult, tokens: TextTokenCollection, startIndex: int, state: ProcessingState) {
+        private processFollowingLineTokens(result: AnalyzerResult, tokens: TextTokenCollection, startIndex: int, state: AnalyzerState) {
 
             let existsFollowingTokens = false;
             let endIndex = -1;

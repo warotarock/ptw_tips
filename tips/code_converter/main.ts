@@ -19,12 +19,22 @@ namespace CodeConverter {
         // 単語解析
         var tokenizer = new TextTokenizer.Tokenizer();
         var tokenizerSetting = new TextTokenizer.TokenizerSetting();
-        var tokenizerState = new TextTokenizer.ProcessingState();
+        var tokenizerState = new TextTokenizer.TokenizerState();
         var tokenizerResult = new TextTokenizer.TokenizerResult();
         tokenizerState.initialize(tokenizerSetting);
 
-        var tokenizerResult = tokenizer.tokenize(tokenizerResult, data, tokenizerState);
+        tokenizer.tokenize(tokenizerResult, data, tokenizerState);
         showTokens(tokenizerResult.Tokens);
+
+        // ステートメント解析
+        var statementAnalyzer = new StatementAnalyzer.Analyzer();
+        var statementAnalyzerSetting = new StatementAnalyzer.AnalyzerSetting();
+        var analyzerState = new StatementAnalyzer.AnalyzerState();
+        var analyzerResult = new StatementAnalyzer.AnalyzerResult();
+        analyzerState.Initialize(statementAnalyzerSetting);
+
+        statementAnalyzer.analyze(analyzerResult, tokenizerResult.Tokens, analyzerState);
+
     }
 
     function showTokens(tokens: List<TextToken>) {

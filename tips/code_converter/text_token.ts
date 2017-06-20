@@ -483,7 +483,7 @@ namespace CodeConverter {
             target.findIndexInZeroLevel = TextTokenCollection.prototype.findIndexInZeroLevel;
             target.getRange = TextTokenCollection.prototype.getRange;
 
-            target.__defineGetter__('endIndex', TextTokenCollection.prototype.endIndex);
+            Object.defineProperty(target, 'endIndex', Object.getOwnPropertyDescriptor(TextTokenCollection.prototype, "endIndex"));
 
             return <TextTokenCollection>target;
         }

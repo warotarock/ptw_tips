@@ -22,7 +22,7 @@ namespace CodeConverter.TextTokenizer {
 
     export class TokenizerResult {
 
-        Tokens = new List<TextToken>();
+        Tokens = TextTokenCollection.create();
         LineNumber = 0;
 
         add(tokenType: TextTokenType, lineText: string, startIndex: int, length: int): TextToken {
@@ -52,7 +52,7 @@ namespace CodeConverter.TextTokenizer {
         TextLiteral,
     }
 
-    export class ProcessingState {
+    export class TokenizerState {
 
         Setting: TokenizerSetting = null;
 
@@ -98,7 +98,7 @@ namespace CodeConverter.TextTokenizer {
 
     export class Tokenizer {
 
-        tokenize(result: TokenizerResult, targetText: string, state: ProcessingState): TokenizerResult {
+        tokenize(result: TokenizerResult, targetText: string, state: TokenizerState) {
 
             state.Result = result;
 
@@ -141,12 +141,10 @@ namespace CodeConverter.TextTokenizer {
                         break;
                 }
             }
-
-            return result;
         }
 
         // Getting processing mode sub
-        private getProcessingMode(text: string, state: ProcessingState): ProcessingMode {
+        private getProcessingMode(text: string, state: TokenizerState): ProcessingMode {
 
             let i = state.CurrentIndex;
             let textLength = text.length;
@@ -204,7 +202,7 @@ namespace CodeConverter.TextTokenizer {
         }
 
         // Processing sub
-        private processLineEnd(result: TokenizerResult, lineText: string, state: ProcessingState) {
+        private processLineEnd(result: TokenizerResult, lineText: string, state: TokenizerState) {
 
             let i = state.CurrentIndex;
             let lineTextLength = lineText.length;
@@ -216,7 +214,7 @@ namespace CodeConverter.TextTokenizer {
             state.CurrentIndex = i + lineEndLetterLength;
         }
 
-        private processLineComment(result: TokenizerResult, lineText: string, state: ProcessingState) {
+        private processLineComment(result: TokenizerResult, lineText: string, state: TokenizerState) {
 
             let i = state.CurrentIndex;
             let topIndex = i;
@@ -249,7 +247,7 @@ namespace CodeConverter.TextTokenizer {
             state.CurrentIndex = i;
         }
 
-        private processBlockComment(result: TokenizerResult, lineText: string, state: ProcessingState) {
+        private processBlockComment(result: TokenizerResult, lineText: string, state: TokenizerState) {
 
             let i = state.CurrentIndex;
             let topIndex = i;
@@ -312,7 +310,7 @@ namespace CodeConverter.TextTokenizer {
             state.CurrentIndex = i;
         }
 
-        private processWhiteSpaces(result: TokenizerResult, lineText: string, state: ProcessingState) {
+        private processWhiteSpaces(result: TokenizerResult, lineText: string, state: TokenizerState) {
 
             let i = state.CurrentIndex;
             let topIndex = i;
@@ -335,7 +333,7 @@ namespace CodeConverter.TextTokenizer {
             state.CurrentIndex = i;
         }
 
-        private processTextLiteral(result: TokenizerResult, lineText: string, state: ProcessingState) {
+        private processTextLiteral(result: TokenizerResult, lineText: string, state: TokenizerState) {
 
             let i = state.CurrentIndex;
             let topIndex = i;
@@ -367,7 +365,7 @@ namespace CodeConverter.TextTokenizer {
             state.CurrentIndex = i;
         }
 
-        private processNumberLiteral(result: TokenizerResult, lineText: string, state: ProcessingState) {
+        private processNumberLiteral(result: TokenizerResult, lineText: string, state: TokenizerState) {
 
             let i = state.CurrentIndex;
             let topIndex = i;
@@ -392,7 +390,7 @@ namespace CodeConverter.TextTokenizer {
             state.CurrentIndex = i;
         }
 
-        private processAlphaNumeric(result: TokenizerResult, lineText: string, state: ProcessingState) {
+        private processAlphaNumeric(result: TokenizerResult, lineText: string, state: TokenizerState) {
 
             let i = state.CurrentIndex;
             let topIndex = i;
@@ -416,7 +414,7 @@ namespace CodeConverter.TextTokenizer {
             state.CurrentIndex = i;
         }
 
-        private processSeperator(result: TokenizerResult, lineText: string, state: ProcessingState) {
+        private processSeperator(result: TokenizerResult, lineText: string, state: TokenizerState) {
 
             let i = state.CurrentIndex;
             let topIndex = i;
