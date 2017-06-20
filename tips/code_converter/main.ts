@@ -3,35 +3,49 @@ namespace CodeConverter {
 
     window.onload = () => {
 
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', 'C:/pg/web/ptw/017/ts/game_framework.ts');
+        let data: any = null;
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', '../tips_core/model_converters.ts');
         xhr.responseType = 'text';
         xhr.addEventListener('load',
             (e: Event) => {
-                convert(xhr.response);
+                data = xhr.response;
             }
         );
+
+        let ui_elem = document.getElementById('ui');
+        let p_elem = document.createElement("p");
+        ui_elem.appendChild(p_elem);
+
+        let button = document.createElement('button');
+        button.type = 'button';
+        button.innerText = 'analyze';
+        p_elem.appendChild(button);
+        button.onclick = function () {
+            convert(data);
+        };
+
         xhr.send();
     };
 
     function convert(data: string) {
 
         // 単語解析
-        var tokenizer = new TextTokenizer.Tokenizer();
-        var tokenizerSetting = new TextTokenizer.TokenizerSetting();
-        var tokenizerState = new TextTokenizer.TokenizerState();
-        var tokenizerResult = new TextTokenizer.TokenizerResult();
+        let tokenizer = new TextTokenizer.Tokenizer();
+        let tokenizerSetting = new TextTokenizer.TokenizerSetting();
+        let tokenizerState = new TextTokenizer.TokenizerState();
+        let tokenizerResult = new TextTokenizer.TokenizerResult();
         tokenizerState.initialize(tokenizerSetting);
 
         tokenizer.tokenize(tokenizerResult, data, tokenizerState);
         showTokens(tokenizerResult.Tokens);
 
         // ステートメント解析
-        var statementAnalyzer = new StatementAnalyzer.Analyzer();
-        var statementAnalyzerSetting = new StatementAnalyzer.AnalyzerSetting();
-        var analyzerState = new StatementAnalyzer.AnalyzerState();
-        var analyzerResult = new StatementAnalyzer.AnalyzerResult();
-        analyzerState.Initialize(statementAnalyzerSetting);
+        let statementAnalyzer = new StatementAnalyzer.Analyzer();
+        let statementAnalyzerSetting = new StatementAnalyzer.AnalyzerSetting();
+        let analyzerState = new StatementAnalyzer.AnalyzerState();
+        let analyzerResult = new StatementAnalyzer.AnalyzerResult();
+        analyzerState.initialize(statementAnalyzerSetting);
 
         statementAnalyzer.analyze(analyzerResult, tokenizerResult.Tokens, analyzerState);
 

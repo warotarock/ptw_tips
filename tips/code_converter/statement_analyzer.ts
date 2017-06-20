@@ -6,9 +6,10 @@ namespace CodeConverter {
         WhiteSpaces,
         Comment,
         Module,
-        Class,
         Enum,
         EnumMember,
+        Class,
+        Interface,
         Function,
         AbstructFunctionDefinition,
         Variable,
@@ -47,6 +48,8 @@ namespace CodeConverter.StatementAnalyzer {
         TS_module = 'module';
         TS_namespace = 'namespace';
         TS_enum = 'enum';
+        TS_class = 'class';
+        TS_interface = 'interface';
     }
 
     export class AnalyzerResult {
@@ -93,6 +96,8 @@ namespace CodeConverter.StatementAnalyzer {
         Blank,
         Module,
         Enum,
+        Class,
+        Interface,
     }
 
     export enum CodeBlockProcessingMode {
@@ -117,12 +122,12 @@ namespace CodeConverter.StatementAnalyzer {
         Result: AnalyzerResult = null;
         Erros = new List<string>();
 
-        Initialize(setting: AnalyzerSetting) {
+        initialize(setting: AnalyzerSetting) {
             this.Setting = setting;
-            this.Clear();
+            this.clear();
         }
 
-        Clear() {
+        clear() {
             this.CurrentMode = SyntaxProcessingMode.None;
             this.CurrentIndex = 0;
             this.LastIndex = 0;
@@ -131,7 +136,7 @@ namespace CodeConverter.StatementAnalyzer {
             this.Result = null;
         }
 
-        CloneForInnerState(): AnalyzerState {
+        cloneForInnerState(): AnalyzerState {
 
             var state = new AnalyzerState();
             state.Setting = this.Setting;
@@ -143,7 +148,7 @@ namespace CodeConverter.StatementAnalyzer {
             return state;
         }
 
-        AddError(message: string) {
+        addError(message: string) {
 
             this.Erros.push('(' + this.TargetTokens[this.CurrentIndex].LineNumber + ') ' + message);
         }
@@ -170,13 +175,22 @@ namespace CodeConverter.StatementAnalyzer {
                 switch (mode) {
 
                     case SyntaxProcessingMode.Module:
-                        this.processSyntax_Module(result, tokens, state);
+                        this.processSyntax_GeneralBlockSyntax(StatementType.Module, result, tokens, state);
                         break;
 
                     case SyntaxProcessingMode.Enum:
-                        this.processSyntax_Module(result, tokens, state);
+                        this.processSyntax_Enum(result, tokens, state);
                         break;
 
+                    case SyntaxProcessingMode.Class:
+                        this.processSyntax_GeneralBlockSyntax(StatementType.Class, result, tokens, state);
+                        break;
+
+                    case SyntaxProcessingMode.Interface:
+                        this.processSyntax_GeneralBlockSyntax(StatementType.Interface, result, tokens, state);
+                        break;
+
+                    case SyntaxProcessingMode.Blank:
                     case SyntaxProcessingMode.None:
                         state.CurrentIndex++;
                         break;
@@ -199,24 +213,41 @@ namespace CodeConverter.StatementAnalyzer {
                 return SyntaxProcessingMode.Module;
             }
 
+            if (token.is(TextTokenType.AlphaNumeric, setting.TS_class)) {
+
+                return SyntaxProcessingMode.Class;
+            }
+
             if (token.is(TextTokenType.AlphaNumeric, setting.TS_enum)) {
 
                 return SyntaxProcessingMode.Enum;
             }
 
-            return SyntaxProcessingMode.Blank;
+            if (token.is(TextTokenType.AlphaNumeric, setting.TS_class)) {
+
+                return SyntaxProcessingMode.Class;
+            }
+
+            if (token.is(TextTokenType.AlphaNumeric, setting.TS_interface)) {
+
+                return SyntaxProcessingMode.Interface;
+            }
+
+            return SyntaxProcessingMode.None;
         }
 
-        private processSyntax_GeneralBlockSyntax(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
+        private processSyntax_GeneralBlockSyntax(statementType: StatementType, result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
+
+            result.SetCurrentStatementType(statementType);
 
             // search block start
             let blockPartStartIndex = tokens.findIndexInZeroLevel(state.CurrentIndex + 1, tokens.endIndex, state.Setting.TS_OpenBlace);
 
             if (blockPartStartIndex == -1) {
-                state.AddError('モジュールまたは名前空間の { が必要です。');
+                state.addError('モジュールまたは名前空間の { が必要です。');
                 let nextIndex = tokens.findNonWhiteSpaceIndex(state.CurrentIndex + 1, tokens.length - 1);
                 if (nextIndex == -1) {
-                    state.AddError('モジュールまたは名前空間には名称が必要です。');
+                    state.addError('モジュールまたは名前空間には名称が必要です。');
                     return;
                 }
                 blockPartStartIndex = nextIndex + 1;
@@ -229,7 +260,7 @@ namespace CodeConverter.StatementAnalyzer {
             }
 
             // inner statements
-            var innerState = state.CloneForInnerState();
+            var innerState = state.cloneForInnerState();
             var innerResult = new AnalyzerResult();
             innerState.CurrentIndex = blockPartStartIndex + 1;
             this.processCodeBlock(innerResult, tokens, innerState);
@@ -247,22 +278,20 @@ namespace CodeConverter.StatementAnalyzer {
             state.CurrentIndex = innerState.CurrentIndex + 1;
         }
 
-        private processSyntax_Module(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
-
-            // current index is at "module" or "namespace"
-
-            result.SetCurrentStatementType(StatementType.Module);
-
-            this.processSyntax_GeneralBlockSyntax(result, tokens, state);
-        }
-
         private processSyntax_Enum(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
 
-            // current index is at "module" or "namespace"
+            // current index is at "enum"
 
             result.SetCurrentStatementType(StatementType.Enum);
 
-            this.processSyntax_GeneralBlockSyntax(result, tokens, state);
+            for (let tokenIndex = state.CurrentIndex; tokenIndex < tokens.length; tokenIndex++) {
+                let token = tokens[tokenIndex];
+
+                if (token.is(TextTokenType.AlphaNumeric, '}')) {
+                    state.CurrentIndex = tokenIndex + 1;
+                    break;
+                }
+            }
         }
 
         // Code block parsing
@@ -278,15 +307,15 @@ namespace CodeConverter.StatementAnalyzer {
                 switch (mode) {
 
                     case CodeBlockProcessingMode.Continue:
-                        this.processSyntax_Continue(result, tokens, state);
+                        this.processCodeBlock_Continue(result, tokens, state);
                         break;
 
                     case CodeBlockProcessingMode.BlockEnd:
-                        this.processSyntax_BlockEnd(result, tokens, state);
+                        this.processCodeBlock_BlockEnd(result, tokens, state);
                         break;
 
                     case CodeBlockProcessingMode.SyntaxStart:
-                        this.processSyntax_SyntaxStart(result, tokens, state);
+                        this.processCodeBlock_SyntaxStart(result, tokens, state);
                         break;
                 }
 
@@ -312,7 +341,7 @@ namespace CodeConverter.StatementAnalyzer {
             return CodeBlockProcessingMode.Continue;
         }
 
-        private processSyntax_Continue(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
+        private processCodeBlock_Continue(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
 
             let token = tokens[state.CurrentIndex];
 
@@ -321,12 +350,12 @@ namespace CodeConverter.StatementAnalyzer {
             state.CurrentIndex++;
         }
 
-        private processSyntax_BlockEnd(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
+        private processCodeBlock_BlockEnd(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
 
             state.BlockEnd = true;
         }
 
-        private processSyntax_SyntaxStart(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
+        private processCodeBlock_SyntaxStart(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
 
             result.FlushStatement();
 

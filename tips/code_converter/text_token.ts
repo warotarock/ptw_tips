@@ -66,7 +66,7 @@ namespace CodeConverter {
         // Distinguishing methods
         is(type: TextTokenType, text: string): boolean {
 
-            return (this.Type == type || this.Text == text);
+            return (this.Type == type && this.Text == text);
         }
 
         isWhitesSpace(): boolean {
@@ -479,7 +479,7 @@ namespace CodeConverter {
         static initialize(tokens: List<TextToken>) {
 
             let target: any = tokens;
-            target.ParenthesisCounter = new ParenthesisCounter();
+            target.ParenthesisCounter = null;
             target.findIndexInZeroLevel = TextTokenCollection.prototype.findIndexInZeroLevel;
             target.getRange = TextTokenCollection.prototype.getRange;
 
@@ -493,6 +493,10 @@ namespace CodeConverter {
         }
 
         findIndexInZeroLevel(startIndex: int, endIndex: int, searchLetter: string): int {
+
+            if (this.ParenthesisCounter == null) {
+                this.ParenthesisCounter = new ParenthesisCounter();
+            }
 
             return TextToken.findIndexInZeroLevel(this, this.ParenthesisCounter, startIndex, endIndex, searchLetter);
         }
