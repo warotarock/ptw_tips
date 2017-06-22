@@ -248,6 +248,8 @@ namespace CodeConverter.StatementAnalyzer {
                 return SyntaxProcessingMode.Interface;
             }
 
+            // クラスメンバを検出する
+
             return SyntaxProcessingMode.None;
         }
 
@@ -316,22 +318,37 @@ namespace CodeConverter.StatementAnalyzer {
 
             result.SetCurrentStatementType(StatementType.Enum);
 
-            // export enum [symbol name] {
+            this.processSyntax_ArrayStatement(blockPartStartIndex, result, tokens, state);
+
+            state.SyntaxEnd = true;
+        }
+
+        private processSyntax_ArrayStatement(blockPartStartIndex: int, result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
+
+            // parse till {
             for (let tokenIndex = state.LastIndex; tokenIndex <= blockPartStartIndex; tokenIndex++) {
                 var token = tokens[tokenIndex];
                 result.AppendToCurrentStatement(token);
             }
 
-            // parse enum members
+            // parse array members
             var innerResult = new AnalyzerResult();
+            var counter = new NestingCounter();
             for (let tokenIndex = blockPartStartIndex + 1; tokenIndex < tokens.length; tokenIndex++) {
                 let token = tokens[tokenIndex];
 
-                let isEnumEnd = (token.isSeperatorOf(state.Setting.TS_CloseBlace)
-                                    || tokenIndex == tokens.length - 1);
+                let isItemEndLetter = (token.isSeperatorOf(',') || token.isSeperatorOf(state.Setting.TS_CloseBlace));
 
-                if (token.isSeperatorOf(',') || isEnumEnd) {
+                let isZeroLevel = !counter.isInNest();
 
+                let isArrayEnd = (
+                    (tokenIndex == tokens.length - 1)
+                    || (isZeroLevel && token.isSeperatorOf(state.Setting.TS_CloseBlace))
+                );
+
+                let isItemEnd = (isArrayEnd || (isZeroLevel && isItemEndLetter));
+
+                if (isItemEnd) {
                     innerResult.FlushCurrentStatementTokens();
                     innerResult.FlushStatement();
                 }
@@ -339,16 +356,13 @@ namespace CodeConverter.StatementAnalyzer {
                     innerResult.AppendToCurrentStatement(token);
                 }
 
-                if (isEnumEnd) {
+                if (isArrayEnd) {
                     state.CurrentIndex = tokenIndex + 1;
                     break;
                 }
+
+                counter.countParenthesis(token);
             }
-
-            result.SetInnerStatementToCurrentStatement(innerResult.Statements);
-            result.FlushStatement();
-
-            state.SyntaxEnd = true;
         }
 
         // Code block parsing

@@ -321,7 +321,7 @@ namespace CodeConverter {
             return resultIndex;
         }
 
-        static findIndexInZeroLevel(tokens: List<TextToken>, counter: ParenthesisCounter, startIndex: int, endIndex: int, searchLetter: string): int {
+        static findIndexInZeroLevel(tokens: List<TextToken>, counter: NestingCounter, startIndex: int, endIndex: int, searchLetter: string): int {
 
             counter.clear();
 
@@ -413,7 +413,7 @@ namespace CodeConverter {
         }
     }
 
-    export class ParenthesisCounter {
+    export class NestingCounter {
 
         parenthesisNestCount: int = 0;
         braceNestCount: int = 0;
@@ -462,11 +462,15 @@ namespace CodeConverter {
                 }
             }
         }
+
+        isInNest() {
+            return (this.parenthesisNestCount > 0 || this.braceNestCount > 0 || this.angleNestCount > 0);
+        }
     }
 
     export class TextTokenCollection extends List<TextToken> {
 
-        ParenthesisCounter: ParenthesisCounter;
+        NestingCounter: NestingCounter;
 
         toString(): string {
             return "length: " + this.length;
@@ -504,11 +508,11 @@ namespace CodeConverter {
 
         findIndexInZeroLevel(startIndex: int, endIndex: int, searchLetter: string): int {
 
-            if (this.ParenthesisCounter == null) {
-                this.ParenthesisCounter = new ParenthesisCounter();
+            if (this.NestingCounter == null) {
+                this.NestingCounter = new NestingCounter();
             }
 
-            return TextToken.findIndexInZeroLevel(this, this.ParenthesisCounter, startIndex, endIndex, searchLetter);
+            return TextToken.findIndexInZeroLevel(this, this.NestingCounter, startIndex, endIndex, searchLetter);
         }
 
         getRange(startIndex: int, length: int): List<TextToken> {
