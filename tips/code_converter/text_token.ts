@@ -113,6 +113,11 @@ namespace CodeConverter {
             return (this.Type == TextTokenType.LineComment);
         }
 
+        isAlphaNumeric(): boolean {
+
+            return (this.Type == TextTokenType.AlphaNumeric);
+        }
+
         // Scalar methods
         contains(searchText: string): boolean {
 
@@ -323,7 +328,7 @@ namespace CodeConverter {
 
         static findIndexInZeroLevel(tokens: List<TextToken>, counter: NestingCounter, startIndex: int, endIndex: int, searchLetter: string): int {
 
-            counter.clear();
+            counter.reset();
 
             let resultIndex = -1;
 
@@ -423,7 +428,7 @@ namespace CodeConverter {
             return "(): " + this.parenthesisNestCount + " {}: " + this.braceNestCount + " <>: " + this.angleNestCount;
         }
 
-        clear() {
+        reset() {
             this.parenthesisNestCount = 0;
             this.braceNestCount = 0;
             this.angleNestCount = 0;
