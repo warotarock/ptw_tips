@@ -47,6 +47,8 @@ namespace CodeConverter.StatementAnalyzer {
         TS_enum = 'enum';
         TS_class = 'class';
         TS_interface = 'interface';
+        TS_extends = 'extends';
+        TS_implements = 'implements';
         TS_constructor = 'constructor';
         TS_get = 'get';
         TS_set = 'set';
@@ -409,6 +411,9 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
+            // Add tokens
+            this.processSyntax_AppendToResultTillCurrent(result, tokens, state);
+
             // process module code
             return this.processSyntax_GeneralBlockFormSyntax(result, StatementType.Enum, tokens, state);
         }
@@ -470,51 +475,64 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            // process enum items
-            this.processSyntax_GeneralListFormStatement(result, tokens, state);
+            // Add tokens
+            this.processSyntax_AppendToResultTillCurrent(result, tokens, state);
 
-            return true;
+            // process enum items
+            return this.processSyntax_GeneralListFormStatement(result, tokens, state);
         }
 
         private processSyntax_TraceClass(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
 
             let currentIndex = state.CurrentIndex;
 
+            // set statement type
+            result.SetCurrentStatementType(StatementType.Class);
+
             // now current indes on "class"
             state.CurrentIndex++;
-            state.TracingState = TracingState.SearchingClassIdentifierName;
+
+            // serching module name
+            let indentiferNameToken: TextToken = null;
 
             while (state.CurrentIndex < tokens.length) {
 
                 let token = tokens[state.CurrentIndex];
 
-                if (state.TracingState == TracingState.SearchingEnumIdentifierName) {
-
-                    if (token.isAlphaNumeric()) {
-                        state.TracingState = TracingState.SearchingEnumBlockStart;
-                        state.CurrentIndex++;
-                    }
-                    else if (!token.isBlank()) {
-                        state.addError('Identifier name expected.');
-                        state.CurrentIndex++;
-                    }
-                    else {
-                        state.CurrentIndex++;
-                    }
+                if (token.isAlphaNumeric()) {
+                    indentiferNameToken = token;
+                    state.CurrentIndex++;
+                    break;
                 }
-                else if (state.TracingState == TracingState.SearchingEnumBlockStart) {
+                else if (!token.isBlank()) {
+                    state.addError('Identifier name expected.');
+                    state.CurrentIndex++;
+                }
+                else {
+                    state.CurrentIndex++;
+                }
+            }
 
-                    if (token.isSeperatorOf('{')) {
-                        state.TracingState = TracingState.EnumDefinitionDetected;
-                        state.CurrentIndex++;
-                    }
-                    else if (!token.isBlank()) {
-                        state.addError('{ expected.');
-                        state.CurrentIndex++;
-                    }
-                    else {
-                        state.CurrentIndex++;
-                    }
+            // serching module body start
+            while (state.CurrentIndex < tokens.length) {
+
+                let token = tokens[state.CurrentIndex];
+
+                if (token.isSeperatorOf(state.Setting.TS_extends)) {
+                    state.CurrentIndex++;
+                }
+                if (token.isSeperatorOf(state.Setting.TS_implements)) {
+                    state.CurrentIndex++;
+                }
+                else if (token.isSeperatorOf('{')) {
+                    state.CurrentIndex++;
+                }
+                else if (!token.isBlank()) {
+                    state.addError('{ expected.');
+                    state.CurrentIndex++;
+                }
+                else {
+                    state.CurrentIndex++;
                 }
 
                 if (this.checkEOF(tokens, state)) {
@@ -522,7 +540,11 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            return true;
+            // Add tokens
+            this.processSyntax_AppendToResultTillCurrent(result, tokens, state);
+
+            // process class code
+            return this.processSyntax_GeneralBlockFormSyntax(result, StatementType.Enum, tokens, state);
         }
 
         private processSyntax_TraceInterface(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
@@ -571,7 +593,11 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            return true;
+            // Add tokens
+            this.processSyntax_AppendToResultTillCurrent(result, tokens, state);
+
+            // process interface code
+            return this.processSyntax_GeneralBlockFormSyntax(result, StatementType.Enum, tokens, state);
         }
 
         private processSyntax_TraceVariable(result: AnalyzerResult, startingTracingState: TracingState, tokens: TextTokenCollection, state: AnalyzerState): boolean {
@@ -779,6 +805,14 @@ namespace CodeConverter.StatementAnalyzer {
             return true;
         }
 
+        private processSyntax_AppendToResultTillCurrent(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
+
+            for (let tokenIndex = state.LastIndex; tokenIndex < state.CurrentIndex; tokenIndex++) {
+
+                result.AppendToCurrentStatement(tokens[tokenIndex]);
+            }
+        }
+
         private processSyntax_GeneralBlockFormSyntax(result: AnalyzerResult, statementType: StatementType, tokens: TextTokenCollection, state: AnalyzerState): boolean {
 
             let currentIndex = state.CurrentIndex;
@@ -838,6 +872,8 @@ namespace CodeConverter.StatementAnalyzer {
                 }
 
                 counter.countParenthesis(token);
+
+                state.CurrentIndex++;
 
                 if (this.checkEOF(tokens, state)) {
                     return false;
