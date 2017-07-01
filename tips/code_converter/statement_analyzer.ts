@@ -131,10 +131,17 @@ namespace CodeConverter.StatementAnalyzer {
         TracingVariableTypeName,
         TracingVariableDefinitionDefaultValue,
 
-        TracingFunctionAarguments,
+        TracingFunctionArguments,
         TracingFunctionGenericsArguments,
         SearchingFunctionReturnValueTypeOrBlockStart,
         TracingFunctionReturnValueType,
+
+        TracingPropertyBody,
+
+        SearchingModuleIdentifierName,
+
+        SearchingClassIdentifierName,
+        SearchingClassBlockStart,
 
         SearchingEnumIdentifierName,
         SearchingEnumBlockStart,
@@ -276,7 +283,7 @@ namespace CodeConverter.StatementAnalyzer {
             }
         }
 
-        private processSyntax_TraceSyntax(tokens: TextTokenCollection, state: AnalyzerState) {
+        private processSyntax_TraceSyntax(tokens: TextTokenCollection, state: AnalyzerState): boolean {
 
             let currentIndex = state.CurrentIndex;
 
@@ -284,8 +291,9 @@ namespace CodeConverter.StatementAnalyzer {
 
             while (state.CurrentIndex < tokens.length) {
 
-                let token = tokens[currentIndex];
+                let token = tokens[state.CurrentIndex];
 
+                // searching start
                 if (state.TracingState == TracingState.SearchingIdentifier) {
 
                     if (token.isAlphaNumeric()) {
@@ -301,8 +309,22 @@ namespace CodeConverter.StatementAnalyzer {
                             }
                             state.CurrentIndex++;
                         }
+                        // module or namespace
+                        else if (token.isAlphaNumericOf(state.Setting.TS_module) || token.isAlphaNumericOf(state.Setting.TS_namespace)) {
+                            this.processSyntax_TraceModule(tokens, state);
+                            return;
+                        }
+                        // class
+                        else if (token.isAlphaNumericOf(state.Setting.TS_class)) {
+                            return this.processSyntax_TraceClass(tokens, state);
+                        }
+                        // interface
+                        else if (token.isAlphaNumericOf(state.Setting.TS_interface)) {
+                            return this.processSyntax_TraceInterface(tokens, state);
+                        }
+                        // enum
                         else if (token.isAlphaNumericOf(state.Setting.TS_enum)) {
-                            state.TracingState = TracingState.SearchingEnumIdentifierName;
+                            return this.processSyntax_TraceEnum(tokens, state);
                         }
                         else {
                             // detect identifier
@@ -319,25 +341,27 @@ namespace CodeConverter.StatementAnalyzer {
                         state.CurrentIndex++;
                     }
                 }
+
+                // branching to each syntax
                 else if (state.TracingState == TracingState.SearchingAfterIdentifer) {
 
                     if (token.isSeperatorOf(':')) {
                         state.Trace_TypeNameSeperatorDeteced = true;
-                        state.TracingState = TracingState.TracingVariableTypeName;
-                        state.CurrentIndex++;
+                        return this.processSyntax_TraceVariable(TracingState.TracingVariableTypeName, tokens, state);
                     }
                     else if (token.isSeperatorOf('=')) {
                         state.Trace_AsignmentDeteced = true;
-                        state.TracingState = TracingState.TracingVariableDefinitionDefaultValue;
-                        state.CurrentIndex++;
+                        return this.processSyntax_TraceVariable(TracingState.TracingVariableDefinitionDefaultValue, tokens, state);
                     }
                     else if (token.isSeperatorOf('(')) {
-                        state.Trace_AsignmentDeteced = true;
-                        state.TracingState = TracingState.TracingFunctionAarguments;
+                        return this.processSyntax_TraceFunction(TracingState.TracingFunctionArguments, tokens, state);
                     }
                     else if (token.isSeperatorOf('<')) {
                         state.Trace_FunctionGenericsArgumentDeteced = true;
-                        state.TracingState = TracingState.TracingFunctionGenericsArguments;
+                        return this.processSyntax_TraceFunction(TracingState.TracingFunctionGenericsArguments, tokens, state);
+                    }
+                    else if (token.isSeperatorOf('{')) {
+                        return this.processSyntax_TraceProperty(tokens, state);
                     }
                     else if (!token.isBlank()) {
                         state.addError('= or : or function argument expected.');
@@ -348,8 +372,219 @@ namespace CodeConverter.StatementAnalyzer {
                     }
                 }
 
-                // variable
-                else if (state.TracingState == TracingState.TracingVariableTypeName) {
+                if (state.TracingState == TracingState.VariableDefinitionDetected
+                    || state.TracingState == TracingState.FunctionDefinitionDetected
+                    || state.TracingState == TracingState.EnumDefinitionDetected) {
+                    break;
+                }
+
+                if (state.CurrentIndex >= tokens.length) {
+                    state.TracingState = TracingState.UnexpectedEOF;
+                    break;
+                }
+            }
+
+            return false;
+        }
+
+        private processSyntax_TraceModule(tokens: TextTokenCollection, state: AnalyzerState): boolean {
+
+            let currentIndex = state.CurrentIndex;
+
+            // now current indes on "module" or "namescpace"
+            state.CurrentIndex++;
+            state.TracingState = TracingState.SearchingModuleIdentifierName;
+
+            while (state.CurrentIndex < tokens.length) {
+
+                let token = tokens[state.CurrentIndex];
+
+                if (state.TracingState == TracingState.SearchingEnumIdentifierName) {
+
+                    if (token.isAlphaNumeric()) {
+                        state.TracingState = TracingState.SearchingEnumBlockStart;
+                        state.CurrentIndex++;
+                    }
+                    else if (!token.isBlank()) {
+                        state.addError('Identifier name for enum expected.');
+                        state.CurrentIndex++;
+                    }
+                    else {
+                        state.CurrentIndex++;
+                    }
+                }
+                else if (state.TracingState == TracingState.SearchingEnumBlockStart) {
+
+                    if (token.isSeperatorOf('{')) {
+                        state.TracingState = TracingState.EnumDefinitionDetected;
+                        state.CurrentIndex++;
+                    }
+                    else if (!token.isBlank()) {
+                        state.addError('{ expected.');
+                        state.CurrentIndex++;
+                    }
+                    else {
+                        state.CurrentIndex++;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private processSyntax_TraceEnum(tokens: TextTokenCollection, state: AnalyzerState): boolean {
+
+            let currentIndex = state.CurrentIndex;
+
+            // now current indes on "enum"
+            state.CurrentIndex++;
+            state.TracingState = TracingState.SearchingEnumIdentifierName;
+
+            while (state.CurrentIndex < tokens.length) {
+
+                let token = tokens[state.CurrentIndex];
+
+                if (state.TracingState == TracingState.SearchingEnumIdentifierName) {
+
+                    if (token.isAlphaNumeric()) {
+                        state.TracingState = TracingState.SearchingEnumBlockStart;
+                        state.CurrentIndex++;
+                    }
+                    else if (!token.isBlank()) {
+                        state.addError('Identifier name for enum expected.');
+                        state.CurrentIndex++;
+                    }
+                    else {
+                        state.CurrentIndex++;
+                    }
+                }
+                else if (state.TracingState == TracingState.SearchingEnumBlockStart) {
+
+                    if (token.isSeperatorOf('{')) {
+                        state.TracingState = TracingState.EnumDefinitionDetected;
+                        state.CurrentIndex++;
+                    }
+                    else if (!token.isBlank()) {
+                        state.addError('{ expected.');
+                        state.CurrentIndex++;
+                    }
+                    else {
+                        state.CurrentIndex++;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private processSyntax_TraceClass(tokens: TextTokenCollection, state: AnalyzerState): boolean {
+
+            let currentIndex = state.CurrentIndex;
+
+            // now current indes on "class"
+            state.CurrentIndex++;
+            state.TracingState = TracingState.SearchingClassIdentifierName;
+
+            while (state.CurrentIndex < tokens.length) {
+
+                let token = tokens[state.CurrentIndex];
+
+                if (state.TracingState == TracingState.SearchingEnumIdentifierName) {
+
+                    if (token.isAlphaNumeric()) {
+                        state.TracingState = TracingState.SearchingEnumBlockStart;
+                        state.CurrentIndex++;
+                    }
+                    else if (!token.isBlank()) {
+                        state.addError('Identifier name for enum expected.');
+                        state.CurrentIndex++;
+                    }
+                    else {
+                        state.CurrentIndex++;
+                    }
+                }
+                else if (state.TracingState == TracingState.SearchingEnumBlockStart) {
+
+                    if (token.isSeperatorOf('{')) {
+                        state.TracingState = TracingState.EnumDefinitionDetected;
+                        state.CurrentIndex++;
+                    }
+                    else if (!token.isBlank()) {
+                        state.addError('{ expected.');
+                        state.CurrentIndex++;
+                    }
+                    else {
+                        state.CurrentIndex++;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private processSyntax_TraceInterface(tokens: TextTokenCollection, state: AnalyzerState): boolean {
+
+            let currentIndex = state.CurrentIndex;
+
+            // now current indes on "interface"
+            state.CurrentIndex++;
+            state.TracingState = TracingState.SearchingClassIdentifierName;
+
+            while (state.CurrentIndex < tokens.length) {
+
+                let token = tokens[state.CurrentIndex];
+
+                if (state.TracingState == TracingState.SearchingEnumIdentifierName) {
+
+                    if (token.isAlphaNumeric()) {
+                        state.TracingState = TracingState.SearchingEnumBlockStart;
+                        state.CurrentIndex++;
+                    }
+                    else if (!token.isBlank()) {
+                        state.addError('Identifier name for enum expected.');
+                        state.CurrentIndex++;
+                    }
+                    else {
+                        state.CurrentIndex++;
+                    }
+                }
+                else if (state.TracingState == TracingState.SearchingEnumBlockStart) {
+
+                    if (token.isSeperatorOf('{')) {
+                        state.TracingState = TracingState.EnumDefinitionDetected;
+                        state.CurrentIndex++;
+                    }
+                    else if (!token.isBlank()) {
+                        state.addError('{ expected.');
+                        state.CurrentIndex++;
+                    }
+                    else {
+                        state.CurrentIndex++;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private processSyntax_TraceVariable(startingTracingState: TracingState, tokens: TextTokenCollection, state: AnalyzerState): boolean {
+
+            let currentIndex = state.CurrentIndex;
+
+            // start with specified state
+            state.TracingState = startingTracingState;
+
+            if (startingTracingState == TracingState.TracingVariableTypeName
+                || startingTracingState == TracingState.TracingVariableTypeName) {
+
+                state.CurrentIndex++;
+            }
+
+            while (state.CurrentIndex < tokens.length) {
+
+                let token = tokens[state.CurrentIndex];
+
+                if (state.TracingState == TracingState.TracingVariableTypeName) {
 
                     state.Trace_NestingCounter.countParenthesis(token);
 
@@ -397,9 +632,29 @@ namespace CodeConverter.StatementAnalyzer {
                         state.CurrentIndex++;
                     }
                 }
+            }
 
-                // function
-                else if (state.TracingState == TracingState.TracingFunctionGenericsArguments) {
+            return true;
+        }
+
+        private processSyntax_TraceFunction(startingTracingState: TracingState, tokens: TextTokenCollection, state: AnalyzerState): boolean {
+
+            let currentIndex = state.CurrentIndex;
+
+            // start with specified state
+            state.TracingState = startingTracingState;
+
+            if (startingTracingState == TracingState.TracingFunctionArguments
+                || startingTracingState == TracingState.TracingFunctionGenericsArguments) {
+
+                state.CurrentIndex++;
+            }
+
+            while (state.CurrentIndex < tokens.length) {
+
+                let token = tokens[state.CurrentIndex];
+
+                if (state.TracingState == TracingState.TracingFunctionGenericsArguments) {
 
                     state.Trace_NestingCounter.countParenthesis(token);
 
@@ -416,7 +671,7 @@ namespace CodeConverter.StatementAnalyzer {
                         state.CurrentIndex++;
                     }
                 }
-                else if (state.TracingState == TracingState.TracingFunctionAarguments) {
+                else if (state.TracingState == TracingState.TracingFunctionArguments) {
 
                     state.Trace_NestingCounter.countParenthesis(token);
 
@@ -484,48 +739,25 @@ namespace CodeConverter.StatementAnalyzer {
                         state.CurrentIndex++;
                     }
                 }
-
-                // enum
-                else if (state.TracingState == TracingState.SearchingEnumIdentifierName) {
-
-                    if (token.isAlphaNumeric()) {
-                        state.TracingState = TracingState.SearchingEnumBlockStart;
-                        state.CurrentIndex++;
-                    }
-                    else if (!token.isBlank()) {
-                        state.addError('Identifier name for enum expected.');
-                        state.CurrentIndex++;
-                    }
-                    else {
-                        state.CurrentIndex++;
-                    }
-                }
-                else if (state.TracingState == TracingState.SearchingEnumBlockStart) {
-
-                    if (token.isSeperatorOf('{')) {
-                        state.TracingState = TracingState.EnumDefinitionDetected;
-                        state.CurrentIndex++;
-                    }
-                    else if (!token.isBlank()) {
-                        state.addError('{ expected.');
-                        state.CurrentIndex++;
-                    }
-                    else {
-                        state.CurrentIndex++;
-                    }
-                }
-
-                if (state.TracingState == TracingState.VariableDefinitionDetected
-                    || state.TracingState == TracingState.FunctionDefinitionDetected
-                    || state.TracingState == TracingState.EnumDefinitionDetected) {
-                    break;
-                }
-
-                if (state.CurrentIndex >= tokens.length) {
-                    state.TracingState = TracingState.UnexpectedEOF;
-                    break;
-                }
             }
+
+            return true;
+        }
+
+        private processSyntax_TraceProperty(tokens: TextTokenCollection, state: AnalyzerState): boolean {
+
+            let currentIndex = state.CurrentIndex;
+
+            // now current indes on "{" of start of property body
+            state.TracingState = TracingState.TracingPropertyBody;
+            state.CurrentIndex++;
+
+            while (state.CurrentIndex < tokens.length) {
+
+                let token = tokens[state.CurrentIndex];
+            }
+
+            return true;
         }
 
         private processSyntax_GetProcessingMode(tokens: TextTokenCollection, state: AnalyzerState): SyntaxProcessingMode {
@@ -546,12 +778,6 @@ namespace CodeConverter.StatementAnalyzer {
                 return SyntaxProcessingMode.Enum;
             }
 
-            if (token.isAlphaNumericOf(setting.TS_module)
-                || token.isAlphaNumericOf(setting.TS_namespace)) {
-
-                return SyntaxProcessingMode.Module;
-            }
-
             if (token.isAlphaNumericOf(setting.TS_class)) {
 
                 return SyntaxProcessingMode.Class;
@@ -560,6 +786,12 @@ namespace CodeConverter.StatementAnalyzer {
             if (token.isAlphaNumericOf(setting.TS_interface)) {
 
                 return SyntaxProcessingMode.Interface;
+            }
+
+            if (token.isAlphaNumericOf(setting.TS_module)
+                || token.isAlphaNumericOf(setting.TS_namespace)) {
+
+                return SyntaxProcessingMode.Module;
             }
 
             // クラスメンバを検出する
