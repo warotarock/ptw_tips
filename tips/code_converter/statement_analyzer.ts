@@ -248,21 +248,21 @@ namespace CodeConverter.StatementAnalyzer {
             this.processCodeBlock(result, tokens, state);
         }
 
-        // Syntax part parsing ////////////////
+        // Syntax alnaysing ////////////////
 
-        private processSyntaxPart(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
+        private processSyntax(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
 
             let currentIndex = state.CurrentIndex;
             state.LastIndex = state.CurrentIndex;
 
-            // searching start
+            // Searching start
             while (state.CurrentIndex < tokens.length) {
 
                 let token = tokens[state.CurrentIndex];
 
                 if (token.isAlphaNumeric()) {
 
-                    // detection accesibility
+                    // Accesibility
                     if (DictionaryContainsKey(state.Setting.TS_AccesTypes, token.Text)) {
                         if (!state.Trace_AccessTypeDetected) {
                             state.Trace_AccessTypeDetected = true;
@@ -294,7 +294,7 @@ namespace CodeConverter.StatementAnalyzer {
                         return this.processSyntax_TraceProperty(result, tokens, state);
                     }
                     else {
-                        // identifier detected... to next step
+                        // Identifier detected... to next step
                         state.Trace_IdentifierDetected = true;
                         state.CurrentIndex++;
                         break;
@@ -313,7 +313,7 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            // after identifier... branchs to variable, function or property syntax
+            // After identifier... branchs to variable or function definition
             while (state.CurrentIndex < tokens.length) {
 
                 let token = tokens[state.CurrentIndex];
@@ -364,13 +364,13 @@ namespace CodeConverter.StatementAnalyzer {
 
             let currentIndex = state.CurrentIndex;
 
-            // set statement type
+            // Set statement type
             result.SetCurrentStatementType(StatementType.Module);
 
-            // now current index on "module" or "namescpace"
+            // Now current index on "module" or "namescpace"
             state.CurrentIndex++;
 
-            // serching module name
+            // Serching module name
             let indentiferNameToken: TextToken = null;
 
             while (state.CurrentIndex < tokens.length) {
@@ -395,7 +395,7 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            // serching module body start
+            // Serching module body start
             while (state.CurrentIndex < tokens.length) {
 
                 let token = tokens[state.CurrentIndex];
@@ -417,10 +417,10 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            // add tokens
+            // Add tokens
             this.processSyntax_AppendToResultTillCurrent(result, tokens, state);
 
-            // process module code
+            // Process module code
             return this.processSyntax_GeneralBlockFormSyntax(result, StatementType.Enum, tokens, state);
         }
 
@@ -428,13 +428,13 @@ namespace CodeConverter.StatementAnalyzer {
 
             let currentIndex = state.CurrentIndex;
 
-            // set statement type
+            // Set statement type
             result.SetCurrentStatementType(StatementType.Enum);
 
-            // now current index on "enum"
+            // Now current index on "enum"
             state.CurrentIndex++;
 
-            // serching enum name
+            // Serching enum name
             let indentiferNameToken: TextToken = null;
 
             while (state.CurrentIndex < tokens.length) {
@@ -459,7 +459,7 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            // serching enum body start
+            // Serching enum body start
             while (state.CurrentIndex < tokens.length) {
 
                 let token = tokens[state.CurrentIndex];
@@ -481,10 +481,10 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            // add tokens
+            // Add tokens
             this.processSyntax_AppendToResultTillCurrent(result, tokens, state);
 
-            // process enum items
+            // Process enum items
             return this.processSyntax_GeneralListFormStatement(result, tokens, state);
         }
 
@@ -492,13 +492,13 @@ namespace CodeConverter.StatementAnalyzer {
 
             let currentIndex = state.CurrentIndex;
 
-            // set statement type
+            // Set statement type
             result.SetCurrentStatementType(StatementType.Class);
 
-            // now current index on "class"
+            // Now current index on "class"
             state.CurrentIndex++;
 
-            // serching module name
+            // Serching module name
             let indentiferNameToken: TextToken = null;
 
             while (state.CurrentIndex < tokens.length) {
@@ -519,7 +519,7 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            // serching module body start
+            // Serching module body start
             while (state.CurrentIndex < tokens.length) {
 
                 let token = tokens[state.CurrentIndex];
@@ -547,10 +547,10 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            // add tokens
+            // Add tokens
             this.processSyntax_AppendToResultTillCurrent(result, tokens, state);
 
-            // process class code
+            // Process class code
             return this.processSyntax_GeneralBlockFormSyntax(result, StatementType.Enum, tokens, state);
         }
 
@@ -558,13 +558,13 @@ namespace CodeConverter.StatementAnalyzer {
 
             let currentIndex = state.CurrentIndex;
 
-            // set statement type
+            // Set statement type
             result.SetCurrentStatementType(StatementType.Interface);
 
-            // now current index on "interface"
+            // Now current index on "interface"
             state.CurrentIndex++;
 
-            // serching module name
+            // Serching module name
             let indentiferNameToken: TextToken = null;
 
             while (state.CurrentIndex < tokens.length) {
@@ -585,7 +585,7 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            // serching module body start
+            // Serching module body start
             while (state.CurrentIndex < tokens.length) {
 
                 let token = tokens[state.CurrentIndex];
@@ -613,10 +613,10 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            // add tokens
+            // Add tokens
             this.processSyntax_AppendToResultTillCurrent(result, tokens, state);
 
-            // process class code
+            // Process class code
             return this.processSyntax_GeneralBlockFormSyntax(result, StatementType.Enum, tokens, state);
         }
 
@@ -624,10 +624,10 @@ namespace CodeConverter.StatementAnalyzer {
 
             let currentIndex = state.CurrentIndex;
 
-            // set statement type
+            // Set statement type
             result.SetCurrentStatementType(StatementType.Variable);
 
-            // start with specified state
+            // Start with specified state
             state.TracingState = startingTracingState;
 
             if (startingTracingState == TracingState.TracingVariableTypeName
@@ -697,10 +697,10 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            // add tokens
+            // Add tokens
             this.processSyntax_AppendToResultTillCurrent(result, tokens, state);
 
-            // end statement
+            // End statement
             result.FlushStatement();
 
             return true;
@@ -710,10 +710,10 @@ namespace CodeConverter.StatementAnalyzer {
 
             let currentIndex = state.CurrentIndex;
 
-            // set statement type
+            // Set statement type
             result.SetCurrentStatementType(StatementType.Function);
 
-            // start with specified state
+            // Start with specified state
             state.TracingState = startingTracingState;
 
             if (startingTracingState == TracingState.TracingFunctionArguments
@@ -811,13 +811,13 @@ namespace CodeConverter.StatementAnalyzer {
 
                     if (!state.Trace_NestingCounter.isInNest()) {
                         if (token.isSeperatorOf(';')) {
-                            // TODO: supprt only for interface
+                            // TODO: Supprt only for interface
                             state.Trace_AbstructFunctionDeteced = true;
                             state.CurrentIndex++;
                             break;
                         }
                         else if (!token.isBlank()) {
-                            // TODO: change error message whether class or interface
+                            // TODO: Change error message whether class or interface
                             state.addError('{ or ; expected.');
                             break;
                         }
@@ -835,10 +835,10 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            // add tokens
+            // Add tokens
             this.processSyntax_AppendToResultTillCurrent(result, tokens, state);
 
-            // process class code
+            // Process class code
             if (!state.Trace_AbstructFunctionDeteced) {
                 return this.processSyntax_GeneralBlockFormSyntax(result, StatementType.Enum, tokens, state);
             }
@@ -851,7 +851,7 @@ namespace CodeConverter.StatementAnalyzer {
 
             let currentIndex = state.CurrentIndex;
 
-            // set statement type
+            // Set statement type
             if (tokens[state.CurrentIndex].isAlphaNumericOf(state.Setting.TS_get)) {
                 result.SetCurrentStatementType(StatementType.Property_Get);
             }
@@ -859,10 +859,10 @@ namespace CodeConverter.StatementAnalyzer {
                 result.SetCurrentStatementType(StatementType.Property_Set);
             }
 
-            // now current index on "get" or "set"
+            // Now current index on "get" or "set"
             state.CurrentIndex++;
 
-            // serching property name
+            // Serching property name
             let indentiferNameToken: TextToken = null;
 
             while (state.CurrentIndex < tokens.length) {
@@ -887,7 +887,7 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            // serching argument part
+            // Serching argument part
             while (state.CurrentIndex < tokens.length) {
 
                 let token = tokens[state.CurrentIndex];
@@ -909,7 +909,7 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            // tracing argument part
+            // Tracing argument part
             while (state.CurrentIndex < tokens.length) {
 
                 let token = tokens[state.CurrentIndex];
@@ -934,7 +934,7 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            // serching return value or property body
+            // Serching return value or property body
             let existsTypeName = false;
             while (state.CurrentIndex < tokens.length) {
 
@@ -962,7 +962,7 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            // tracing return type
+            // Tracing return type
             if (existsTypeName) {
                 while (state.CurrentIndex < tokens.length) {
 
@@ -981,10 +981,10 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            // add tokens
+            // Add tokens
             this.processSyntax_AppendToResultTillCurrent(result, tokens, state);
 
-            // process class code
+            // Process class code
             return this.processSyntax_GeneralBlockFormSyntax(result, StatementType.Enum, tokens, state);
         }
 
@@ -1002,12 +1002,12 @@ namespace CodeConverter.StatementAnalyzer {
 
             let currentIndex = state.CurrentIndex;
 
-            // process inner statements
+            // Process inner statements
             var innerState = state.cloneForInnerState();
             var innerResult = new AnalyzerResult();
             this.processCodeBlock(innerResult, tokens, innerState);
 
-            // set inner statement result
+            // Set inner statement result
             result.SetInnerStatementToCurrentStatement(innerResult.Statements);
             result.FlushCurrentStatementTokens();
 
@@ -1026,7 +1026,7 @@ namespace CodeConverter.StatementAnalyzer {
 
             let currentIndex = state.CurrentIndex;
 
-            // parse array members
+            // Parse array members
             var innerResult = new AnalyzerResult();
             var counter = new NestingCounter();
             while (state.CurrentIndex < tokens.length) {
@@ -1065,14 +1065,14 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            // set inner statement result
+            // Set inner statement result
             result.SetInnerStatementToCurrentStatement(innerResult.Statements);
             result.FlushCurrentStatementTokens();
 
             return true;
         }
 
-        // Code block parsing /////////////
+        // Code block alnaysing /////////////
 
         private processCodeBlock(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
 
@@ -1144,7 +1144,7 @@ namespace CodeConverter.StatementAnalyzer {
 
             result.FlushStatement();
 
-            this.processSyntaxPart(result, tokens, state);
+            this.processSyntax(result, tokens, state);
         }
 
         // Common functions
