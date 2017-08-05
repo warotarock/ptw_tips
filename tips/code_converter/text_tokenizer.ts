@@ -23,7 +23,7 @@ namespace CodeConverter.TextTokenizer {
     export class TokenizerResult {
 
         Tokens = TextTokenCollection.create();
-        LineNumber = 0;
+        LineNumber = 1;
 
         add(tokenType: TextTokenType, lineText: string, startIndex: int, length: int): TextToken {
 
