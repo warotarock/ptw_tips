@@ -155,6 +155,7 @@ namespace CodeConverter.StatementAnalyzer {
         None,
         UnexpectedEOF,
 
+        SearchingStatementStart,
         SearchingIdentifierName,
         SearchingAfterIdentifer,
 
@@ -326,51 +327,43 @@ namespace CodeConverter.StatementAnalyzer {
             let currentIndex = state.CurrentIndex;
             state.LastIndex = state.CurrentIndex;
 
-            state.startTracing(TracingState.None);
+            state.startTracing(TracingState.SearchingStatementStart);
 
             // Searching start
-            state.setTracingState(TracingState.SearchingIdentifierName);
             while (state.CurrentIndex < tokens.length) {
 
                 let token = tokens[state.CurrentIndex];
 
-                if (token.isAlphaNumeric()) {
-
-                    // Accesibility
-                    if (this.isAccessibilityToken(token, state)) {
-                        this.processAccessibility(token, state)
-                    }
-                    // module or namespace
-                    else if (token.isAlphaNumericOf(state.Setting.TS_module) || token.isAlphaNumericOf(state.Setting.TS_namespace)) {
-                        return this.processModule(result, tokens, state);
-                    }
-                    // class
-                    else if (token.isAlphaNumericOf(state.Setting.TS_class)) {
-                        return this.processClass(result, tokens, state);
-                    }
-                    // interface
-                    else if (token.isAlphaNumericOf(state.Setting.TS_interface)) {
-                        return this.processInterface(result, tokens, state);
-                    }
-                    // enum
-                    else if (token.isAlphaNumericOf(state.Setting.TS_enum)) {
-                        return this.processEnum(result, tokens, state);
-                    }
-                    // var
-                    if (token.isAlphaNumericOf(state.Setting.TS_var)) {
-                        return this.statementSyntax_ProcessVariable(result, tokens, state);
-                    }
-                    else {
-                        state.addError('Expected a class, interface, enum or variable.');
-                        state.CurrentIndex++;
-                        break;
-                    }
-                }
-                else if (!token.isBlank()) {
-                    state.addError('Expected a class, interface, enum or variable.');
+                // Blank
+                if (token.isBlank()) {
                     state.CurrentIndex++;
                 }
+                // Accesibility
+                else if (this.isAccessibilityToken(token, state)) {
+                    this.processAccessibility(token, state)
+                }
+                // module or namespace
+                else if (token.isAlphaNumericOf(state.Setting.TS_module) || token.isAlphaNumericOf(state.Setting.TS_namespace)) {
+                    return this.processModule(result, tokens, state);
+                }
+                // class
+                else if (token.isAlphaNumericOf(state.Setting.TS_class)) {
+                    return this.processClass(result, tokens, state);
+                }
+                // interface
+                else if (token.isAlphaNumericOf(state.Setting.TS_interface)) {
+                    return this.processInterface(result, tokens, state);
+                }
+                // enum
+                else if (token.isAlphaNumericOf(state.Setting.TS_enum)) {
+                    return this.processEnum(result, tokens, state);
+                }
+                // var
+                else if (token.isAlphaNumericOf(state.Setting.TS_var)) {
+                    return this.statementSyntax_ProcessVariable(result, tokens, state);
+                }
                 else {
+                    state.addError('Expected a class, interface, enum or variable.');
                     state.CurrentIndex++;
                 }
 
@@ -397,39 +390,32 @@ namespace CodeConverter.StatementAnalyzer {
 
                 let token = tokens[state.CurrentIndex];
 
-                if (token.isAlphaNumeric()) {
-
-                    // Accesibility
-                    if (this.isAccessibilityToken(token, state)) {
-                        this.processAccessibility(token, state)
-                    }
-                    // class
-                    else if (token.isAlphaNumericOf(state.Setting.TS_class)) {
-                        return this.processClass(result, tokens, state);
-                    }
-                    // interface
-                    else if (token.isAlphaNumericOf(state.Setting.TS_interface)) {
-                        return this.processInterface(result, tokens, state);
-                    }
-                    // enum
-                    else if (token.isAlphaNumericOf(state.Setting.TS_enum)) {
-                        return this.processEnum(result, tokens, state);
-                    }
-                    // var
-                    if (token.isAlphaNumericOf(state.Setting.TS_var)) {
-                        return this.statementSyntax_ProcessVariable(result, tokens, state);
-                    }
-                    else {
-                        state.addError('Expected a class, interface, enum or variable.');
-                        state.CurrentIndex++;
-                        break;
-                    }
-                }
-                else if (!token.isBlank()) {
-                    state.addError('Expected a class, interface, enum or variable.');
+                // Blank
+                if (!token.isBlank()) {
                     state.CurrentIndex++;
                 }
+                // Accesibility
+                else if (this.isAccessibilityToken(token, state)) {
+                    this.processAccessibility(token, state)
+                }
+                // class
+                else if (token.isAlphaNumericOf(state.Setting.TS_class)) {
+                    return this.processClass(result, tokens, state);
+                }
+                // interface
+                else if (token.isAlphaNumericOf(state.Setting.TS_interface)) {
+                    return this.processInterface(result, tokens, state);
+                }
+                // enum
+                else if (token.isAlphaNumericOf(state.Setting.TS_enum)) {
+                    return this.processEnum(result, tokens, state);
+                }
+                // var
+                if (token.isAlphaNumericOf(state.Setting.TS_var)) {
+                    return this.statementSyntax_ProcessVariable(result, tokens, state);
+                }
                 else {
+                    state.addError('Expected a class, interface, enum or variable.');
                     state.CurrentIndex++;
                 }
 
@@ -456,28 +442,26 @@ namespace CodeConverter.StatementAnalyzer {
 
                 let token = tokens[state.CurrentIndex];
 
-                if (token.isAlphaNumeric()) {
-
-                    // Accesibility
-                    if (this.isAccessibilityToken(token, state)) {
-                        this.processAccessibility(token, state)
-                    }
-                    // property
-                    else if (token.isAlphaNumericOf(state.Setting.TS_get) || token.isAlphaNumericOf(state.Setting.TS_set)) {
-                        return this.classSyntax_ProcessProperty(result, tokens, state);
-                    }
-                    else {
-                        // Identifier detected... to next step
-                        state.Trace_IdentifierDetected = true;
-                        state.CurrentIndex++;
-                        break;
-                    }
-                }
-                else if (!token.isBlank()) {
-                    state.addError('Expected a constructor, method, accessor, or property.');
+                // Blank
+                if (token.isBlank()) {
                     state.CurrentIndex++;
                 }
+                // Accesibility
+                else if (this.isAccessibilityToken(token, state)) {
+                    this.processAccessibility(token, state)
+                }
+                // property
+                else if (token.isAlphaNumericOf(state.Setting.TS_get) || token.isAlphaNumericOf(state.Setting.TS_set)) {
+                    return this.classSyntax_ProcessProperty(result, tokens, state);
+                }
+                else if (token.isAlphaNumeric()) {
+                    // Identifier detected... to next step
+                    state.Trace_IdentifierDetected = true;
+                    state.CurrentIndex++;
+                    break;
+                }
                 else {
+                    state.addError('Expected a constructor, method, accessor, or property.');
                     state.CurrentIndex++;
                 }
 
@@ -824,6 +808,7 @@ namespace CodeConverter.StatementAnalyzer {
             if (startingTracingState == TracingState.TracingVariableTypeName
                 || startingTracingState == TracingState.TracingVariableDefinitionDefaultValue) {
 
+                // Skip ":", "="
                 state.CurrentIndex++;
             }
 
@@ -852,14 +837,15 @@ namespace CodeConverter.StatementAnalyzer {
             if (startingTracingState == TracingState.TracingFunctionArguments
                 || startingTracingState == TracingState.TracingFunctionGenericsArguments) {
 
+                // Skip "(", "<"
                 state.CurrentIndex++;
             }
 
-            while (state.CurrentIndex < tokens.length) {
+            if (state.TracingState == TracingState.TracingFunctionGenericsArguments) {
 
-                let token = tokens[state.CurrentIndex];
+                while (state.CurrentIndex < tokens.length) {
 
-                if (state.TracingState == TracingState.TracingFunctionGenericsArguments) {
+                    let token = tokens[state.CurrentIndex];
 
                     state.Trace_NestingCounter.countParenthesis(token);
 
@@ -867,6 +853,7 @@ namespace CodeConverter.StatementAnalyzer {
                         if (token.isSeperatorOf('>')) {
                             state.setTracingState(TracingState.SearchingAfterIdentifer);
                             state.CurrentIndex++;
+                            break;
                         }
                         else {
                             state.CurrentIndex++;
@@ -875,18 +862,39 @@ namespace CodeConverter.StatementAnalyzer {
                     else {
                         state.CurrentIndex++;
                     }
+
+                    if (this.checkEOF(tokens, state)) {
+                        return false;
+                    }
                 }
-                else if (state.TracingState == TracingState.SearchingAfterIdentifer) {
+            }
+
+            if (state.TracingState == TracingState.SearchingAfterIdentifer) {
+
+                while (state.CurrentIndex < tokens.length) {
+
+                    let token = tokens[state.CurrentIndex];
 
                     if (token.isSeperatorOf('(')) {
                         state.setTracingState(TracingState.TracingFunctionArguments);
                         state.CurrentIndex++;
+                        break;
                     }
                     else {
                         state.CurrentIndex++;
                     }
+
+                    if (this.checkEOF(tokens, state)) {
+                        return false;
+                    }
                 }
-                else if (state.TracingState == TracingState.TracingFunctionArguments) {
+            }
+
+            if (state.TracingState == TracingState.TracingFunctionArguments) {
+
+                while (state.CurrentIndex < tokens.length) {
+
+                    let token = tokens[state.CurrentIndex];
 
                     state.Trace_NestingCounter.countParenthesis(token);
 
@@ -894,35 +902,8 @@ namespace CodeConverter.StatementAnalyzer {
                         if (token.isSeperatorOf(')')) {
                             state.setTracingState(TracingState.SearchingFunctionReturnValueTypeOrBlockStart);
                             state.CurrentIndex++;
-                        }
-                        else {
-                            state.CurrentIndex++;
-                        }
-                    }
-                    else {
-                        state.CurrentIndex++;
-                    }
-                }
-                else if (state.TracingState == TracingState.SearchingFunctionReturnValueTypeOrBlockStart) {
-
-                    if (!state.Trace_NestingCounter.isInNest()) {
-                        if (token.isSeperatorOf('{')) {
-                            state.CurrentIndex++;
                             break;
                         }
-                    }
-
-                    state.Trace_NestingCounter.countParenthesis(token);
-
-                    if (!state.Trace_NestingCounter.isInNest()) {
-                        if (token.isSeperatorOf(':')) {
-                            state.setTracingState(TracingState.TracingFunctionReturnValueType);
-                            state.CurrentIndex++;
-                        }
-                        else if (!token.isBlank()) {
-                            state.addError(': or { expected.');
-                            state.CurrentIndex++;
-                        }
                         else {
                             state.CurrentIndex++;
                         }
@@ -930,8 +911,48 @@ namespace CodeConverter.StatementAnalyzer {
                     else {
                         state.CurrentIndex++;
                     }
+
+                    if (this.checkEOF(tokens, state)) {
+                        return false;
+                    }
                 }
-                else if (state.TracingState == TracingState.TracingFunctionReturnValueType) {
+            }
+
+            if (state.TracingState == TracingState.SearchingFunctionReturnValueTypeOrBlockStart) {
+
+                while (state.CurrentIndex < tokens.length) {
+
+                    let token = tokens[state.CurrentIndex];
+
+                    if (token.isSeperatorOf('{')) {
+                        state.CurrentIndex++;
+                        break;
+                    }
+
+                    if (token.isSeperatorOf(':')) {
+                        state.setTracingState(TracingState.TracingFunctionReturnValueType);
+                        state.CurrentIndex++;
+                        break;
+                    }
+                    else if (!token.isBlank()) {
+                        state.addError(': or { expected.');
+                        state.CurrentIndex++;
+                    }
+                    else {
+                        state.CurrentIndex++;
+                    }
+
+                    if (this.checkEOF(tokens, state)) {
+                        return false;
+                    }
+                }
+            }
+
+            if (state.TracingState == TracingState.TracingFunctionReturnValueType) {
+
+                while (state.CurrentIndex < tokens.length) {
+
+                    let token = tokens[state.CurrentIndex];
 
                     if (!state.Trace_NestingCounter.isInNest()) {
                         if (token.isSeperatorOf('{')) {
