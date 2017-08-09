@@ -19,6 +19,10 @@ namespace CodeConverter {
         GeneralStatement,
         If,
         Else,
+        ElseIf,
+
+        Try,
+        Catch,
 
         PrecompileDirective,
         SourceLanguageCodeBegin,
@@ -65,6 +69,8 @@ namespace CodeConverter.StatementAnalyzer {
         TS_switch = 'switch';
         TS_case = 'case';
         TS_break = 'break';
+        TS_try = 'try';
+        TS_catch = 'catch';
 
         TS_AccesTypes: Dictionary<string> = {
             'public': 'public',
@@ -288,7 +294,7 @@ namespace CodeConverter.StatementAnalyzer {
                 let token = tokens[state.CurrentIndex];
 
                 // Block End
-                if (token.isAlphaNumericOf('}')) {
+                if (token.isSeperatorOf('}')) {
                     break;
                 }
                 // Start of a syntax
@@ -391,7 +397,7 @@ namespace CodeConverter.StatementAnalyzer {
                 let token = tokens[state.CurrentIndex];
 
                 // Blank
-                if (!token.isBlank()) {
+                if (token.isBlank()) {
                     state.CurrentIndex++;
                 }
                 // Accesibility
@@ -411,7 +417,7 @@ namespace CodeConverter.StatementAnalyzer {
                     return this.processEnum(result, tokens, state);
                 }
                 // var
-                if (token.isAlphaNumericOf(state.Setting.TS_var)) {
+                else if (token.isAlphaNumericOf(state.Setting.TS_var)) {
                     return this.statementSyntax_ProcessVariable(result, tokens, state);
                 }
                 else {
@@ -516,7 +522,7 @@ namespace CodeConverter.StatementAnalyzer {
             // Set statement type
             result.SetCurrentStatementType(StatementType.Module);
 
-            // Now current index on "module" or "namescpace"
+            // Now current index is on "module" or "namescpace"
             state.CurrentIndex++;
 
             // Serching module name
@@ -550,7 +556,6 @@ namespace CodeConverter.StatementAnalyzer {
                 let token = tokens[state.CurrentIndex];
 
                 if (token.isSeperatorOf('{')) {
-                    state.CurrentIndex++;
                     break;
                 }
                 else if (!token.isBlank()) {
@@ -567,6 +572,7 @@ namespace CodeConverter.StatementAnalyzer {
             }
 
             // Add tokens
+            state.CurrentIndex++;
             this.appendToResultTillCurrent(result, tokens, state);
 
             // Process module code
@@ -580,7 +586,7 @@ namespace CodeConverter.StatementAnalyzer {
             // Set statement type
             result.SetCurrentStatementType(StatementType.Enum);
 
-            // Now current index on "enum"
+            // Now current index is on "enum"
             state.CurrentIndex++;
 
             // Serching enum name
@@ -614,7 +620,6 @@ namespace CodeConverter.StatementAnalyzer {
                 let token = tokens[state.CurrentIndex];
 
                 if (token.isSeperatorOf('{')) {
-                    state.CurrentIndex++;
                     break;
                 }
                 else if (!token.isBlank()) {
@@ -631,6 +636,7 @@ namespace CodeConverter.StatementAnalyzer {
             }
 
             // Add tokens
+            state.CurrentIndex++;
             this.appendToResultTillCurrent(result, tokens, state);
 
             // Process enum items
@@ -644,7 +650,7 @@ namespace CodeConverter.StatementAnalyzer {
             // Set statement type
             result.SetCurrentStatementType(StatementType.Class);
 
-            // Now current index on "class"
+            // Now current index is on "class"
             state.CurrentIndex++;
 
             // Serching module name
@@ -668,7 +674,7 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            // Serching module body start
+            // Serching class body start
             while (state.CurrentIndex < tokens.length) {
 
                 let token = tokens[state.CurrentIndex];
@@ -680,7 +686,6 @@ namespace CodeConverter.StatementAnalyzer {
                     state.CurrentIndex++;
                 }
                 else if (token.isSeperatorOf('{')) {
-                    state.CurrentIndex++;
                     break;
                 }
                 else if (!token.isBlank()) {
@@ -697,6 +702,7 @@ namespace CodeConverter.StatementAnalyzer {
             }
 
             // Add tokens
+            state.CurrentIndex++;
             this.appendToResultTillCurrent(result, tokens, state);
 
             // Process class code
@@ -710,7 +716,7 @@ namespace CodeConverter.StatementAnalyzer {
             // Set statement type
             result.SetCurrentStatementType(StatementType.Interface);
 
-            // Now current index on "interface"
+            // Now current index is on "interface"
             state.CurrentIndex++;
 
             // Serching module name
@@ -746,7 +752,6 @@ namespace CodeConverter.StatementAnalyzer {
                     state.CurrentIndex++;
                 }
                 else if (token.isSeperatorOf('{')) {
-                    state.CurrentIndex++;
                     break;
                 }
                 else if (!token.isBlank()) {
@@ -763,6 +768,7 @@ namespace CodeConverter.StatementAnalyzer {
             }
 
             // Add tokens
+            state.CurrentIndex++;
             this.appendToResultTillCurrent(result, tokens, state);
 
             // Process class code
@@ -780,11 +786,11 @@ namespace CodeConverter.StatementAnalyzer {
 
             // Set inner statement result
             result.SetInnerStatementToCurrentStatement(innerResult.Statements);
-            result.FlushCurrentStatementTokens();
 
             state.CurrentIndex = innerState.CurrentIndex;
 
             // }
+            result.FlushCurrentStatementTokens();
             result.AppendToCurrentStatement(tokens[state.CurrentIndex]);
             result.FlushStatement();
 
@@ -925,7 +931,6 @@ namespace CodeConverter.StatementAnalyzer {
                     let token = tokens[state.CurrentIndex];
 
                     if (token.isSeperatorOf('{')) {
-                        state.CurrentIndex++;
                         break;
                     }
 
@@ -956,7 +961,6 @@ namespace CodeConverter.StatementAnalyzer {
 
                     if (!state.Trace_NestingCounter.isInNest()) {
                         if (token.isSeperatorOf('{')) {
-                            state.CurrentIndex++;
                             break;
                         }
                     }
@@ -967,7 +971,6 @@ namespace CodeConverter.StatementAnalyzer {
                         if (token.isSeperatorOf(';')) {
                             // TODO: Supprt only for interface
                             state.Trace_AbstructFunctionDeteced = true;
-                            state.CurrentIndex++;
                             break;
                         }
                         else if (!token.isBlank()) {
@@ -994,9 +997,17 @@ namespace CodeConverter.StatementAnalyzer {
 
             // Process inner code
             if (!state.Trace_AbstructFunctionDeteced) {
-                return this.processStatementBlock(result, tokens, false, state);
+
+                if (!this.processStatementBlock(result, tokens, state)) {
+                    return false;
+                }
+
+                result.FlushStatement();
+
+                return true;
             }
             else {
+                state.CurrentIndex++;
                 return true;
             }
         }
@@ -1013,7 +1024,7 @@ namespace CodeConverter.StatementAnalyzer {
                 result.SetCurrentStatementType(StatementType.Property_Set);
             }
 
-            // Now current index on "get" or "set"
+            // Now current index is on "get" or "set"
             state.CurrentIndex++;
 
             // Serching property name
@@ -1100,7 +1111,6 @@ namespace CodeConverter.StatementAnalyzer {
                     break;
                 }
                 else if (token.isSeperatorOf('{')) {
-                    state.CurrentIndex++;
                     break;
                 }
                 else if (!token.isBlank()) {
@@ -1124,7 +1134,6 @@ namespace CodeConverter.StatementAnalyzer {
 
                     if (!state.Trace_NestingCounter.isInNest()) {
                         if (token.isSeperatorOf('{')) {
-                            state.CurrentIndex++;
                             break;
                         }
                     }
@@ -1139,7 +1148,13 @@ namespace CodeConverter.StatementAnalyzer {
             this.appendToResultTillCurrent(result, tokens, state);
 
             // Process inner code
-            return this.processStatementBlock(result, tokens, false, state);
+            if (!this.processStatementBlock(result, tokens, state)) {
+                return false;
+            }
+
+            result.FlushStatement();
+
+            return true;
         }
 
         private classSyntax_ProcessGeneraListingSyntax(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
@@ -1172,7 +1187,6 @@ namespace CodeConverter.StatementAnalyzer {
                 }
 
                 if (isArrayEnd) {
-                    state.CurrentIndex++;
                     break;
                 }
 
@@ -1187,52 +1201,105 @@ namespace CodeConverter.StatementAnalyzer {
 
             // Set inner statement result
             result.SetInnerStatementToCurrentStatement(innerResult.Statements);
+
+            // }
             result.FlushCurrentStatementTokens();
+            result.AppendToCurrentStatement(tokens[state.CurrentIndex]);
+            state.CurrentIndex++;
+
+            result.FlushStatement();
 
             return true;
         }
 
         // Statement level block analyzing //////////////////////////
 
-        private processStatementBlock(result: AnalyzerResult, tokens: TextTokenCollection, isSingleStatement: boolean, state: AnalyzerState): boolean {
+        private processStatementBlock(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
 
             let currentIndex = state.CurrentIndex;
 
             state.LastIndex = state.CurrentIndex;
 
-            // Searching a syntax
+            // Searching block start or single statement
+            let existsBrace = false;
             while (state.CurrentIndex < tokens.length) {
 
                 let token = tokens[state.CurrentIndex];
 
-                // Block End
-                if (token.isAlphaNumericOf('}')) {
+                if (token.isSeperatorOf('{')) {
+                    existsBrace = true;
                     break;
                 }
-                else if (token.isAlphaNumericOf(state.Setting.TS_else)
-                    || token.isAlphaNumericOf(state.Setting.TS_case)
-                    || token.isAlphaNumericOf(state.Setting.TS_break)) {
-
-                    break;
-                }
-                else if (isSingleStatement && token.isSeperatorOf(';')) {
-                    state.CurrentIndex++;
-                    break;
-                } 
-                // Start of a syntax
                 else if (!token.isBlank()) {
-                    result.FlushStatement();
-                    this.processStatementLevelSyntax(result, tokens, state);
+                    break;
                 }
-                // Continue searching
                 else {
-                    result.AppendToCurrentStatement(token);
                     state.CurrentIndex++;
                 }
 
                 if (this.checkEOF(tokens, state)) {
                     return false;
                 }
+            }
+
+            let isImplicitBlock = !existsBrace;
+
+            if (existsBrace) {
+                result.AppendToCurrentStatement(tokens[state.CurrentIndex]);
+                state.CurrentIndex++;
+            }
+
+            // Process inner statements
+            var innerState = state.cloneForInnerState();
+            var innerResult = new AnalyzerResult();
+
+            while (innerState.CurrentIndex < tokens.length) {
+
+                let token = tokens[innerState.CurrentIndex];
+
+                // Block End
+                if (token.isSeperatorOf('}')) {
+                    break;
+                }
+                else if (isImplicitBlock && token.isSeperatorOf(';')) {
+
+                    innerState.CurrentIndex++;
+                    break;
+                }
+                else if (isImplicitBlock
+                    && (token.isAlphaNumericOf(innerState.Setting.TS_else)
+                    || token.isAlphaNumericOf(innerState.Setting.TS_case)
+                    || token.isAlphaNumericOf(innerState.Setting.TS_break))
+                    ) {
+
+                    break;
+                } 
+                // Start of a syntax
+                else if (!token.isBlank()) {
+                    innerResult.FlushStatement();
+                    this.processStatementLevelSyntax(innerResult, tokens, innerState);
+                }
+                // Continue searching
+                else {
+                    innerResult.AppendToCurrentStatement(token);
+                    innerState.CurrentIndex++;
+                }
+
+                if (this.checkEOF(tokens, innerState)) {
+                    return false;
+                }
+            }
+
+            // Set inner statement result
+            result.SetInnerStatementToCurrentStatement(innerResult.Statements);
+
+            state.CurrentIndex = innerState.CurrentIndex;
+
+            // }
+            if (!isImplicitBlock) {
+                result.FlushCurrentStatementTokens();
+                result.AppendToCurrentStatement(tokens[state.CurrentIndex]);
+                state.CurrentIndex++;
             }
 
             return true;
@@ -1250,12 +1317,35 @@ namespace CodeConverter.StatementAnalyzer {
 
                 let token = tokens[state.CurrentIndex];
 
+                // var
                 if (token.isAlphaNumericOf(state.Setting.TS_var)) {
                     return this.statementSyntax_ProcessVariable(result, tokens, state);
                 }
+                // if
                 else if (token.isAlphaNumericOf(state.Setting.TS_if)) {
                     return this.statementSyntax_ProcessIf(result, tokens, state);
                 }
+                // else or else if
+                else if (token.isAlphaNumericOf(state.Setting.TS_else)) {
+
+                    if (state.CurrentIndex + 2 < tokens.length
+                        && tokens[state.CurrentIndex + 2].isAlphaNumericOf(state.Setting.TS_if)) {
+
+                        return this.statementSyntax_ProcessElseIf(result, tokens, state);
+                    }
+                    else {
+                        return this.statementSyntax_ProcessElse(result, tokens, state);
+                    }
+                }
+                // try
+                else if (token.isAlphaNumericOf(state.Setting.TS_try)) {
+                    return this.statementSyntax_ProcessTry(result, tokens, state);
+                }
+                // catch
+                else if (token.isAlphaNumericOf(state.Setting.TS_catch)) {
+                    return this.statementSyntax_ProcessChatch(result, tokens, state);
+                }
+                // End of general statement
                 else if (token.isSeperatorOf(';')) {
                     return this.statementSyntax_ProcessGeneralStatment(result, tokens, state);
                 }
@@ -1274,7 +1364,7 @@ namespace CodeConverter.StatementAnalyzer {
             // Set statement type
             result.SetCurrentStatementType(StatementType.GeneralStatement);
 
-            // Now current index on ";"
+            // Now current index is on ";"
             state.CurrentIndex++;
 
             // Add tokens
@@ -1293,7 +1383,7 @@ namespace CodeConverter.StatementAnalyzer {
             // Set statement type
             result.SetCurrentStatementType(StatementType.Variable);
 
-            // Now current index on "var"
+            // Now current index is on "var"
             state.CurrentIndex++;
 
             // Process variable
@@ -1316,18 +1406,82 @@ namespace CodeConverter.StatementAnalyzer {
             // Set statement type
             result.SetCurrentStatementType(StatementType.If);
 
-            // Now current index on "if"
+            // Now current index is on "if"
             state.CurrentIndex++;
 
-            // Searching argument (
-            let indentiferNameToken: TextToken = null;
+            // Trace the argument
+            if (!this.statementSyntax_ProcessBlockArgument(result, tokens, state)) {
+                return false;
+            }
 
+            // Add tokens
+            this.appendToResultTillCurrent(result, tokens, state);
+
+            // Trace the block body
+            if (!this.processStatementBlock(result, tokens, state)) {
+                return false;
+            }
+
+            result.FlushStatement();
+
+            return true;
+        }
+
+        private statementSyntax_ProcessElseIf(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
+
+            // Set statement type
+            result.SetCurrentStatementType(StatementType.ElseIf);
+
+            // Now current index is on "else"
+            state.CurrentIndex += 2;
+
+            // Trace the argument
+            if (!this.statementSyntax_ProcessBlockArgument(result, tokens, state)) {
+                return false;
+            }
+
+            // Add tokens
+            this.appendToResultTillCurrent(result, tokens, state);
+
+            // Trace the block body
+            if (!this.processStatementBlock(result, tokens, state)) {
+                return false;
+            }
+
+            result.FlushStatement();
+
+            return true;
+        }
+
+        private statementSyntax_ProcessElse(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
+
+            // Set statement type
+            result.SetCurrentStatementType(StatementType.Else);
+
+            // Now current index is on "else"
+            state.CurrentIndex++;
+
+            // Add tokens
+            this.appendToResultTillCurrent(result, tokens, state);
+
+            // Trace the block body
+            if (!this.processStatementBlock(result, tokens, state)) {
+                return false;
+            }
+
+            result.FlushStatement();
+
+            return true;
+        }
+
+        private statementSyntax_ProcessBlockArgument(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
+
+            // Searching argument (
             while (state.CurrentIndex < tokens.length) {
 
                 let token = tokens[state.CurrentIndex];
 
                 if (token.isSeperatorOf('(')) {
-                    indentiferNameToken = token;
                     state.CurrentIndex++;
                     break;
                 }
@@ -1369,42 +1523,52 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            // Searching block start or single sttatement
-            let existsBrace = false;
-            while (state.CurrentIndex < tokens.length) {
+            return true;
+        }
 
-                let token = tokens[state.CurrentIndex];
+        private statementSyntax_ProcessTry(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
 
-                if (token.isSeperatorOf('{')) {
-                    existsBrace = true;
-                    state.CurrentIndex++;
-                    break;
-                }
-                else if (!token.isBlank()) {
-                    break;
-                }
-                else {
-                    state.CurrentIndex++;
-                }
+            // Set statement type
+            result.SetCurrentStatementType(StatementType.Try);
 
-                if (this.checkEOF(tokens, state)) {
-                    return false;
-                }
+            // Now current index is on "try"
+            state.CurrentIndex++;
+
+            // Add tokens
+            this.appendToResultTillCurrent(result, tokens, state);
+
+            // Trace the block body
+            if (!this.processStatementBlock(result, tokens, state)) {
+                return false;
+            }
+
+            result.FlushStatement();
+
+            return true;
+        }
+
+        private statementSyntax_ProcessChatch(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
+
+            // Set statement type
+            result.SetCurrentStatementType(StatementType.Catch);
+
+            // Now current index is on "try"
+            state.CurrentIndex++;
+
+            // Trace the argument
+            if (!this.statementSyntax_ProcessBlockArgument(result, tokens, state)) {
+                return false;
             }
 
             // Add tokens
             this.appendToResultTillCurrent(result, tokens, state);
 
-            // Process if block statements
-            let isSingleStatement = !existsBrace;
-            this.processStatementBlock(result, tokens, isSingleStatement, state)
-
-            // }
-            if (existsBrace) {
-                result.AppendToCurrentStatement(tokens[state.CurrentIndex]);
-                result.FlushStatement();
-                state.CurrentIndex++;
+            // Trace the block body
+            if (!this.processStatementBlock(result, tokens, state)) {
+                return false;
             }
+
+            result.FlushStatement();
 
             return true;
         }
