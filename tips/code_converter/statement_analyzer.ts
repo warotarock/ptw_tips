@@ -65,6 +65,7 @@ namespace CodeConverter.StatementAnalyzer {
         TS_set = 'set';
 
         TS_var = 'var';
+        TS_function = 'function';
         TS_if = 'if';
         TS_else = 'else';
         TS_for = 'for';
@@ -338,9 +339,6 @@ namespace CodeConverter.StatementAnalyzer {
 
             state.startTracing(TracingState.SearchingStatementStart);
 
-            let isUnexpectedTokenDetected = false;
-
-            // Searching start
             while (state.CurrentIndex < tokens.length) {
 
                 let token = tokens[state.CurrentIndex];
@@ -373,12 +371,13 @@ namespace CodeConverter.StatementAnalyzer {
                 else if (token.isAlphaNumericOf(state.Setting.TS_var)) {
                     return this.statementSyntax_ProcessVariable(result, tokens, state);
                 }
+                // function
+                else if (token.isAlphaNumericOf(state.Setting.TS_function)) {
+                    return this.statementSyntax_ProcessFunction(result, tokens, state);
+                }
+                // Ggeneral statement
                 else {
-                    if (!isUnexpectedTokenDetected) {
-                        state.addError('Expected a class, interface, enum or variable.');
-                        isUnexpectedTokenDetected = true;
-                    }
-                    state.CurrentIndex++;
+                    return this.statementSyntax_ProcessGeneralStatement(result, tokens, state);
                 }
 
                 if (this.checkEOF(tokens, state)) {
@@ -396,12 +395,8 @@ namespace CodeConverter.StatementAnalyzer {
             let currentIndex = state.CurrentIndex;
             state.LastIndex = state.CurrentIndex;
 
-            state.startTracing(TracingState.None);
+            state.startTracing(TracingState.SearchingStatementStart);
 
-            let isUnexpectedTokenDetected = false;
-
-            // Searching start
-            state.setTracingState(TracingState.SearchingIdentifierName);
             while (state.CurrentIndex < tokens.length) {
 
                 let token = tokens[state.CurrentIndex];
@@ -430,12 +425,13 @@ namespace CodeConverter.StatementAnalyzer {
                 else if (token.isAlphaNumericOf(state.Setting.TS_var)) {
                     return this.statementSyntax_ProcessVariable(result, tokens, state);
                 }
+                // function
+                else if (token.isAlphaNumericOf(state.Setting.TS_function)) {
+                    return this.statementSyntax_ProcessFunction(result, tokens, state);
+                }
+                // Ggeneral statement
                 else {
-                    if (!isUnexpectedTokenDetected) {
-                        state.addError('Expected a class, interface, enum or variable.');
-                        isUnexpectedTokenDetected = true;
-                    }
-                    state.CurrentIndex++;
+                    return this.statementSyntax_ProcessGeneralStatement(result, tokens, state);
                 }
 
                 if (this.checkEOF(tokens, state)) {
@@ -1334,7 +1330,73 @@ namespace CodeConverter.StatementAnalyzer {
             let currentIndex = state.CurrentIndex;
             state.LastIndex = state.CurrentIndex;
 
-            // Searching start or statement end
+            state.startTracing(TracingState.SearchingStatementStart);
+
+            while (state.CurrentIndex < tokens.length) {
+
+                let token = tokens[state.CurrentIndex];
+
+                // Blank
+                if (token.isBlank()) {
+                    state.CurrentIndex++;
+                }
+                // var
+                else if (token.isAlphaNumericOf(state.Setting.TS_var)) {
+                    return this.statementSyntax_ProcessVariable(result, tokens, state);
+                }
+                // function
+                else if (token.isAlphaNumericOf(state.Setting.TS_function)) {
+                    return this.statementSyntax_ProcessFunction(result, tokens, state);
+                }
+                // if
+                else if (token.isAlphaNumericOf(state.Setting.TS_if)) {
+                    return this.statementSyntax_ProcessIf(result, tokens, state);
+                }
+                // else, else if
+                else if (token.isAlphaNumericOf(state.Setting.TS_else)) {
+
+                    if (state.CurrentIndex + 2 < tokens.length
+                        && tokens[state.CurrentIndex + 2].isAlphaNumericOf(state.Setting.TS_if)) {
+
+                        return this.statementSyntax_ProcessElseIf(result, tokens, state);
+                    }
+                    else {
+                        return this.statementSyntax_ProcessElse(result, tokens, state);
+                    }
+                }
+                // for
+                else if (token.isAlphaNumericOf(state.Setting.TS_for)) {
+                    return this.statementSyntax_ProcessFor(result, tokens, state);
+                }
+                // try
+                else if (token.isAlphaNumericOf(state.Setting.TS_try)) {
+                    return this.statementSyntax_ProcessTry(result, tokens, state);
+                }
+                // catch
+                else if (token.isAlphaNumericOf(state.Setting.TS_catch)) {
+                    return this.statementSyntax_ProcessChatch(result, tokens, state);
+                }
+                // Ggeneral statement
+                else {
+                    return this.statementSyntax_ProcessGeneralStatement(result, tokens, state);
+                }
+
+                if (this.checkEOF(tokens, state)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private statementSyntax_ProcessGeneralStatement(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
+
+            let currentIndex = state.CurrentIndex;
+
+            // Set statement type
+            result.SetCurrentStatementType(StatementType.GeneralStatement);
+
+            // Trace statement till ";"
             while (state.CurrentIndex < tokens.length) {
 
                 let token = tokens[state.CurrentIndex];
@@ -1342,73 +1404,22 @@ namespace CodeConverter.StatementAnalyzer {
                 state.Trace_NestingCounter.countParenthesis(token);
 
                 if (state.Trace_NestingCounter.isInNest()) {
-
                     state.CurrentIndex++;
-
-                    if (this.checkEOF(tokens, state)) {
-                        return false;
-                    }
                 }
                 else {
-
-                    // var
-                    if (token.isAlphaNumericOf(state.Setting.TS_var)) {
-                        return this.statementSyntax_ProcessVariable(result, tokens, state);
-                    }
-                    // if
-                    else if (token.isAlphaNumericOf(state.Setting.TS_if)) {
-                        return this.statementSyntax_ProcessIf(result, tokens, state);
-                    }
-                    // else, else if
-                    else if (token.isAlphaNumericOf(state.Setting.TS_else)) {
-
-                        if (state.CurrentIndex + 2 < tokens.length
-                            && tokens[state.CurrentIndex + 2].isAlphaNumericOf(state.Setting.TS_if)) {
-
-                            return this.statementSyntax_ProcessElseIf(result, tokens, state);
-                        }
-                        else {
-                            return this.statementSyntax_ProcessElse(result, tokens, state);
-                        }
-                    }
-                    // for
-                    else if (token.isAlphaNumericOf(state.Setting.TS_for)) {
-                        return this.statementSyntax_ProcessFor(result, tokens, state);
-                    }
-                    // try
-                    else if (token.isAlphaNumericOf(state.Setting.TS_try)) {
-                        return this.statementSyntax_ProcessTry(result, tokens, state);
-                    }
-                    // catch
-                    else if (token.isAlphaNumericOf(state.Setting.TS_catch)) {
-                        return this.statementSyntax_ProcessChatch(result, tokens, state);
-                    }
-                    // End of general statement
-                    else if (token.isSeperatorOf(';')) {
-                        return this.statementSyntax_ProcessGeneralStatment(result, tokens, state);
+                    if (token.isSeperatorOf(';')) {
+                        state.CurrentIndex++;
+                        break;
                     }
                     else {
                         state.CurrentIndex++;
                     }
+                }
 
-                    if (this.checkEOF(tokens, state)) {
-                        return false;
-                    }
+                if (this.checkEOF(tokens, state)) {
+                    return false;
                 }
             }
-
-            return true;
-        }
-
-        private statementSyntax_ProcessGeneralStatment(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
-
-            let currentIndex = state.CurrentIndex;
-
-            // Set statement type
-            result.SetCurrentStatementType(StatementType.GeneralStatement);
-
-            // Now current index is on ";"
-            state.CurrentIndex++;
 
             // Add tokens
             this.appendToResultTillCurrent(result, tokens, state);
@@ -1438,6 +1449,42 @@ namespace CodeConverter.StatementAnalyzer {
 
             // End statement
             result.FlushStatement();
+
+            return true;
+        }
+
+        private statementSyntax_ProcessFunction(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
+
+            let currentIndex = state.CurrentIndex;
+
+            // Set statement type
+            result.SetCurrentStatementType(StatementType.Function);
+
+            // Now current index is on "function"
+            state.CurrentIndex++;
+
+            // Search function name
+            while (state.CurrentIndex < tokens.length) {
+
+                let token = tokens[state.CurrentIndex];
+
+                if (token.isAlphaNumeric()) {
+                    state.CurrentIndex++;
+                    break;
+                }
+                else {
+                    state.CurrentIndex++;
+                }
+
+                if (this.checkEOF(tokens, state)) {
+                    return false;
+                }
+            }
+
+            // Trace the block body
+            if (!this.classSyntax_ProcessFunction(result, TracingState.SearchingAfterIdentifer, tokens, state)) {
+                return false;
+            }
 
             return true;
         }
