@@ -1,8 +1,13 @@
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var BasicWebGL;
 (function (BasicWebGL) {
     var Main = (function () {
@@ -13,8 +18,8 @@ var BasicWebGL;
             this.gl = null;
             this.render = new WebGLRender();
             this.shader = new BasicShader();
-            this.modelResource = new RenderModel();
-            this.imageResources = new List();
+            this.model = new RenderModel();
+            this.images = new List();
             // x, y, z, u, v
             this.vertexData = [
                 0.0, -0.2, 0.20, 0.00, 1.00,
@@ -53,13 +58,13 @@ var BasicWebGL;
             }
             this.render.attach(this.gl);
             this.render.initializeShader(this.shader);
-            this.render.initializeModelBuffer(this.modelResource, this.vertexData, this.indexData, 4 * 5); // 4 (=size of float) * 5 (elements)
+            this.render.initializeModelBuffer(this.model, this.vertexData, this.indexData, 4 * 5); // 4 (=size of float) * 5 (elements)
             var image = new RenderImage();
             this.loadTexture(image, './texture.png');
-            this.imageResources.push(image);
+            this.images.push(image);
         };
         Main.prototype.processLading = function () {
-            if (this.imageResources[0].texture == null) {
+            if (this.images[0].texture == null) {
                 return;
             }
             this.isLoaded = true;
@@ -76,17 +81,18 @@ var BasicWebGL;
             var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
             mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 2.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
-            this.render.resetBasicParameters(true, true, false, false);
+            this.render.setDepthTest(false).setCulling(false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
-            this.drawModel(this.modelMatrix, this.modelResource);
+            this.drawModel(this.modelMatrix, this.model);
         };
         Main.prototype.drawModel = function (modelMatrix, modelResource) {
             mat4.multiply(this.mvMatrix, this.viewMatrix, modelMatrix);
             this.render.setShader(this.shader);
             this.render.setProjectionMatrix(this.pMatrix);
             this.render.setModelViewMatrix(this.mvMatrix);
-            this.render.setBuffers(this.modelResource, this.imageResources);
-            this.render.resetBasicParameters(true, true, false, false);
+            this.render.setBuffers(this.model, this.images);
+            this.render.setDepthTest(true);
+            this.render.setCulling(false);
             this.render.drawElements(modelResource);
         };
         Main.prototype.loadTexture = function (image, url) {
@@ -102,10 +108,11 @@ var BasicWebGL;
     var BasicShader = (function (_super) {
         __extends(BasicShader, _super);
         function BasicShader() {
-            _super.apply(this, arguments);
-            this.aPosition = -1;
-            this.aTexCoord = -1;
-            this.uTexture0 = null;
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.aPosition = -1;
+            _this.aTexCoord = -1;
+            _this.uTexture0 = null;
+            return _this;
         }
         BasicShader.prototype.initializeVertexSourceCode = function () {
             this.vertexShaderSourceCode = ''
@@ -169,4 +176,3 @@ var BasicWebGL;
         setTimeout(run, 1000 / 30);
     }
 })(BasicWebGL || (BasicWebGL = {}));
-//# sourceMappingURL=main.js.map

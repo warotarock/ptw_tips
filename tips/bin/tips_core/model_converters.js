@@ -1,8 +1,13 @@
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var Converters;
 (function (Converters) {
     var MeshVertex = (function () {
@@ -128,8 +133,9 @@ var Converters;
     var ThreeJSColladaConverterHelper = (function (_super) {
         __extends(ThreeJSColladaConverterHelper, _super);
         function ThreeJSColladaConverterHelper() {
-            _super.apply(this, arguments);
-            this.collada = null;
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.collada = null;
+            return _this;
         }
         ThreeJSColladaConverterHelper.prototype.attach = function (threeJSCollada) {
             this.collada = threeJSCollada;
@@ -274,7 +280,7 @@ var Converters;
                 skiningBone.originalBoneIndex = i;
                 mat4.copy(skiningBone.localMatrix, bone.matrix.elements);
                 mat4.copy(skiningBone.worldMatrix, skiningBone.localMatrix);
-                if (bone.parent != -1) {
+                if (typeof (bone.parent) == 'number' && bone.parent != -1) {
                     var parent = result[bone.parent];
                     skiningBone.parent = parent;
                     mat4.multiply(skiningBone.worldMatrix, parent.worldMatrix, skiningBone.worldMatrix);
@@ -560,4 +566,3 @@ var Converters;
     }(ModelConverterHelper));
     Converters.ThreeJSColladaConverterHelper = ThreeJSColladaConverterHelper;
 })(Converters || (Converters = {}));
-//# sourceMappingURL=model_converters.js.map

@@ -76,4 +76,3 @@ var BlendFileReaderSample;
         content_element.innerHTML = result.join('<br/>');
     }
 })(BlendFileReaderSample || (BlendFileReaderSample = {}));
-//# sourceMappingURL=main.js.map

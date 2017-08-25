@@ -85,6 +85,11 @@ var RenderShader = (function () {
     };
     return RenderShader;
 }());
+var WebGLRenderBlendType;
+(function (WebGLRenderBlendType) {
+    WebGLRenderBlendType[WebGLRenderBlendType["blend"] = 1] = "blend";
+    WebGLRenderBlendType[WebGLRenderBlendType["add"] = 2] = "add";
+})(WebGLRenderBlendType || (WebGLRenderBlendType = {}));
 var WebGLRender = (function () {
     function WebGLRender() {
         this.gl = null;
@@ -95,6 +100,7 @@ var WebGLRender = (function () {
         this.gl = gl;
         var format = this.gl.getShaderPrecisionFormat(this.gl.FRAGMENT_SHADER, this.gl.HIGH_FLOAT);
         this.floatPrecisionText = format.precision != 0 ? 'highp' : 'mediump';
+        this.resetBasicParameters();
     };
     WebGLRender.prototype.initializeModelBuffer = function (model, vertexData, indexData, vertexDataStride) {
         model.vertexBuffer = this.createVertexBuffer(vertexData, this.gl);
@@ -193,23 +199,40 @@ var WebGLRender = (function () {
     WebGLRender.prototype.clearDepthBuffer = function () {
         this.gl.clear(this.gl.DEPTH_BUFFER_BIT);
     };
-    WebGLRender.prototype.resetBasicParameters = function (depthTest, depthMask, culling, addBlend) {
+    WebGLRender.prototype.resetBasicParameters = function () {
+        this.setDepthTest(true);
+        this.setDepthMask(true);
+        this.setCulling(true);
+        this.setBlendType(WebGLRenderBlendType.blend);
+    };
+    WebGLRender.prototype.setDepthTest = function (enable) {
         var gl = this.gl;
-        if (depthTest) {
+        if (enable) {
             gl.enable(gl.DEPTH_TEST);
         }
         else {
             gl.disable(gl.DEPTH_TEST);
         }
-        gl.depthMask(depthMask);
-        if (culling) {
+        return this;
+    };
+    WebGLRender.prototype.setDepthMask = function (enable) {
+        this.gl.depthMask(enable);
+        return this;
+    };
+    WebGLRender.prototype.setCulling = function (enable) {
+        var gl = this.gl;
+        if (enable) {
             gl.enable(gl.CULL_FACE);
         }
         else {
             gl.disable(gl.CULL_FACE);
         }
+        return this;
+    };
+    WebGLRender.prototype.setBlendType = function (blendType) {
+        var gl = this.gl;
         gl.enable(gl.BLEND);
-        if (addBlend) {
+        if (blendType == WebGLRenderBlendType.add) {
             gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE);
             gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
         }
@@ -217,10 +240,10 @@ var WebGLRender = (function () {
             gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
             gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
         }
+        return this;
     };
     WebGLRender.prototype.drawElements = function (model) {
         this.gl.drawElements(this.gl.TRIANGLES, model.indexCount, this.gl.UNSIGNED_SHORT, 0);
     };
     return WebGLRender;
 }());
-//# sourceMappingURL=render.js.map

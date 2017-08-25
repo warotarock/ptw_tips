@@ -1,4 +1,3 @@
-"use strict";
 var fs = require('fs');
 var BasicModelConverter;
 (function (BasicModelConverter) {
@@ -82,4 +81,3 @@ var BasicModelConverter;
         });
     }
 })(BasicModelConverter || (BasicModelConverter = {}));
-//# sourceMappingURL=main.js.map

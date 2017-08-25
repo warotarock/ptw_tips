@@ -1,12 +1,11 @@
-"use strict";
 var fs = require('fs');
 var ObjectAnimationConverter;
 (function (ObjectAnimationConverter) {
     window.onload = function () {
-        var fileName = 'model.blend';
-        var outFileName = getExtensionChangedFileName('../temp/complex_toon_animation.json', 'json');
+        var fileName = 'sample_obj_animation.blend';
+        var outFileName = getExtensionChangedFileName('../temp/' + fileName, 'json');
         var request = new XMLHttpRequest();
-        request.open('GET', '../complex_toon_drawing/model.blend', true);
+        request.open('GET', fileName, true);
         request.responseType = 'arraybuffer';
         request.addEventListener('load', function (e) {
             // read a blend file
@@ -72,7 +71,7 @@ var ObjectAnimationConverter;
                         [bezt.vec[6], bezt.vec[7], bezt.vec[8]]
                     ]);
                 }
-                var isBoneAction = StringIsNullOrEmpty(getCurveName(bActionGroup_DataSet.name));
+                var isBoneAction = StringIsNullOrEmpty(getCurveName(bActionGroup_DataSet.name, fCurve_DataSet.array_index));
                 var groupName;
                 var channelName;
                 if (isBoneAction) {
@@ -86,13 +85,18 @@ var ObjectAnimationConverter;
                 }
                 else {
                     groupName = "Object";
-                    channelName = getCurveName(bActionGroup_DataSet.name);
+                    channelName = getCurveName(bActionGroup_DataSet.name, fCurve_DataSet.array_index);
                 }
                 var curve = {
                     group: groupName.replace(/_/g, '.'),
                     channel: channelName,
                     array_index: fCurve_DataSet.array_index,
                     points: points
+                    //selected: (fCurve_DataSet.flag & 0x02) != 0,
+                    //active: (fCurve_DataSet.flag & 0x04) != 0,
+                    //locked: (fCurve_DataSet.flag & 0x08) != 0,
+                    //mute: (fCurve_DataSet.flag & 0x10) != 0,
+                    //modifire: (fCurve_DataSet.flag & 0x100) != 0
                 };
                 animation.curves.push(curve);
                 if (fCurve_Address == bAction_DataSet.curves.last) {
@@ -146,37 +150,37 @@ var ObjectAnimationConverter;
             }
         });
     }
-    function getCurveName(curve) {
-        if (curve.group == "Location") {
-            if (curve.array_index == 0) {
+    function getCurveName(actionGroupName, array_index) {
+        if (actionGroupName == "Location") {
+            if (array_index == 0) {
                 return "locationX";
             }
-            else if (curve.array_index == 1) {
+            else if (array_index == 1) {
                 return "locationY";
             }
-            else if (curve.array_index == 2) {
+            else if (array_index == 2) {
                 return "locationZ";
             }
         }
-        else if (curve.group == "Rotation") {
-            if (curve.array_index == 0) {
+        else if (actionGroupName == "Rotation") {
+            if (array_index == 0) {
                 return "rotationX";
             }
-            else if (curve.array_index == 1) {
+            else if (array_index == 1) {
                 return "rotationY";
             }
-            else if (curve.array_index == 2) {
+            else if (array_index == 2) {
                 return "rotationZ";
             }
         }
-        else if (curve.group == "Scaling") {
-            if (curve.array_index == 0) {
+        else if (actionGroupName == "Scaling") {
+            if (array_index == 0) {
                 return "scalingX";
             }
-            else if (curve.array_index == 1) {
+            else if (array_index == 1) {
                 return "scalingY";
             }
-            else if (curve.array_index == 2) {
+            else if (array_index == 2) {
                 return "scalingZ";
             }
         }
@@ -206,4 +210,3 @@ var ObjectAnimationConverter;
         }
     }
 })(ObjectAnimationConverter || (ObjectAnimationConverter = {}));
-//# sourceMappingURL=main.js.map

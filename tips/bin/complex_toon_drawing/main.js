@@ -1,8 +1,13 @@
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var ComplexToonDrawing;
 (function (ComplexToonDrawing) {
     var SkinningModel = (function () {
@@ -119,7 +124,8 @@ var ComplexToonDrawing;
                 -1.0, -1.0, 0.0, 0.00, 0.00,
                 1.00, -1.0, 0.0, 1.00, 0.00,
                 -1.0, 1.00, 0.0, 0.00, 1.00,
-                1.00, 1.00, 0.0, 1.00, 1.00], [0, 1, 2, 3, 2, 1], 4 * 5);
+                1.00, 1.00, 0.0, 1.00, 1.00
+            ], [0, 1, 2, 3, 2, 1], 4 * 5);
             this.loadModel(this.skinningModelLoadingState, '../temp/complex_toon_model.json');
             var image = new RenderImage();
             this.loadTexture(image, './texture.png');
@@ -199,29 +205,30 @@ var ComplexToonDrawing;
             mat4.perspective(this.pMatrix, 8.0 * Math.PI / 180, aspect, 0.1, 50.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
             // background
-            this.render.resetBasicParameters(false, false, false, false);
+            this.render.setDepthTest(false);
+            this.render.setCulling(false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 0.0);
             this.drawScreenModel(this.backImageResources);
             // skin base layer
             this.setRenderTargetBuffer(this.skinBase_FrameBuffer);
             this.gl.viewport(0, 0, this.logicalScreenWidth, this.logicalScreenHeight);
-            this.render.resetBasicParameters(true, true, false, false);
+            this.render.setDepthTest(true);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.0, 0.0);
             this.drawer_Bone2Shader = this.bone2Shader;
             this.drawer_Bone4Shader = this.bone4Shader;
             this.drawSkinningModels(this.modelMatrix, this.clothes_ModelNameList, this.skinModelImageResources);
             this.drawSkinningModels(this.modelMatrix, this.skin_ModelNameList, this.skinModelImageResources);
             this.drawSkinningModels(this.modelMatrix, this.hair_ModelNameList, this.skinModelImageResources);
-            this.render.resetBasicParameters(false, false, false, false);
+            this.render.setDepthTest(false);
             this.drawSkinningModels(this.modelMatrix, this.face_ModelNameList, this.skinModelImageResources);
             // skin shader layer
             this.setRenderTargetBuffer(null);
             this.gl.viewport(0, 0, this.logicalScreenWidth, this.logicalScreenHeight);
-            this.render.resetBasicParameters(true, true, false, false);
+            this.render.setDepthTest(true);
             this.render.clearDepthBuffer();
             this.drawer_Bone2Shader = this.bone2Shader_Toons;
             this.drawer_Bone4Shader = this.bone4Shader_Toons;
-            this.render.resetBasicParameters(true, true, false, false);
+            this.render.setDepthTest(true);
             this.drawSkinningModels(this.modelMatrix, this.skinShader_ModelNameList, this.skinBase_FrameBuffer.texture);
         };
         Main.prototype.calcNormalMatrix = function (out, matrix) {
@@ -412,10 +419,11 @@ var ComplexToonDrawing;
     var ScreenShader = (function (_super) {
         __extends(ScreenShader, _super);
         function ScreenShader() {
-            _super.apply(this, arguments);
-            this.aVertexPosition = -1;
-            this.aTexCoord = -1;
-            this.uTexture0 = null;
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.aVertexPosition = -1;
+            _this.aTexCoord = -1;
+            _this.uTexture0 = null;
+            return _this;
         }
         ScreenShader.prototype.initializeVertexSourceCode = function () {
             this.vertexShaderSourceCode = ''
@@ -459,17 +467,18 @@ var ComplexToonDrawing;
     var Bone2Shader = (function (_super) {
         __extends(Bone2Shader, _super);
         function Bone2Shader() {
-            _super.apply(this, arguments);
-            this.aTexCoord1 = -1;
-            this.uTexture0 = null;
-            this.aWeight1 = -1;
-            this.aVertexPosition1 = -1;
-            this.aVertexNormal1 = -1;
-            this.aVertexPosition2 = -1;
-            this.aWeight2 = -1;
-            this.aVertexNormal2 = -1;
-            this.uNormalMatrix = null;
-            this.uBoneMatrixList = new List();
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.aTexCoord1 = -1;
+            _this.uTexture0 = null;
+            _this.aWeight1 = -1;
+            _this.aVertexPosition1 = -1;
+            _this.aVertexNormal1 = -1;
+            _this.aVertexPosition2 = -1;
+            _this.aWeight2 = -1;
+            _this.aVertexNormal2 = -1;
+            _this.uNormalMatrix = null;
+            _this.uBoneMatrixList = new List();
+            return _this;
         }
         Bone2Shader.prototype.initializeVertexSourceCode = function () {
             this.vertexShaderSourceCode = ''
@@ -559,13 +568,14 @@ var ComplexToonDrawing;
     var Bone4Shader = (function (_super) {
         __extends(Bone4Shader, _super);
         function Bone4Shader() {
-            _super.apply(this, arguments);
-            this.aWeight3 = -1;
-            this.aVertexPosition3 = -1;
-            this.aVertexNormal3 = -1;
-            this.aVertexPosition4 = -1;
-            this.aWeight4 = -1;
-            this.aVertexNormal4 = -1;
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.aWeight3 = -1;
+            _this.aVertexPosition3 = -1;
+            _this.aVertexNormal3 = -1;
+            _this.aVertexPosition4 = -1;
+            _this.aWeight4 = -1;
+            _this.aVertexNormal4 = -1;
+            return _this;
         }
         Bone4Shader.prototype.initializeVertexSourceCode = function () {
             this.vertexShaderSourceCode = ''
@@ -668,8 +678,9 @@ var ComplexToonDrawing;
     var Bone2Shader_Toons = (function (_super) {
         __extends(Bone2Shader_Toons, _super);
         function Bone2Shader_Toons() {
-            _super.apply(this, arguments);
-            this.uResolution = null;
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.uResolution = null;
+            return _this;
         }
         Bone2Shader_Toons.prototype.initializeFragmentSourceCode = function () {
             this.fragmentShaderSourceCode = ''
@@ -693,8 +704,9 @@ var ComplexToonDrawing;
     var Bone4Shader_Toons = (function (_super) {
         __extends(Bone4Shader_Toons, _super);
         function Bone4Shader_Toons() {
-            _super.apply(this, arguments);
-            this.uResolution = null;
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.uResolution = null;
+            return _this;
         }
         Bone4Shader_Toons.prototype.initializeFragmentSourceCode = function () {
             this.fragmentShaderSourceCode = ''
@@ -729,4 +741,3 @@ var ComplexToonDrawing;
         setTimeout(run, 1000 / 24);
     }
 })(ComplexToonDrawing || (ComplexToonDrawing = {}));
-//# sourceMappingURL=main.js.map

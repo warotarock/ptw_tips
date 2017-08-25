@@ -1,5 +1,5 @@
-"use strict";
 var fs = require('fs');
+var path = require('path');
 var SkinningModelConverter;
 (function (SkinningModelConverter) {
     var MeshInfo = (function () {
@@ -203,6 +203,7 @@ var SkinningModelConverter;
                 if (imageName.length > 2 && imageName.substr(0, 2) == '//') {
                     imageName = imageName.substr(2);
                 }
+                imageName = path.basename(imageName);
                 imagesText.push('\"' + imageName + '\"' + (imageIndex < skinningModel.images.length - 1 ? ', ' : ''));
             }
             imagesText.push('],');
@@ -241,4 +242,3 @@ var SkinningModelConverter;
         });
     }
 })(SkinningModelConverter || (SkinningModelConverter = {}));
-//# sourceMappingURL=main.js.map

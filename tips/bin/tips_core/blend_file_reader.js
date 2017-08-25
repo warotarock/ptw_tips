@@ -202,12 +202,12 @@ var BlendFileReader;
         return BlendFileHeader;
     }());
     BlendFileReader.BlendFileHeader = BlendFileHeader;
+    var BHeadBlockCodes;
     (function (BHeadBlockCodes) {
         BHeadBlockCodes[BHeadBlockCodes["DNA1"] = 0] = "DNA1";
         BHeadBlockCodes[BHeadBlockCodes["ENDB"] = 1] = "ENDB";
         BHeadBlockCodes[BHeadBlockCodes["Other"] = 2] = "Other";
-    })(BlendFileReader.BHeadBlockCodes || (BlendFileReader.BHeadBlockCodes = {}));
-    var BHeadBlockCodes = BlendFileReader.BHeadBlockCodes;
+    })(BHeadBlockCodes = BlendFileReader.BHeadBlockCodes || (BlendFileReader.BHeadBlockCodes = {}));
     var BHead = (function () {
         function BHead() {
         }
@@ -567,4 +567,3 @@ var BlendFileReader;
     }
     BlendFileReader.readBlendFile = readBlendFile;
 })(BlendFileReader || (BlendFileReader = {}));
-//# sourceMappingURL=blend_file_reader.js.map

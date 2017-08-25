@@ -1,8 +1,13 @@
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var SkinningModelDrawing;
 (function (SkinningModelDrawing) {
     var SkinningModel = (function () {
@@ -61,6 +66,7 @@ var SkinningModelDrawing;
             this.imageResources.push(image);
         };
         Main.prototype.processLading = function () {
+            // Waiting for model data
             if (!this.modelResource.initialized) {
                 if (this.modelResource.loaded) {
                     this.initializeSkinningModelBuffer(this.modelResource);
@@ -70,9 +76,11 @@ var SkinningModelDrawing;
                     return;
                 }
             }
+            // Waiting for image data
             if (this.imageResources[0].texture == null) {
                 return;
             }
+            // Loading finished
             this.isLoaded = true;
         };
         Main.prototype.run = function () {
@@ -88,7 +96,8 @@ var SkinningModelDrawing;
             var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
             mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 50.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
-            this.render.resetBasicParameters(true, true, false, false);
+            this.render.setDepthTest(true);
+            this.render.setCulling(false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
             this.drawSkinningModel(this.modelMatrix, this.modelResource);
         };
@@ -138,7 +147,8 @@ var SkinningModelDrawing;
                 }
                 // draw
                 this.render.setBuffers(part.renderModel, this.imageResources);
-                this.render.resetBasicParameters(true, true, false, false);
+                this.render.setDepthTest(true);
+                this.render.setCulling(false);
                 this.render.drawElements(part.renderModel);
             }
         };
@@ -186,14 +196,15 @@ var SkinningModelDrawing;
     var Bone2Shader = (function (_super) {
         __extends(Bone2Shader, _super);
         function Bone2Shader() {
-            _super.apply(this, arguments);
-            this.aTexCoord1 = -1;
-            this.uTexture0 = null;
-            this.aWeight1 = -1;
-            this.aPosition1 = -1;
-            this.aWeight2 = -1;
-            this.aPosition2 = -1;
-            this.uBoneMatrixList = new List();
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.aTexCoord1 = -1;
+            _this.uTexture0 = null;
+            _this.aWeight1 = -1;
+            _this.aPosition1 = -1;
+            _this.aWeight2 = -1;
+            _this.aPosition2 = -1;
+            _this.uBoneMatrixList = new List();
+            return _this;
         }
         Bone2Shader.prototype.initializeVertexSourceCode = function () {
             this.vertexShaderSourceCode = ''
@@ -270,11 +281,12 @@ var SkinningModelDrawing;
     var Bone4Shader = (function (_super) {
         __extends(Bone4Shader, _super);
         function Bone4Shader() {
-            _super.apply(this, arguments);
-            this.aWeight3 = -1;
-            this.aPosition3 = -1;
-            this.aPosition4 = -1;
-            this.aWeight4 = -1;
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.aWeight3 = -1;
+            _this.aPosition3 = -1;
+            _this.aPosition4 = -1;
+            _this.aWeight4 = -1;
+            return _this;
         }
         Bone4Shader.prototype.initializeVertexSourceCode = function () {
             this.vertexShaderSourceCode = ''
@@ -350,4 +362,3 @@ var SkinningModelDrawing;
         setTimeout(run, 1000 / 30);
     }
 })(SkinningModelDrawing || (SkinningModelDrawing = {}));
-//# sourceMappingURL=main.js.map
