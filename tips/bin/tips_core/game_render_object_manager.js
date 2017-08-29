@@ -43,6 +43,8 @@ var RenderObject = (function () {
         this.depthTest = true;
         this.depthMask = true;
         this.blendType = RenderObjectBlendType.blend;
+        this.animationTime = 0.0;
+        this.tag = 0;
     }
     RenderObject.prototype.recycle = function () {
     };
@@ -91,6 +93,7 @@ var RenderObjectManager = (function () {
         obj.depthTest = true;
         obj.blendType = RenderObjectBlendType.blend;
         obj.animationTime = 0.0;
+        obj.tag = 0;
         return obj;
     };
     RenderObjectManager.prototype.addObject = function (obj) {

@@ -51,8 +51,5 @@ var RecyclePool = (function () {
     RecyclePool.prototype.getCount = function () {
         return this.objectCount;
     };
-    RecyclePool.prototype.getAt = function (index) {
-        return this.objectList[index];
-    };
     return RecyclePool;
 }());

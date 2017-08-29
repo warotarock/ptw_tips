@@ -57,7 +57,9 @@ class RenderObject {
     depthMask = true;
     blendType: RenderObjectBlendType = RenderObjectBlendType.blend;
 
-    animationTime: float;
+    animationTime = 0.0;
+
+    tag = 0;
 }
 
 class RenderObjectLayer {
@@ -113,6 +115,8 @@ class RenderObjectManager {
         obj.blendType = RenderObjectBlendType.blend;
 
         obj.animationTime = 0.0;
+
+        obj.tag = 0;
 
         return obj;
     }

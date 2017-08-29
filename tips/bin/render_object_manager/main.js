@@ -9,9 +9,10 @@ var RenderObjectAndManager;
             this.render = new WebGLRender();
             this.shader = new SampleShaders.PlainShader();
             this.model = new RenderModel();
-            this.images = new List();
+            this.images1 = new List();
+            this.images2 = new List();
             // x, y, z, u, v
-            this.vertexData = [1, 1, -1, 0.3333, 0, 1, -1, -1, 0.3333, 0.3333, -1, -1, -1, 0.3333, 0.6667, -1, 1, -1, 0.3333, 0.3333, 1, 1, 1, 0, 0, 1, -1, 1, 0.3333, 0, -1, -1, 1, 0, 0.6667, -1, 1, 1, 0, 0.3333];
+            this.vertexData = [1, 1, -1, 0.3544, 0.0633, 1, -1, -1, 0.3544, 0.3544, -1, -1, -1, 0.3544, 0.6456, -1, 1, -1, 0.3544, 0.3544, 1, 1, 1, 0.0633, 0.0633, 1, -1, 1, 0.3544, 0.0633, -1, -1, 1, 0.0633, 0.6456, -1, 1, 1, 0.0633, 0.3544];
             this.indexData = [0, 1, 2, 7, 6, 5, 4, 5, 1, 5, 6, 2, 2, 6, 7, 0, 3, 7, 3, 0, 2, 4, 7, 5, 0, 4, 1, 1, 5, 2, 3, 2, 7, 4, 0, 7];
             this.eyeLocation = vec3.create();
             this.lookatLocation = vec3.create();
@@ -25,12 +26,6 @@ var RenderObjectAndManager;
             this.pMatrix = mat4.create();
             this.mvMatrix = mat4.create();
             this.animationTime = 0.0;
-            this.layerAnimationProgress = 0;
-            this.layerList = [
-                RenderObjectLayerID.geometry,
-                RenderObjectLayerID.foreGround,
-                RenderObjectLayerID.nearGround
-            ];
             this.isLoaded = false;
         }
         Main.prototype.initialize = function (canvas) {
@@ -51,15 +46,33 @@ var RenderObjectAndManager;
             this.render.attach(this.gl);
             this.render.initializeShader(this.shader);
             this.render.initializeModelBuffer(this.model, this.vertexData, this.indexData, 4 * 5); // 4 (=size of float) * 5 (elements)
-            var image = new RenderImage();
-            this.loadTexture(image, './texture.png');
-            this.images.push(image);
+            var image1 = new RenderImage();
+            this.loadTexture(image1, './texture1.png');
+            this.images1.push(image1);
+            var image2 = new RenderImage();
+            this.loadTexture(image2, './texture2.png');
+            this.images2.push(image2);
             this.renderObjectManager.allocate(this.MAX_RENDER_OBJECT);
+            // Create background object
+            var renderObject = this.renderObjectManager.createObject();
+            if (renderObject != null) {
+                renderObject.model = this.model;
+                renderObject.images = this.images2;
+                renderObject.layerID = RenderObjectLayerID.backGround;
+                vec3.set(renderObject.location, 0.0, 0.0, 0.0);
+                vec3.set(renderObject.scaling, 5.0, 5.0, 5.0);
+                renderObject.tag = 1;
+                this.renderObjectManager.addObject(renderObject);
+                this.renderObjects.push(renderObject);
+            }
         };
         Main.prototype.processLading = function () {
             // Waiting for image data
-            if (this.images[0].texture == null) {
-                return;
+            for (var i = 0; i < this.images1.length; i++) {
+                var image = this.images1[i];
+                if (image.texture == null) {
+                    return;
+                }
             }
             this.isLoaded = true;
         };
@@ -75,7 +88,7 @@ var RenderObjectAndManager;
                 var renderObject = this.renderObjectManager.createObject();
                 if (renderObject != null) {
                     renderObject.model = this.model;
-                    renderObject.images = this.images;
+                    renderObject.images = this.images1;
                     renderObject.layerID = RenderObjectLayerID.foreGround;
                     var locationRange = 20.0;
                     vec3.set(renderObject.location, (-0.5 + Math.random()) * locationRange, (-0.5 + Math.random()) * locationRange, (-0.5 + Math.random()) * locationRange);
@@ -89,16 +102,24 @@ var RenderObjectAndManager;
             for (var i = this.renderObjects.length - 1; i >= 0; i--) {
                 var renderObject = this.renderObjects[i];
                 // Destroy object
-                renderObject.animationTime += 1.0;
-                if (renderObject.animationTime > 500.0) {
-                    this.renderObjectManager.removeObject(renderObject);
-                    this.renderObjects.splice(i, 1);
+                if (renderObject.tag == 0) {
+                    renderObject.animationTime += 1.0;
+                    if (renderObject.animationTime > 200.0) {
+                        this.renderObjectManager.removeObject(renderObject);
+                        this.renderObjects.splice(i, 1);
+                    }
                 }
             }
             for (var i = 0; i < this.renderObjects.length; i++) {
                 var renderObject = this.renderObjects[i];
                 // Rotation
-                renderObject.rotation[1] += 0.05;
+                if (renderObject.tag == 0) {
+                    renderObject.rotation[1] += 0.05;
+                }
+                else {
+                    renderObject.rotation[1] += 0.01;
+                    renderObject.rotation[2] += 0.01;
+                }
                 // Calculate object matrix
                 this.renderObjectManager.calcMatrix(renderObject);
             }
@@ -115,8 +136,17 @@ var RenderObjectAndManager;
                 var renderObject = this.renderObjects[i];
                 this.renderObjectManager.calcObjectSortingValue(renderObject, this.viewMatrix, RenderObjectSortingMode.z);
             }
-            // Draw a layer
-            var objects = this.renderObjectManager.getZsortedObjectList(RenderObjectLayerID.foreGround);
+            // Draw first layer
+            this.render.setCulling(true);
+            var objects = this.renderObjectManager.getZsortedObjectList(RenderObjectLayerID.backGround);
+            for (var i = 0; i < objects.length; i++) {
+                var renderObject = objects[i];
+                this.drawModel(renderObject.locationMatrix, renderObject.model, renderObject.images);
+            }
+            // Clear depth buffer
+            this.render.clearDepthBuffer();
+            // Draw second layer
+            objects = this.renderObjectManager.getZsortedObjectList(RenderObjectLayerID.foreGround);
             for (var i = 0; i < objects.length; i++) {
                 var renderObject = objects[i];
                 this.drawModel(renderObject.locationMatrix, renderObject.model, renderObject.images);
@@ -128,8 +158,6 @@ var RenderObjectAndManager;
             this.render.setProjectionMatrix(this.pMatrix);
             this.render.setModelViewMatrix(this.mvMatrix);
             this.render.setBuffers(model, images);
-            this.render.setDepthTest(true);
-            this.render.setCulling(false);
             this.render.drawElements(model);
         };
         Main.prototype.loadTexture = function (result, url) {
