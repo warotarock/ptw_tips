@@ -10,13 +10,14 @@
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <TypeScriptToolsVersion>1.8</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>2.3</TypeScriptToolsVersion>
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort />
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
     <UseGlobalApplicationHostFile />
+    <Use64BitIISExpress />
   </PropertyGroup>
   <ItemGroup>
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
@@ -26,8 +27,11 @@
     <Content Include="basic_model_converter\README.md" />
     <Content Include="basic_webgl_ts\index.html" />
     <Content Include="blend_file_reader_sample\index.html" />
+    <Content Include="code_converter\index.html" />
     <Content Include="complex_toon_drawing\index.html" />
     <Content Include="object_animation_converter\index.html" />
+    <Content Include="object_animation_drawing\index.html" />
+    <Content Include="render_object_manager\index.html" />
     <Content Include="skinning_model_drawing\index.html" />
     <Content Include="skinning_model_converter\index.html" />
     <Content Include="tips_core\app.css" />
@@ -42,6 +46,9 @@
     <Content Include="skinning_model_drawing\README.md" />
     <Content Include="object_animation_converter\README.md" />
     <Content Include="complex_toon_drawing\README.md" />
+    <Content Include="code_converter\README.md" />
+    <Content Include="object_animation_drawing\README.md" />
+    <Content Include="render_object_manager\README.md" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -53,14 +60,24 @@
     <TypeScriptCompile Include="basic_model_converter\main.ts" />
     <TypeScriptCompile Include="basic_webgl_ts\main.ts" />
     <TypeScriptCompile Include="blend_file_reader_sample\main.ts" />
+    <TypeScriptCompile Include="code_converter\main.ts" />
+    <TypeScriptCompile Include="code_converter\statement_analyzer.ts" />
+    <TypeScriptCompile Include="code_converter\text_token.ts" />
+    <TypeScriptCompile Include="code_converter\text_tokenizer.ts" />
     <TypeScriptCompile Include="complex_toon_drawing\main.ts" />
     <TypeScriptCompile Include="object_animation_converter\main.ts" />
+    <TypeScriptCompile Include="object_animation_drawing\main.ts" />
+    <TypeScriptCompile Include="render_object_manager\main.ts" />
+    <TypeScriptCompile Include="tips_core\game_resouce_classes.ts" />
+    <TypeScriptCompile Include="tips_core\recycling.ts" />
+    <TypeScriptCompile Include="tips_core\game_render_object_manager.ts" />
     <TypeScriptCompile Include="skinning_model_drawing\main.ts" />
     <TypeScriptCompile Include="skinning_model_converter\main.ts" />
-    <TypeScriptCompile Include="tips_core\animation_core.ts" />
+    <TypeScriptCompile Include="tips_core\animation.ts" />
     <TypeScriptCompile Include="tips_core\blend_file_reader.ts" />
     <TypeScriptCompile Include="tips_core\conversion.ts" />
     <TypeScriptCompile Include="tips_core\model_converters.ts" />
+    <TypeScriptCompile Include="tips_core\shaders.ts" />
     <TypeScriptCompile Include="tips_core\render.ts" />
     <TypeScriptCompile Include="typings\github-electron\github-electron.d.ts" />
     <TypeScriptCompile Include="typings\glmatrix\gl-matrix.d.ts" />
@@ -96,7 +113,7 @@
   </ProjectExtensions>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <TypeScriptRemoveComments>false</TypeScriptRemoveComments>
-    <TypeScriptSourceMap>true</TypeScriptSourceMap>
+    <TypeScriptSourceMap>False</TypeScriptSourceMap>
     <TypeScriptTarget>ES5</TypeScriptTarget>
     <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
     <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>

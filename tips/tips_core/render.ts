@@ -115,6 +115,11 @@ class RenderShader {
     }
 }
 
+enum WebGLRenderBlendType {
+    blend = 1,
+    add = 2,
+}
+
 class WebGLRender {
 
     gl: WebGLRenderingContext = null;
@@ -128,6 +133,8 @@ class WebGLRender {
 
         var format = this.gl.getShaderPrecisionFormat(this.gl.FRAGMENT_SHADER, this.gl.HIGH_FLOAT);
         this.floatPrecisionText = format.precision != 0 ? 'highp' : 'mediump';
+
+        this.resetBasicParameters();
     }
 
     initializeModelBuffer(model: RenderModel, vertexData: List<float>, indexData: List<int>, vertexDataStride: int) {
@@ -273,29 +280,56 @@ class WebGLRender {
         this.gl.clear(this.gl.DEPTH_BUFFER_BIT);
     }
 
+    resetBasicParameters() {
 
-    resetBasicParameters(depthTest: boolean, depthMask: boolean, culling: boolean, addBlend: boolean) {
+        this.setDepthTest(true);
+        this.setDepthMask(true);
+        this.setCulling(true);
+        this.setBlendType(WebGLRenderBlendType.blend);
+    }
+
+    setDepthTest(enable: boolean): WebGLRender {
 
         var gl = this.gl;
 
-        if (depthTest) {
+        if (enable) {
             gl.enable(gl.DEPTH_TEST);
         }
         else {
             gl.disable(gl.DEPTH_TEST);
         }
 
-        gl.depthMask(depthMask);
+        return this;
+    }
 
-        if (culling) {
+    setDepthMask(enable: boolean): WebGLRender {
+
+        this.gl.depthMask(enable);
+
+        return this;
+    }
+
+    setCulling(enable: boolean): WebGLRender {
+
+        var gl = this.gl;
+
+        if (enable) {
             gl.enable(gl.CULL_FACE);
         }
         else {
             gl.disable(gl.CULL_FACE);
         }
 
+        return this;
+    }
+
+    setBlendType(blendType: WebGLRenderBlendType): WebGLRender {
+
+        var gl = this.gl;
+
         gl.enable(gl.BLEND);
-        if (addBlend) {
+
+        if (blendType == WebGLRenderBlendType.add) {
             gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE);
             gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD)
         }
@@ -303,6 +337,8 @@ class WebGLRender {
             gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
             gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
         }
+
+        return this;
     }
 
     drawElements(model: RenderModel) {

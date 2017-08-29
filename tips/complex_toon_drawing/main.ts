@@ -267,7 +267,8 @@ namespace ComplexToonDrawing {
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
 
             // background
-            this.render.resetBasicParameters(false, false, false, false);
+            this.render.setDepthTest(false)
+            this.render.setCulling(false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 0.0);
             this.drawScreenModel(this.backImageResources);
 
@@ -275,7 +276,7 @@ namespace ComplexToonDrawing {
             this.setRenderTargetBuffer(this.skinBase_FrameBuffer);
             this.gl.viewport(0, 0, this.logicalScreenWidth, this.logicalScreenHeight);
 
-            this.render.resetBasicParameters(true, true, false, false);
+            this.render.setDepthTest(true)
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.0, 0.0);
 
             this.drawer_Bone2Shader = this.bone2Shader;
@@ -284,19 +285,19 @@ namespace ComplexToonDrawing {
             this.drawSkinningModels(this.modelMatrix, this.skin_ModelNameList, this.skinModelImageResources)
             this.drawSkinningModels(this.modelMatrix, this.hair_ModelNameList, this.skinModelImageResources)
 
-            this.render.resetBasicParameters(false, false, false, false);
+            this.render.setDepthTest(false)
             this.drawSkinningModels(this.modelMatrix, this.face_ModelNameList, this.skinModelImageResources)
 
             // skin shader layer
             this.setRenderTargetBuffer(null);
             this.gl.viewport(0, 0, this.logicalScreenWidth, this.logicalScreenHeight);
 
-            this.render.resetBasicParameters(true, true, false, false);
+            this.render.setDepthTest(true)
             this.render.clearDepthBuffer();
 
             this.drawer_Bone2Shader = this.bone2Shader_Toons;
             this.drawer_Bone4Shader = this.bone4Shader_Toons;
-            this.render.resetBasicParameters(true, true, false, false);
+            this.render.setDepthTest(true)
             this.drawSkinningModels(this.modelMatrix, this.skinShader_ModelNameList, this.skinBase_FrameBuffer.texture)
         }
 

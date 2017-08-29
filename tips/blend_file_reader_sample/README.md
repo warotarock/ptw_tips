@@ -1,5 +1,6 @@
-# PTWTips - BlendFileReader.ts サンプル
+# Blendファイルからのデータ抽出 - BlendFileReader.ts
 
+## 概要
 BlendFileReader.tsによる.blendファイルの解析のサンプルです。
 
 デモを実行すると、サンプル.blendファイルに含まれるDNAの情報、全てのデータブロックの情報、そしてオブジェクトなど一部のデータの解析結果がそれぞれ表示されます。

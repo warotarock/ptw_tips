@@ -1,5 +1,5 @@
 ﻿
-import fs = require('fs');
+var fs = require('fs');
 
 namespace BasicModelConverter {
 

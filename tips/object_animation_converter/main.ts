@@ -1,15 +1,15 @@
 ﻿
-import fs = require('fs');
+var fs = require('fs');
 
 namespace ObjectAnimationConverter {
 
     window.onload = () => {
 
-        var fileName = 'model.blend';
-        var outFileName = getExtensionChangedFileName('../temp/complex_toon_animation.json', 'json');
+        var fileName = 'sample_obj_animation.blend';
+        var outFileName = getExtensionChangedFileName('../temp/' + fileName, 'json');
 
         var request = new XMLHttpRequest();
-        request.open('GET', '../complex_toon_drawing/model.blend', true);
+        request.open('GET', fileName, true);
         request.responseType = 'arraybuffer';
         request.addEventListener('load',
             (e: Event) => {
@@ -97,7 +97,7 @@ namespace ObjectAnimationConverter {
                     );
                 }
 
-                var isBoneAction = StringIsNullOrEmpty(getCurveName(bActionGroup_DataSet.name));
+                var isBoneAction = StringIsNullOrEmpty(getCurveName(bActionGroup_DataSet.name, fCurve_DataSet.array_index));
 
                 var groupName: string;
                 var channelName: string;
@@ -112,7 +112,7 @@ namespace ObjectAnimationConverter {
                 }
                 else {
                     groupName = "Object";
-                    channelName = getCurveName(bActionGroup_DataSet.name);
+                    channelName = getCurveName(bActionGroup_DataSet.name, fCurve_DataSet.array_index);
                 }
 
                 var curve = {
@@ -198,37 +198,37 @@ namespace ObjectAnimationConverter {
         });
     }
 
-    function getCurveName(curve: any) {
-        if (curve.group == "Location") {
-            if (curve.array_index == 0) {
+    function getCurveName(actionGroupName: string, array_index: int) {
+        if (actionGroupName == "Location") {
+            if (array_index == 0) {
                 return "locationX";
             }
-            else if (curve.array_index == 1) {
+            else if (array_index == 1) {
                 return "locationY";
             }
-            else if (curve.array_index == 2) {
+            else if (array_index == 2) {
                 return "locationZ";
             }
         }
-        else if (curve.group == "Rotation") {
-            if (curve.array_index == 0) {
+        else if (actionGroupName == "Rotation") {
+            if (array_index == 0) {
                 return "rotationX";
             }
-            else if (curve.array_index == 1) {
+            else if (array_index == 1) {
                 return "rotationY";
             }
-            else if (curve.array_index == 2) {
+            else if (array_index == 2) {
                 return "rotationZ";
             }
         }
-        else if (curve.group == "Scaling") {
-            if (curve.array_index == 0) {
+        else if (actionGroupName == "Scaling") {
+            if (array_index == 0) {
                 return "scalingX";
             }
-            else if (curve.array_index == 1) {
+            else if (array_index == 1) {
                 return "scalingY";
             }
-            else if (curve.array_index == 2) {
+            else if (array_index == 2) {
                 return "scalingZ";
             }
         }

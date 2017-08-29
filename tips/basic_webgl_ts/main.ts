@@ -11,8 +11,8 @@ namespace BasicWebGL {
 
         render = new WebGLRender();
         shader = new BasicShader();
-        modelResource = new RenderModel();
-        imageResources = new List<RenderImage>();
+        model = new RenderModel();
+        images = new List<RenderImage>();
 
         // x, y, z, u, v
         vertexData = [
@@ -64,16 +64,16 @@ namespace BasicWebGL {
 
             this.render.attach(this.gl);
             this.render.initializeShader(this.shader);
-            this.render.initializeModelBuffer(this.modelResource, this.vertexData, this.indexData, 4 * 5); // 4 (=size of float) * 5 (elements)
+            this.render.initializeModelBuffer(this.model, this.vertexData, this.indexData, 4 * 5); // 4 (=size of float) * 5 (elements)
 
             var image = new RenderImage();
             this.loadTexture(image, './texture.png');
-            this.imageResources.push(image);
+            this.images.push(image);
         }
 
         processLading() {
 
-            if (this.imageResources[0].texture == null) {
+            if (this.images[0].texture == null) {
                 return;
             }
 
@@ -98,10 +98,10 @@ namespace BasicWebGL {
             mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 2.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
 
-            this.render.resetBasicParameters(true, true, false, false);
+            this.render.setDepthTest(false).setCulling(false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
 
-            this.drawModel(this.modelMatrix, this.modelResource);
+            this.drawModel(this.modelMatrix, this.model);
         }
 
         private drawModel(modelMatrix: Mat4, modelResource: RenderModel) {
@@ -112,9 +112,10 @@ namespace BasicWebGL {
             this.render.setProjectionMatrix(this.pMatrix);
             this.render.setModelViewMatrix(this.mvMatrix);
 
-            this.render.setBuffers(this.modelResource, this.imageResources);
+            this.render.setBuffers(this.model, this.images);
 
-            this.render.resetBasicParameters(true, true, false, false);
+            this.render.setDepthTest(true)
+            this.render.setCulling(false);
             this.render.drawElements(modelResource);
         }
 

@@ -125,11 +125,12 @@ namespace CodeConverter.StatementAnalyzer {
 
             this.Statements.push(this.CurrentStatement);
 
-            for (let tokens of this.CurrentStatement.TokensList) {
-                if (tokens.length > 0) {
-                    console.debug(tokens[0].LineNumber + ' ' + TextToken.joinToString(tokens));
-                }
-            }
+            // DEBUG
+            //for (let tokens of this.CurrentStatement.TokensList) {
+            //    if (tokens.length > 0) {
+            //        console.debug(tokens[0].LineNumber + ' ' + TextToken.joinToString(tokens));
+            //    }
+            //}
 
             this.CurrentStatement = new CodeStatement();
             this.NeedsNewTokensBeforeAppendToken = true;
@@ -695,13 +696,13 @@ namespace CodeConverter.StatementAnalyzer {
 
                 if (token.isAlphaNumericOf(state.Setting.TS_extends)) {
                     state.CurrentIndex++;
-                    if (!this.traceTypeName(result, tokens, state)) {
+                    if (!this.processTypeName(result, tokens, state)) {
                         return false;
                     }
                 }
                 else if (token.isAlphaNumericOf(state.Setting.TS_implements)) {
                     state.CurrentIndex++;
-                    if (!this.traceTypeName(result, tokens, state)) {
+                    if (!this.processTypeName(result, tokens, state)) {
                         return false;
                     }
                 }
@@ -894,7 +895,7 @@ namespace CodeConverter.StatementAnalyzer {
             }
 
             // Process variable
-            this.traceVariable(result, tokens, state);
+            this.processVariable(result, tokens, state);
 
             // Add tokens
             this.appendToResultTillCurrent(result, tokens, state);
@@ -1442,7 +1443,7 @@ namespace CodeConverter.StatementAnalyzer {
 
             // Process variable
             state.startTracing(TracingState.SearchingIdentifierName);
-            this.traceVariable(result, tokens, state);
+            this.processVariable(result, tokens, state);
 
             // Add tokens
             this.appendToResultTillCurrent(result, tokens, state);
@@ -1713,6 +1714,16 @@ namespace CodeConverter.StatementAnalyzer {
             return DictionaryContainsKey(state.Setting.TS_AccesTypes, token.Text);
         }
 
+        private appendToResultTillCurrent(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
+
+            for (let tokenIndex = state.LastIndex; tokenIndex < state.CurrentIndex; tokenIndex++) {
+
+                result.AppendToCurrentStatement(tokens[tokenIndex]);
+            }
+
+            state.LastIndex = state.CurrentIndex;
+        }
+
         private processAccessibility(token: TextToken, state: AnalyzerState): boolean {
 
             if (!state.Trace_AccessTypeDetected) {
@@ -1760,7 +1771,7 @@ namespace CodeConverter.StatementAnalyzer {
             state.CurrentIndex = endIndex;
         }
 
-        private traceVariable(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
+        private processVariable(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
 
             if (state.TracingState == TracingState.SearchingIdentifierName) {
 
@@ -1828,7 +1839,7 @@ namespace CodeConverter.StatementAnalyzer {
             if (state.TracingState == TracingState.TracingVariableTypeName) {
 
                 // Tracing type name by common function
-                if (!this.traceTypeName(result, tokens, state)) {
+                if (!this.processTypeName(result, tokens, state)) {
                     return false;
                 }
 
@@ -1899,7 +1910,7 @@ namespace CodeConverter.StatementAnalyzer {
             return false;
         }
 
-        private traceTypeName(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
+        private processTypeName(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
 
             // Search start token
             while (state.CurrentIndex < tokens.length) {
@@ -1952,16 +1963,6 @@ namespace CodeConverter.StatementAnalyzer {
             }
 
             return true;
-        }
-
-        private appendToResultTillCurrent(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
-
-            for (let tokenIndex = state.LastIndex; tokenIndex < state.CurrentIndex; tokenIndex++) {
-
-                result.AppendToCurrentStatement(tokens[tokenIndex]);
-            }
-
-            state.LastIndex = state.CurrentIndex;
         }
     }
 }

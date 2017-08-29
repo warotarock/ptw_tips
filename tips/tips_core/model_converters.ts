@@ -307,7 +307,7 @@ namespace Converters {
                 mat4.copy(skiningBone.localMatrix, bone.matrix.elements);
 
                 mat4.copy(skiningBone.worldMatrix, skiningBone.localMatrix);
-                if (bone.parent != -1) {
+                if (typeof (bone.parent) == 'number' && bone.parent != -1) {
                     var parent = result[bone.parent];
                     skiningBone.parent = parent;
                     mat4.multiply(skiningBone.worldMatrix, parent.worldMatrix, skiningBone.worldMatrix);

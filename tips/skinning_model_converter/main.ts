@@ -1,5 +1,6 @@
 ﻿
-import fs = require('fs');
+var fs = require('fs');
+var path = require('path');
 
 namespace SkinningModelConverter {
 
@@ -75,7 +76,7 @@ namespace SkinningModelConverter {
         }
     }
 
-    function floatArrayToArray(array: Float32Array) {
+    function floatArrayToArray(array: Float32Array | number[]) {
         var result = [];
         for (var i = 0; i < array.length; i++) {
             result.push(array[i]);
@@ -268,7 +269,8 @@ namespace SkinningModelConverter {
                 if (imageName.length > 2 && imageName.substr(0, 2) == '//') {
                     imageName = imageName.substr(2);
                 }
-
+                imageName = path.basename(imageName);
+ 
                 imagesText.push('\"' + imageName + '\"' + (imageIndex < skinningModel.images.length - 1 ? ', ' : ''));
             }
             imagesText.push('],');

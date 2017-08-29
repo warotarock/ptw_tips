@@ -96,6 +96,7 @@ namespace SkinningModelDrawing {
 
         processLading() {
 
+            // Waiting for model data
             if (!this.modelResource.initialized) {
                 if (this.modelResource.loaded) {
                     this.initializeSkinningModelBuffer(this.modelResource);
@@ -106,10 +107,12 @@ namespace SkinningModelDrawing {
                 }
             }
 
+            // Waiting for image data
             if (this.imageResources[0].texture == null) {
                 return;
             }
 
+            // Loading finished
             this.isLoaded = true;
         }
 
@@ -133,7 +136,8 @@ namespace SkinningModelDrawing {
             mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 50.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
 
-            this.render.resetBasicParameters(true, true, false, false);
+            this.render.setDepthTest(true)
+            this.render.setCulling(false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
 
             this.drawSkinningModel(this.modelMatrix, this.modelResource);
@@ -198,7 +202,8 @@ namespace SkinningModelDrawing {
                 // draw
                 this.render.setBuffers(part.renderModel, this.imageResources);
 
-                this.render.resetBasicParameters(true, true, false, false);
+                this.render.setDepthTest(true)
+                this.render.setCulling(false);
 
                 this.render.drawElements(part.renderModel);
             }
