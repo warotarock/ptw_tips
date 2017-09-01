@@ -5,23 +5,23 @@
 ## コンテンツ
 
 ### 基盤技術編
-- [TypeScriptによる基本的なWebGLプログラミング](./basic_webgl_ts/) - basic_webgl_ts
-- [モデルデータの作成](./basic_model_converter/) - basic_model_converter
-- [モデルの描画](./basic_model_drawing/) - basic_model_drawing
-- [オブジェクトアニメーションデータの作成](./object_animation_converter/) - object_animation_converter
-- [オブジェクトアニメーションの再生](./object_animation_drawing/) - object_animation_drawing
-- [スキンモデルとアニメーションデータの作成](./skinning_model_converter/) - skinning_model_converter
-- [スキンモデルとアニメーションの再生](./skinning_model_drawing/) - skinning_model_drawing
+- [TypeScriptによる基本的なWebGLプログラミング](./basic_webgl_ts/) - Basic typeScript WebGL sample
+- [モデルデータの作成](./basic_model_converting/) - Basic model converting
+- [モデルの描画](./basic_model_drawing/) - Basic model drawing
+- [オブジェクトアニメーションデータの作成](./object_animation_converting/) - Object animation converting
+- [オブジェクトアニメーションの再生](./object_animation_drawing/) - Object Animation Drawing
+- [スキンモデルとアニメーションデータの作成](./skinning_model_converting/) - Skinning model converting
+- [スキンモデルとアニメーションの再生](./skinning_model_drawing/) - Skinning Model Drawing
 
 ### 補助技術編
-- オブジェクトのプーリング
-- コーディングによるアニメーションのための補助関数
-- IPOによる滑らかな値補間
-- [Blendファイルからのデータ抽出](../blend_file_reader_sample/) - blend_file_reader_sample
+- [オブジェクト・プーリング（再利用管理）]()
+- [コーディングによるアニメーションのための補助関数]()
+- [IPOによる滑らかな補間]()
+- [Blendファイルからのデータ抽出](./blend_file_reader_sample/) - BlendFileReader.ts sample
 
-### マネージャ編
-- 描画オブジェクト管理 - render_object_manager
-- タスク管理 - task_manager
+### ゲーム用サブシステム編
+- [描画オブジェクト管理](./render_object_management/) - Render object management
+- [タスク管理](./task_management/) - Task management
 - 入力管理 - input_manager
 - サウンド管理 - sound_manager
 - キャンバス描画（テキスト描画） - canvas_drawer

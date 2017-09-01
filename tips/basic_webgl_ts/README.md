@@ -1,4 +1,4 @@
-# PTWTips - Basic TypeScript WebGL Sample
+# PTWTips - Basic typeScript WebGL sample
 
 TypeScriptによる基本的なWebGL(1.0系)プログラム実装のサンプルです。  
 ここでは同じフォルダにある render.ts の各クラスをもとに説明します。

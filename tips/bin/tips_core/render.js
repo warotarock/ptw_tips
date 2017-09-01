@@ -96,6 +96,23 @@ var WebGLRender = (function () {
         this.floatPrecisionText = '';
         this.currentShader = null;
     }
+    WebGLRender.prototype.initializeWebGL = function (canvas) {
+        try {
+            var option = { preserveDrawingBuffer: true, antialias: true };
+            var gl = (canvas.getContext('webgl', option)
+                || canvas.getContext('experimental-webgl', option));
+            if (gl != null) {
+                this.attach(gl);
+            }
+            else {
+                throw ("Faild to initialize WebGL.");
+            }
+        }
+        catch (e) {
+            return true;
+        }
+        return false;
+    };
     WebGLRender.prototype.attach = function (gl) {
         this.gl = gl;
         var format = this.gl.getShaderPrecisionFormat(this.gl.FRAGMENT_SHADER, this.gl.HIGH_FLOAT);

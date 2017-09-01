@@ -103,18 +103,9 @@ var ComplexToonDrawing;
             this.canvas = canvas;
             this.canvas.width = this.logicalScreenWidth;
             this.canvas.height = this.logicalScreenHeight;
-            try {
-                var option = { preserveDrawingBuffer: true, antialias: true };
-                this.gl = (canvas.getContext('webgl', option)
-                    || canvas.getContext('experimental-webgl', option));
-                if (this.gl == null) {
-                    return;
-                }
-            }
-            catch (e) {
+            if (this.render.initializeWebGL(canvas)) {
                 return;
             }
-            this.render.attach(this.gl);
             this.render.initializeShader(this.screenShader);
             this.render.initializeShader(this.bone2Shader);
             this.render.initializeShader(this.bone4Shader);

@@ -127,6 +127,30 @@ class WebGLRender {
 
     currentShader: RenderShader = null;
 
+    initializeWebGL(canvas: HTMLCanvasElement): boolean {
+
+        try {
+            var option = { preserveDrawingBuffer: true, antialias: true };
+
+            var gl = <WebGLRenderingContext>(
+                canvas.getContext('webgl', option)
+                || canvas.getContext('experimental-webgl', option)
+            );
+
+            if (gl != null) {
+                this.attach(gl);
+            }
+            else {
+                throw ("Faild to initialize WebGL.");
+            }
+        }
+        catch (e) {
+            return true;
+        }
+
+        return false;
+    }
+
     attach(gl: WebGLRenderingContext) {
 
         this.gl = gl;

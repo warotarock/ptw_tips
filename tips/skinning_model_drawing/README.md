@@ -1,4 +1,4 @@
-# PTWTips - Skinning Model Drawing Sample
+# PTWTips - Skinning model drawing
 
 TypeScriptによるスキンニングモデルの描画処理です。
 ここで使用するモデルデータはbasic_model_converterで作成したものです。

@@ -77,4 +77,8 @@ class RecyclePool<T extends IRecyclableObject> {
     getCount(): int {
         return this.objectCount;
     }
+
+    getAt(index: int): T {
+        return this.objectList[index];
+    }
 }

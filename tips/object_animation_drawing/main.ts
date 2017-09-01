@@ -46,23 +46,10 @@ namespace ObjectAnimationDrawing {
             this.canvas.width = this.logicalScreenWidth;
             this.canvas.height = this.logicalScreenHeight;
 
-            try {
-                var option = { preserveDrawingBuffer: true, antialias: true };
-
-                this.gl = <WebGLRenderingContext>(
-                    canvas.getContext('webgl', option)
-                    || canvas.getContext('experimental-webgl', option)
-                );
-
-                if (this.gl == null) {
-                    return;
-                }
-            }
-            catch (e) {
+            if (this.render.initializeWebGL(canvas)) {
                 return;
             }
 
-            this.render.attach(this.gl);
             this.render.initializeShader(this.shader);
             this.render.initializeModelBuffer(this.model, this.vertexData, this.indexData, 4 * 5); // 4 (=size of float) * 5 (elements)
 

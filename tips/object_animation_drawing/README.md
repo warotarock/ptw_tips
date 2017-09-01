@@ -1,4 +1,4 @@
-# オブジェクトアニメーションの再生 - Object Animation Drawing
+# オブジェクトアニメーションの再生 - Object animation drawing
 
 ## 概要
 Blenderのオブジェクトアニメーションのコンバート処理結果のデータの利用例です。

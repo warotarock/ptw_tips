@@ -1,4 +1,4 @@
-# PTWTips - Complex Toon Drawing Sample
+# PTWTips - Complex toon drawing
 
 スキンモデルとアニメーションの描画のサンプルです。
 

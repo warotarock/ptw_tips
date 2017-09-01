@@ -1,242 +1,267 @@
 
-enum RenderObjectLayerID {
+namespace Game {
 
-    backGround = 1,
-    geometry = 2,
-    foreGround = 3,
-    nearGround = 4,
-    ui = 5,
-    invisible = 6,
-    maxLayer = 6,
-}
+    // Render object
 
-enum RenderObjectBlendType {
+    export enum RenderObjectLayerID {
 
-    blend = 1,
-    add = 2,
-}
-
-enum RenderObjectBillboardType {
-
-    off = 1,
-    trucking = 2,
-    tree = 3,
-}
-
-enum RenderObjectSortingMode {
-
-    xyz = 1,
-    z = 2,
-}
-
-class RenderObject {
-
-    recycleIndex = 0;
-    recycle() {
+        backGround = 1,
+        geometry = 2,
+        foreGround = 3,
+        nearGround = 4,
+        ui = 5,
+        invisible = 6,
+        maxLayerCount = 6,
     }
 
-    layerID: RenderObjectLayerID = RenderObjectLayerID.foreGround;
-    lastLayerID: RenderObjectLayerID = RenderObjectLayerID.foreGround;
+    export enum RenderObjectBlendType {
 
-    location: Vec3 = vec3.create();
-    rotation: Vec3 = vec3.create();
-    scaling: Vec3 = vec3.create();
+        blend = 1,
+        add = 2,
+    }
 
-    billboarding: RenderObjectBillboardType = RenderObjectBillboardType.off;
+    export enum RenderObjectBillboardType {
 
-    locationMatrix: Mat4 = mat4.create();
-    rotationMatrix: Mat4 = mat4.create();
-    sortingValue = 0.0;
+        off = 1,
+        trucking = 2,
+        tree = 3,
+    }
 
-    model: RenderModel = null;
-    images: List<RenderImage> = null;
+    export enum RenderObjectSortingMode {
 
-    shader = 0;
-    culling = true;
-    depthTest = true;
-    depthMask = true;
-    blendType: RenderObjectBlendType = RenderObjectBlendType.blend;
+        xyz = 1,
+        z = 2,
+    }
 
-    animationTime = 0.0;
+    export class RenderObject {
 
-    tag = 0;
-}
-
-class RenderObjectLayer {
-
-    objectList = new List<RenderObject>();
-}
-
-class RenderObjectManager {
-
-    private recyclePool: RecyclePool<RenderObject> = null;
-
-    private layerList = new List<RenderObjectLayer>();
-
-    // Object management
-
-    allocate(maxRenderObjectCount: int): RenderObjectManager {
-
-        this.recyclePool = new RecyclePool<RenderObject>(RenderObject, maxRenderObjectCount);
-
-        for (var i = 0; i < <int>RenderObjectLayerID.maxLayer + 1; i++) {
-            this.layerList.push(new RenderObjectLayer());
+        recycleIndex = 0;
+        recycle() {
         }
 
-        return this;
+        layerID: RenderObjectLayerID = RenderObjectLayerID.foreGround;
+        lastLayerID: RenderObjectLayerID = RenderObjectLayerID.foreGround;
+
+        location: Vec3 = vec3.create();
+        rotation: Vec3 = vec3.create();
+        scaling: Vec3 = vec3.create();
+
+        billboarding: RenderObjectBillboardType = RenderObjectBillboardType.off;
+
+        locationMatrix: Mat4 = mat4.create();
+        rotationMatrix: Mat4 = mat4.create();
+        sortingValue = 0.0;
+
+        model: RenderModel = null;
+        images: List<RenderImage> = null;
+
+        shader = 0;
+        culling = true;
+        depthTest = true;
+        depthMask = true;
+        blendType: RenderObjectBlendType = RenderObjectBlendType.blend;
+
+        animationTime = 0.0;
+
+        tag = 0;
     }
 
-    createObject(): RenderObject {
+    export class RenderObjectLayer {
 
-        var obj = this.recyclePool.get();
-        if (obj == null) {
-            return null;
+        objects = new List<RenderObject>();
+    }
+
+    // Manager
+
+    export class RenderObjectManager {
+
+        private recyclePool: RecyclePool<RenderObject> = null;
+
+        private objects = new List<RenderObject>();
+
+        private objectLayers = new List<RenderObjectLayer>();
+
+        // Object management
+
+        allocate(maxRenderObjectCount: int): RenderObjectManager {
+
+            this.recyclePool = new RecyclePool<RenderObject>(RenderObject, maxRenderObjectCount);
+
+            for (var i = 0; i < <int>RenderObjectLayerID.maxLayerCount + 1; i++) {
+                this.objectLayers.push(new RenderObjectLayer());
+            }
+
+            return this;
         }
 
-        obj.layerID = RenderObjectLayerID.foreGround;
+        clearObjects() {
 
-        vec3.set(obj.location, 0.0, 0.0, 0.0);
-        vec3.set(obj.rotation, 0.0, 0.0, 0.0);
-        vec3.set(obj.scaling, 1.0, 1.0, 1.0);
+            for (var k = 0; k < this.objectLayers.length; k++) {
+                var layer: RenderObjectLayer = this.objectLayers[k];
 
-        obj.billboarding = RenderObjectBillboardType.off;
+                layer.objects = new List<RenderObject>();
+            }
 
-        mat4.identity(obj.locationMatrix);
-        mat4.identity(obj.rotationMatrix);
-        obj.sortingValue = 0.0;
-
-        obj.model = null;
-        obj.images = null;
-
-        obj.shader = 0;
-        obj.culling = true;
-        obj.depthMask = true;
-        obj.depthTest = true;
-        obj.blendType = RenderObjectBlendType.blend;
-
-        obj.animationTime = 0.0;
-
-        obj.tag = 0;
-
-        return obj;
-    }
-
-    addObject(obj: RenderObject) {
-
-        var layer: RenderObjectLayer = this.layerList[<int>obj.layerID];
-        layer.objectList.push(obj);
-
-        obj.lastLayerID = obj.layerID;
-    }
-
-    clearObjects() {
-
-        for (var k = 0; k < this.layerList.length; k++) {
-            var layer: RenderObjectLayer = this.layerList[k];
-
-            layer.objectList = new List<RenderObject>();
+            this.recyclePool.reset();
         }
 
-        this.recyclePool.reset();
-    }
+        createObject(): RenderObject {
 
-    removeObject(obj: RenderObject) {
+            var renderObject = this.recyclePool.get();
+            if (renderObject == null) {
+                return null;
+            }
 
-        var layer: RenderObjectLayer = this.getObjectLayer(obj.lastLayerID);
+            renderObject.layerID = RenderObjectLayerID.foreGround;
 
-        for (var i = 0; i < layer.objectList.length; i++) {
-            if (layer.objectList[i] === obj) {
-                layer.objectList.splice(i, 1);
-                break;
+            vec3.set(renderObject.location, 0.0, 0.0, 0.0);
+            vec3.set(renderObject.rotation, 0.0, 0.0, 0.0);
+            vec3.set(renderObject.scaling, 1.0, 1.0, 1.0);
+
+            renderObject.billboarding = RenderObjectBillboardType.off;
+
+            mat4.identity(renderObject.locationMatrix);
+            mat4.identity(renderObject.rotationMatrix);
+            renderObject.sortingValue = 0.0;
+
+            renderObject.model = null;
+            renderObject.images = null;
+
+            renderObject.shader = 0;
+            renderObject.culling = true;
+            renderObject.depthMask = true;
+            renderObject.depthTest = true;
+            renderObject.blendType = RenderObjectBlendType.blend;
+
+            renderObject.animationTime = 0.0;
+
+            renderObject.tag = 0;
+
+            return renderObject;
+        }
+
+        addObject(renderObject: RenderObject) {
+
+            this.objects.push(renderObject);
+
+            var layer = this.objectLayers[<int>renderObject.layerID];
+            layer.objects.push(renderObject);
+
+            renderObject.lastLayerID = renderObject.layerID;
+        }
+
+        removeObject(renderObject: RenderObject) {
+
+            for (var i = 0; i < this.objects.length; i++) {
+                if (this.objects[i] === renderObject) {
+                    this.objects.splice(i, 1);
+                    break;
+                }
+            }
+
+            var layer = this.getObjectLayer(renderObject.lastLayerID);
+
+            for (var i = 0; i < layer.objects.length; i++) {
+                if (layer.objects[i] === renderObject) {
+                    layer.objects.splice(i, 1);
+                    break;
+                }
+            }
+
+            this.recyclePool.recycle(renderObject);
+        }
+
+        getObjectList(): List<RenderObject> {
+
+            return this.objects;
+        }
+
+        // Layer management
+
+        getObjectLayer(layerID: RenderObjectLayerID): RenderObjectLayer {
+
+            return this.objectLayers[<int>layerID];
+        }
+
+        getLayerObjectList(layerID: RenderObjectLayerID): List<RenderObject> {
+
+            return this.getObjectLayer(layerID).objects;
+        }
+
+        // Basic caluclation support
+
+        calcMatrix(renderObject: RenderObject) {
+
+            mat4.identity(renderObject.locationMatrix);
+            mat4.translate(renderObject.locationMatrix, renderObject.locationMatrix, renderObject.location);
+            mat4.rotateX(renderObject.locationMatrix, renderObject.locationMatrix, renderObject.rotation[0]);
+            mat4.rotateY(renderObject.locationMatrix, renderObject.locationMatrix, renderObject.rotation[1]);
+            mat4.rotateZ(renderObject.locationMatrix, renderObject.locationMatrix, renderObject.rotation[2]);
+            mat4.scale(renderObject.locationMatrix, renderObject.locationMatrix, renderObject.scaling);
+        }
+
+        // Object sorting
+
+        private matrixTranslation: Vec3 = vec3.create();
+        private localLocation: Vec3 = vec3.create();
+
+        calcObjectSortingValue(renderObject: RenderObject, inverseCameraMatrix: Mat4, sortingMode: RenderObjectSortingMode) {
+
+            vec3.set(this.matrixTranslation, renderObject.locationMatrix[12], renderObject.locationMatrix[13], renderObject.locationMatrix[14]);
+
+            vec3.transformMat4(this.localLocation, this.matrixTranslation, inverseCameraMatrix);
+
+            if (sortingMode == RenderObjectSortingMode.xyz) {
+
+                var x = this.localLocation[0] / 128.0;
+                var y = this.localLocation[1] / 128.0;
+                var z = this.localLocation[2] / 128.0;
+
+                renderObject.sortingValue = Math.sqrt(x * x + y * y + z * z) * 128.0;
+            }
+            else {
+
+                var z = this.localLocation[2] / 128.0;
+
+                renderObject.sortingValue = Math.sqrt(z * z) * 128.0;
             }
         }
 
-        this.recyclePool.recycle(obj);
-    }
+        getZsortedObjectList(layerID: RenderObjectLayerID): List<RenderObject> {
 
-    // Layer management
+            var layer = this.getObjectLayer(layerID);
 
-    updateObjectLayers() {
+            layer.objects.sort(this.objectSortingFunction);
 
-        for (var k = 0; k < this.layerList.length; k++) {
-            var layer: RenderObjectLayer = this.layerList[k];
+            return layer.objects;
+        }
 
-            for (var i = layer.objectList.length - 1; i >= 0; i--) {
-                var obj = layer.objectList[i];
+        private objectSortingFunction(a: RenderObject, b: RenderObject): float {
 
-                if (obj.layerID != obj.lastLayerID) {
+            return b.sortingValue - a.sortingValue;
+        }
 
-                    var destLayer: RenderObjectLayer = this.getObjectLayer(obj.layerID);
-                    destLayer.objectList.push(obj);
+        // Updating methods for each frame execution
 
-                    layer.objectList.splice(i, 1);
+        updateObjectLayers() {
 
-                    obj.lastLayerID = obj.layerID;
+            for (var k = 0; k < this.objectLayers.length; k++) {
+                var layer = this.objectLayers[k];
+
+                for (var i = layer.objects.length - 1; i >= 0; i--) {
+                    var obj = layer.objects[i];
+
+                    if (obj.layerID != obj.lastLayerID) {
+
+                        var destLayer = this.getObjectLayer(obj.layerID);
+                        destLayer.objects.push(obj);
+
+                        layer.objects.splice(i, 1);
+
+                        obj.lastLayerID = obj.layerID;
+                    }
                 }
             }
         }
-    }
-
-    getObjectLayer(layerID: RenderObjectLayerID): RenderObjectLayer {
-
-        return this.layerList[<int>layerID];
-    }
-
-    getObjectList(layerID: RenderObjectLayerID): List<RenderObject> {
-
-        return this.getObjectLayer(layerID).objectList;
-    }
-
-    // Basic caluclation support
-
-    calcMatrix(obj: RenderObject) {
-
-        mat4.identity(obj.locationMatrix);
-        mat4.translate(obj.locationMatrix, obj.locationMatrix, obj.location);
-        mat4.rotateX(obj.locationMatrix, obj.locationMatrix, obj.rotation[0]);
-        mat4.rotateY(obj.locationMatrix, obj.locationMatrix, obj.rotation[1]);
-        mat4.rotateZ(obj.locationMatrix, obj.locationMatrix, obj.rotation[2]);
-        mat4.scale(obj.locationMatrix, obj.locationMatrix, obj.scaling);
-    }
-
-    // Object sorting
-
-    private matrixTranslation: Vec3 = vec3.create();
-    private localLocation: Vec3 = vec3.create();
-
-    calcObjectSortingValue(obj: RenderObject, inverseCameraMatrix: Mat4, sortingMode: RenderObjectSortingMode) {
-
-        vec3.set(this.matrixTranslation, obj.locationMatrix[12], obj.locationMatrix[13], obj.locationMatrix[14]);
-
-        vec3.transformMat4(this.localLocation, this.matrixTranslation, inverseCameraMatrix);
-
-        if (sortingMode == RenderObjectSortingMode.xyz) {
-
-            var x = this.localLocation[0] / 128.0;
-            var y = this.localLocation[1] / 128.0;
-            var z = this.localLocation[2] / 128.0;
-
-            obj.sortingValue = Math.sqrt(x * x + y * y + z * z) * 128.0;
-        }
-        else {
-
-            var z = this.localLocation[2] / 128.0;
-
-            obj.sortingValue = Math.sqrt(z * z) * 128.0;
-        }
-    }
-
-    getZsortedObjectList(layerID: RenderObjectLayerID): List<RenderObject> {
-
-        var layer = this.getObjectLayer(layerID);
-
-        layer.objectList.sort(this.objectSortingFunction);
-
-        return layer.objectList;
-    }
-
-    private objectSortingFunction(a: RenderObject, b: RenderObject): float {
-
-        return b.sortingValue - a.sortingValue;
     }
 }
