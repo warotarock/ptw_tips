@@ -1,4 +1,4 @@
-# tips directory
+# tips
 
 主にTypeScriptによるプログラミングのtips及びツールのフォルダです。
 
@@ -14,21 +14,21 @@
 - [スキンモデルとアニメーションの再生](./skinning_model_drawing/) - Skinning Model Drawing
 
 ### 補助技術編
-- [オブジェクト・プーリング（再利用管理）]()
-- [コーディングによるアニメーションのための補助関数]()
-- [IPOによる滑らかな補間]()
+- オブジェクト・プーリング（再利用管理）（予定）
+- コーディングによるアニメーションのための補助関数（予定）
+- IPOによる滑らかな補間（予定）
 - [Blendファイルからのデータ抽出](./blend_file_reader_sample/) - BlendFileReader.ts sample
 
 ### ゲーム用サブシステム編
 - [描画オブジェクト管理](./render_object_management/) - Render object management
 - [タスク管理](./task_management/) - Task management
-- 入力管理 - input_manager
-- サウンド管理 - sound_manager
-- キャンバス描画（テキスト描画） - canvas_drawer
+- 入力管理 - input_manager（予定）
+- サウンド管理 - sound_manager（予定）
+- キャンバス描画（テキスト描画） - canvas_drawer（予定）
 
 ### 統合編
-- メイン処理がサブ処理を制御する
-- メインループとローディングループ
+- メイン処理がサブ処理を制御する（予定）
+- メインループとローディングループ（予定）
 
 ### 番外編
-- トゥーンシェーディング
+- [簡易トゥーンシェーディング](./complex_toon_drawing/)
