@@ -152,10 +152,6 @@ namespace TaskManagement {
         images1 = new List<RenderImage>();
         images2 = new List<RenderImage>();
 
-        // x, y, z, u, v
-        vertexData = [1, 1, -1, 0.3544, 0.0633, 1, -1, -1, 0.3544, 0.3544, -1, -1, -1, 0.3544, 0.6456, -1, 1, -1, 0.3544, 0.3544, 1, 1, 1, 0.0633, 0.0633, 1, -1, 1, 0.3544, 0.0633, -1, -1, 1, 0.0633, 0.6456, -1, 1, 1, 0.0633, 0.3544]
-        indexData = [0, 1, 2, 7, 6, 5, 4, 5, 1, 5, 6, 2, 2, 6, 7, 0, 3, 7, 3, 0, 2, 4, 7, 5, 0, 4, 1, 1, 5, 2, 3, 2, 7, 4, 0, 7];
-
         eyeLocation = vec3.create();
         lookatLocation = vec3.create();
         upVector = vec3.create();
@@ -190,7 +186,6 @@ namespace TaskManagement {
             }
 
             this.render.initializeShader(this.shader);
-            this.render.initializeModelBuffer(this.model, this.vertexData, this.indexData, 4 * 5); // 4 (=size of float) * 5 (elements)
 
             var image1 = new RenderImage();
             this.loadTexture(image1, './texture1.png');
@@ -200,13 +195,15 @@ namespace TaskManagement {
             this.loadTexture(image2, './texture2.png');
             this.images2.push(image2);
 
+            this.loadModel(this.model, '../temp/sample_basic_model.json', 'Cube');
+
             // Allocate render object pool
             this.renderObjectManager.allocate(this.MAX_RENDER_OBJECT);
         }
 
-        processLading() {
+        processLoading() {
 
-            // Waiting for image data
+            // Waiting for data
             for (var i = 0; i < this.images1.length; i++) {
                 var image = this.images1[i];
 
@@ -215,6 +212,11 @@ namespace TaskManagement {
                 }
             }
 
+            if (this.model.vertexBuffer == null) {
+                return;
+            }
+
+            // Loading finished
             this.isLoaded = true;
         }
 
@@ -377,6 +379,31 @@ namespace TaskManagement {
 
             result.imageData.src = url;
         }
+
+        private loadModel(result: RenderModel, url: string, modelName: string) {
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', url);
+            xhr.responseType = 'json';
+
+            xhr.addEventListener('load',
+                (e: Event) => {
+                    var data: any;
+                    if (xhr.responseType == 'json') {
+                        data = xhr.response;
+                    } else {
+                        data = JSON.parse(xhr.response);
+                    }
+
+                    var modelData = data[modelName];
+
+                    this.render.initializeModelBuffer(this.model, modelData.vertex, modelData.index, 4 * modelData.vertexStride); // 4 = size of float
+                }
+            );
+
+            xhr.send();
+        }
+
     }
 
     var _Main: Main;
@@ -397,7 +424,7 @@ namespace TaskManagement {
             _Main.draw();
         }
         else {
-            _Main.processLading();
+            _Main.processLoading();
         }
 
         setTimeout(run, 1000 / 30);

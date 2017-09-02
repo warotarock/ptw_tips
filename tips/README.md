@@ -7,7 +7,7 @@
 ### 基盤技術編
 - [TypeScriptによる基本的なWebGLプログラミング](./basic_webgl_ts/) - Basic typeScript WebGL sample
 - [モデルデータの作成](./basic_model_converting/) - Basic model converting
-- モデルの描画 - Basic model drawing
+- [モデルの描画](./basic_model_drawing/) - Basic model drawing
 - [オブジェクトアニメーションデータの作成](./object_animation_converting/) - Object animation converting
 - [オブジェクトアニメーションの再生](./object_animation_drawing/) - Object Animation Drawing
 - [スキンモデルとアニメーションデータの作成](./skinning_model_converting/) - Skinning model converting

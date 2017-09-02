@@ -1,4 +1,4 @@
-
+﻿
 namespace ObjectAnimationDrawing {
 
     class Main {
@@ -14,17 +14,10 @@ namespace ObjectAnimationDrawing {
         model = new RenderModel();
         images = new List<RenderImage>();
 
-        animationSolver = new AnimationSolver();
-
-        animationDatas = new Dictionary<IPOObjectAnimation>();
-        cubeAnimation: IPOObjectAnimation = null;
-
         eyeLocation = vec3.create();
         lookatLocation = vec3.create();
         upVector = vec3.create();
 
-        modelLocation = vec3.create();
-        modelRotation = vec3.create();
         modelScaling = vec3.create();
 
         modelMatrix = mat4.create();
@@ -53,8 +46,6 @@ namespace ObjectAnimationDrawing {
             this.images.push(image);
 
             this.loadModel(this.model, '../temp/sample_basic_model.json', 'Cube');
-
-            this.loadAnimation(this.animationDatas, '../temp/sample_obj_animation.json');
         }
 
         processLoading() {
@@ -68,23 +59,13 @@ namespace ObjectAnimationDrawing {
                 return;
             }
 
-            if (!DictionaryContainsKey(this.animationDatas, 'CubeAction')) {
-                return;
-            }
-
             // Loading finished
-            this.cubeAnimation = this.animationDatas['CubeAction']['Object'];
-
             this.isLoaded = true;
         }
 
         run() {
 
-            let solver = this.animationSolver;
-
             this.animationTime += 1.0;
-
-            let animationTime = Math.abs(Math.sin(this.animationTime * 0.1)) * 30.0;
 
             // Camera position
             vec3.set(this.eyeLocation, 14.1, -12.8, 10.0);
@@ -92,27 +73,10 @@ namespace ObjectAnimationDrawing {
             vec3.set(this.upVector, 0.0, 0.0, 1.0);
 
             // Object animation
-            vec3.set(this.modelLocation
-                , solver.getIPOCurveValueIfNotNull(this.cubeAnimation.locationX, animationTime, 0.0)
-                , solver.getIPOCurveValueIfNotNull(this.cubeAnimation.locationY, animationTime, 0.0)
-                , solver.getIPOCurveValueIfNotNull(this.cubeAnimation.locationZ, animationTime, 0.0));
-
-            vec3.set(this.modelRotation
-                , solver.getIPOCurveValueIfNotNull(this.cubeAnimation.rotationX, animationTime, 0.0)
-                , solver.getIPOCurveValueIfNotNull(this.cubeAnimation.rotationY, animationTime, 0.0)
-                , solver.getIPOCurveValueIfNotNull(this.cubeAnimation.rotationZ, animationTime, 0.0));
-
-            vec3.set(this.modelScaling
-                , solver.getIPOCurveValueIfNotNull(this.cubeAnimation.scalingX, animationTime, 1.0)
-                , solver.getIPOCurveValueIfNotNull(this.cubeAnimation.scalingY, animationTime, 1.0)
-                , solver.getIPOCurveValueIfNotNull(this.cubeAnimation.scalingZ, animationTime, 1.0));
-
             mat4.identity(this.modelMatrix);
-            mat4.translate(this.modelMatrix, this.modelMatrix, this.modelLocation);
-            mat4.rotateX(this.modelMatrix, this.modelMatrix, this.modelRotation[0]);
-            mat4.rotateY(this.modelMatrix, this.modelMatrix, this.modelRotation[1]);
-            mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.modelRotation[2]);
-            mat4.scale(this.modelMatrix, this.modelMatrix, this.modelScaling);
+            mat4.rotateX(this.modelMatrix, this.modelMatrix, this.animationTime * 0.005 * Math.PI * 2.0);
+            mat4.rotateY(this.modelMatrix, this.modelMatrix, this.animationTime * 0.002 * Math.PI * 2.0);
+            mat4.scale(this.modelMatrix, this.modelMatrix, vec3.set(this.modelScaling, 2.0, 2.0, 2.0));
         }
 
         draw() {
@@ -174,31 +138,6 @@ namespace ObjectAnimationDrawing {
                     var modelData = data[modelName];
 
                     this.render.initializeModelBuffer(this.model, modelData.vertex, modelData.index, 4 * modelData.vertexStride); // 4 = size of float
-                }
-            );
-
-            xhr.send();
-        }
-
-        private loadAnimation(result: Dictionary<IPOObjectAnimation>, url: string) {
-
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', url);
-            xhr.responseType = 'json';
-
-            xhr.addEventListener('load',
-                (e: Event) => {
-                    var data: any;
-                    if (xhr.responseType == 'json') {
-                        data = xhr.response;
-                    } else {
-                        data = JSON.parse(xhr.response);
-                    }
-
-
-                    for (let key in data) {
-                        result[key] = data[key];
-                    }
                 }
             );
 

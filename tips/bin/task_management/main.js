@@ -123,9 +123,6 @@ var TaskManagement;
             this.model = new RenderModel();
             this.images1 = new List();
             this.images2 = new List();
-            // x, y, z, u, v
-            this.vertexData = [1, 1, -1, 0.3544, 0.0633, 1, -1, -1, 0.3544, 0.3544, -1, -1, -1, 0.3544, 0.6456, -1, 1, -1, 0.3544, 0.3544, 1, 1, 1, 0.0633, 0.0633, 1, -1, 1, 0.3544, 0.0633, -1, -1, 1, 0.0633, 0.6456, -1, 1, 1, 0.0633, 0.3544];
-            this.indexData = [0, 1, 2, 7, 6, 5, 4, 5, 1, 5, 6, 2, 2, 6, 7, 0, 3, 7, 3, 0, 2, 4, 7, 5, 0, 4, 1, 1, 5, 2, 3, 2, 7, 4, 0, 7];
             this.eyeLocation = vec3.create();
             this.lookatLocation = vec3.create();
             this.upVector = vec3.create();
@@ -150,24 +147,28 @@ var TaskManagement;
                 return;
             }
             this.render.initializeShader(this.shader);
-            this.render.initializeModelBuffer(this.model, this.vertexData, this.indexData, 4 * 5); // 4 (=size of float) * 5 (elements)
             var image1 = new RenderImage();
             this.loadTexture(image1, './texture1.png');
             this.images1.push(image1);
             var image2 = new RenderImage();
             this.loadTexture(image2, './texture2.png');
             this.images2.push(image2);
+            this.loadModel(this.model, '../temp/sample_basic_model.json', 'Cube');
             // Allocate render object pool
             this.renderObjectManager.allocate(this.MAX_RENDER_OBJECT);
         };
-        Main.prototype.processLading = function () {
-            // Waiting for image data
+        Main.prototype.processLoading = function () {
+            // Waiting for data
             for (var i = 0; i < this.images1.length; i++) {
                 var image = this.images1[i];
                 if (image.texture == null) {
                     return;
                 }
             }
+            if (this.model.vertexBuffer == null) {
+                return;
+            }
+            // Loading finished
             this.isLoaded = true;
         };
         Main.prototype.run = function () {
@@ -270,6 +271,24 @@ var TaskManagement;
             });
             result.imageData.src = url;
         };
+        Main.prototype.loadModel = function (result, url, modelName) {
+            var _this = this;
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', url);
+            xhr.responseType = 'json';
+            xhr.addEventListener('load', function (e) {
+                var data;
+                if (xhr.responseType == 'json') {
+                    data = xhr.response;
+                }
+                else {
+                    data = JSON.parse(xhr.response);
+                }
+                var modelData = data[modelName];
+                _this.render.initializeModelBuffer(_this.model, modelData.vertex, modelData.index, 4 * modelData.vertexStride); // 4 = size of float
+            });
+            xhr.send();
+        };
         return Main;
     }());
     var _Main;
@@ -285,7 +304,7 @@ var TaskManagement;
             _Main.draw();
         }
         else {
-            _Main.processLading();
+            _Main.processLoading();
         }
         setTimeout(run, 1000 / 30);
     }

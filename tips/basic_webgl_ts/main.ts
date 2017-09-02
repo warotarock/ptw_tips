@@ -51,19 +51,21 @@ namespace BasicWebGL {
             }
 
             this.render.initializeShader(this.shader);
-            this.render.initializeModelBuffer(this.model, this.vertexData, this.indexData, 4 * 5); // 4 (=size of float) * 5 (elements)
+            this.render.initializeModelBuffer(this.model, this.vertexData, this.indexData, 4 * 5); // 4 (=size of float) * 5 (=x, y, z, u, v)
 
             var image = new RenderImage();
             this.loadTexture(image, './texture.png');
             this.images.push(image);
         }
 
-        processLading() {
+        processLoading() {
 
+            // Waiting for data
             if (this.images[0].texture == null) {
                 return;
             }
 
+            // Loading finished
             this.isLoaded = true;
         }
 
@@ -71,10 +73,12 @@ namespace BasicWebGL {
 
             this.animationTime += 1.0;
 
+            // Camera position
             vec3.set(this.eyeLocation, 0.6, 0.0, 0.3);
             vec3.set(this.lookatLocation, 0.0, 0.0, 0.0);
             vec3.set(this.upVector, 0.0, 0.0, 1.0);
 
+            // Object animation
             mat4.identity(this.modelMatrix);
             mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.animationTime * 0.02);
         }
@@ -210,7 +214,7 @@ namespace BasicWebGL {
             _Main.draw();
         }
         else {
-            _Main.processLading();
+            _Main.processLoading();
         }
 
         setTimeout(run, 1000 / 30);
