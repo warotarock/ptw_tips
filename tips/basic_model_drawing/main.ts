@@ -70,8 +70,7 @@ namespace ObjectAnimationDrawing {
 
             // Object animation
             mat4.identity(this.modelMatrix);
-            mat4.rotateX(this.modelMatrix, this.modelMatrix, this.animationTime * 0.005 * Math.PI * 2.0);
-            mat4.rotateY(this.modelMatrix, this.modelMatrix, this.animationTime * 0.002 * Math.PI * 2.0);
+            mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.animationTime * 0.02);
             mat4.scale(this.modelMatrix, this.modelMatrix, vec3.set(this.modelScaling, 2.0, 2.0, 2.0));
         }
 

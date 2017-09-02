@@ -47,11 +47,12 @@ namespace BasicWebGL {
             }
 
             this.render.initializeShader(this.shader);
-            this.render.initializeModelBuffer(this.model, this.vertexData, this.indexData, 4 * 5); // 4 (=size of float) * 5 (=x, y, z, u, v)
 
             var image = new RenderImage();
             this.loadTexture(image, './texture.png');
             this.images.push(image);
+
+            this.render.initializeModelBuffer(this.model, this.vertexData, this.indexData, 4 * 5); // 4 (=size of float) * 5 (=x, y, z, u, v)
         }
 
         processLoading() {
