@@ -35,9 +35,6 @@ namespace SkinningModelDrawing {
         logicalScreenWidth = 640.0;
         logicalScreenHeight = 360.0;
 
-        canvas: HTMLCanvasElement = null;
-        gl: WebGLRenderingContext = null;
-
         render = new WebGLRender();
         bone2Shader = new Bone2Shader();
         bone4Shader = new Bone4Shader();
@@ -62,9 +59,8 @@ namespace SkinningModelDrawing {
 
         initialize(canvas: HTMLCanvasElement) {
 
-            this.canvas = canvas;
-            this.canvas.width = this.logicalScreenWidth;
-            this.canvas.height = this.logicalScreenHeight;
+            canvas.width = this.logicalScreenWidth;
+            canvas.height = this.logicalScreenHeight;
 
             if (this.render.initializeWebGL(canvas)) {
                 return;
@@ -83,7 +79,7 @@ namespace SkinningModelDrawing {
 
         processLading() {
 
-            // Waiting for model data
+            // Waiting for data
             if (!this.modelResource.initialized) {
                 if (this.modelResource.loaded) {
                     this.initializeSkinningModelBuffer(this.modelResource);
@@ -94,7 +90,6 @@ namespace SkinningModelDrawing {
                 }
             }
 
-            // Waiting for image data
             if (this.imageResources[0].texture == null) {
                 return;
             }
@@ -183,7 +178,7 @@ namespace SkinningModelDrawing {
                 // set bone matrix
                 for (var boneIndex = 0; boneIndex < part.bone.length; boneIndex++) {
                     mat4.copy(this.boneMatrix, this.boneMatrixList[part.bone[boneIndex]]);
-                    shader.setBoneMatrix(boneIndex, this.boneMatrix, this.gl);
+                    shader.setBoneMatrix(boneIndex, this.boneMatrix, this.render.gl);
                 }
 
                 // draw

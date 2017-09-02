@@ -22,8 +22,6 @@ var SkinningModelDrawing;
         function Main() {
             this.logicalScreenWidth = 640.0;
             this.logicalScreenHeight = 360.0;
-            this.canvas = null;
-            this.gl = null;
             this.render = new WebGLRender();
             this.bone2Shader = new Bone2Shader();
             this.bone4Shader = new Bone4Shader();
@@ -42,9 +40,8 @@ var SkinningModelDrawing;
             this.isLoaded = false;
         }
         Main.prototype.initialize = function (canvas) {
-            this.canvas = canvas;
-            this.canvas.width = this.logicalScreenWidth;
-            this.canvas.height = this.logicalScreenHeight;
+            canvas.width = this.logicalScreenWidth;
+            canvas.height = this.logicalScreenHeight;
             if (this.render.initializeWebGL(canvas)) {
                 return;
             }
@@ -57,7 +54,7 @@ var SkinningModelDrawing;
             this.imageResources.push(image);
         };
         Main.prototype.processLading = function () {
-            // Waiting for model data
+            // Waiting for data
             if (!this.modelResource.initialized) {
                 if (this.modelResource.loaded) {
                     this.initializeSkinningModelBuffer(this.modelResource);
@@ -67,7 +64,6 @@ var SkinningModelDrawing;
                     return;
                 }
             }
-            // Waiting for image data
             if (this.imageResources[0].texture == null) {
                 return;
             }
@@ -134,7 +130,7 @@ var SkinningModelDrawing;
                 // set bone matrix
                 for (var boneIndex = 0; boneIndex < part.bone.length; boneIndex++) {
                     mat4.copy(this.boneMatrix, this.boneMatrixList[part.bone[boneIndex]]);
-                    shader.setBoneMatrix(boneIndex, this.boneMatrix, this.gl);
+                    shader.setBoneMatrix(boneIndex, this.boneMatrix, this.render.gl);
                 }
                 // draw
                 this.render.setBuffers(part.renderModel, this.imageResources);

@@ -4,8 +4,6 @@ var RenderObjectManagement;
         function Main() {
             this.logicalScreenWidth = 640.0;
             this.logicalScreenHeight = 360.0;
-            this.canvas = null;
-            this.gl = null;
             this.render = new WebGLRender();
             this.shader = new SampleShaders.PlainShader();
             this.model = new RenderModel();
@@ -24,9 +22,8 @@ var RenderObjectManagement;
             this.isLoaded = false;
         }
         Main.prototype.initialize = function (canvas) {
-            this.canvas = canvas;
-            this.canvas.width = this.logicalScreenWidth;
-            this.canvas.height = this.logicalScreenHeight;
+            canvas.width = this.logicalScreenWidth;
+            canvas.height = this.logicalScreenHeight;
             if (this.render.initializeWebGL(canvas)) {
                 return;
             }

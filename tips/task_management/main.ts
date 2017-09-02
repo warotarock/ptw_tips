@@ -143,9 +143,6 @@ namespace TaskManagement {
         logicalScreenWidth = 640.0;
         logicalScreenHeight = 360.0;
 
-        canvas: HTMLCanvasElement = null;
-        gl: WebGLRenderingContext = null;
-
         render = new WebGLRender();
         shader = new SampleShaders.PlainShader();
         model = new RenderModel();
@@ -177,9 +174,8 @@ namespace TaskManagement {
 
         initialize(canvas: HTMLCanvasElement) {
 
-            this.canvas = canvas;
-            this.canvas.width = this.logicalScreenWidth;
-            this.canvas.height = this.logicalScreenHeight;
+            canvas.width = this.logicalScreenWidth;
+            canvas.height = this.logicalScreenHeight;
 
             if (this.render.initializeWebGL(canvas)) {
                 return;
