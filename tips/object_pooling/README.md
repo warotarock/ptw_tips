@@ -16,13 +16,14 @@
 - プールを破棄するときプールのオブジェクトをまとめて破棄する
 
 ## TypeScriptによる実装
-TypeScriptのジェネリクスの機能を利用した基本クラス RecyclePool&lt;T&gt; を [recycling.ts](../tips_core/recycling.ts) に作成しました。このクラスを使うと、サンプルコードのようにクラスと個数を指定してプールを作成できます。
+TypeScriptのジェネリクスの機能を利用した基本クラス RecyclePool&lt;T&gt; を [recycling.ts](../tips_core/recycling.ts) に作成しました。このクラスを使うと、クラスと個数を指定してプールを作成できます。
 
 ```recycling.ts
 var sampleObjectPool = new RecyclePool<SampleObject>(SampleObject, 50);
 ```
 
 RecyclePool&lt;T&gt; の T には IRecyclableObject インターフェースを実装したクラスを指定できます。
+そのため recycleIndex と recycle関数 を持つクラスであれば、どんなクラスでも指定できます。
 
 ```ts:recycling.ts
 interface IRecyclableObject {
@@ -31,7 +32,13 @@ interface IRecyclableObject {
 }
 ```
 
-そのため recycleIndex と recycle関数 を持つクラスであれば、どんなクラスでも指定できます。
+
+recycleIndex は RecyclePool が再利用処理を素早く行うための変数です。この変数を再利用処理以外の何かの目的に使用することはできません。
+
+recycle関数はオブジェクトを初期化するために RecyclePool から実行される関数です。
+
+## サンプルコード
+サンプルコードでは次のクラスをオブジェクト・プーリングの対象としています。
 
 ```ts:main.ts
 class SampleObject implements IRecyclableObject {
@@ -46,35 +53,31 @@ class SampleObject implements IRecyclableObject {
 }
 ```
 
-
-recycleIndex は RecyclePool が再利用処理を素早く行うための変数です。この変数を再利用処理以外の何かの目的に使用することはできません。
-
-
-recycle関数はオブジェクトを初期化するために RecyclePool から実行される関数です。サンプルコードではcountメンバ変数を0に初期化しています。countメンバ変数はMainクラスで値が変更されますが、オブジェクトが再利用されるたびにrecycle関数内で0に初期化されるため、コンソールには常に0が出力されます。
+recycle関数はオブジェクトを初期化するために実行されます。サンプルコードではrecycle関数でcountメンバ変数を0に初期化しています。countメンバ変数はMainクラスで値が変更されますが、オブジェクトが再利用されるたびにrecycle関数内で0に初期化されるため、コンソールには常に0が出力されます。
 
 ```ts:main.ts
-    class Main {
+class Main {
 
-        run() {
+    run() {
 
-            var sampleObjectPool = new RecyclePool<SampleObject>(SampleObject, 50);
+        var sampleObjectPool = new RecyclePool<SampleObject>(SampleObject, 50);
 
-            for (var i = 0; i < 1000; i++) {
+        for (var i = 0; i < 1000; i++) {
 
-                var sampleObject1 = sampleObjectPool.get();
+            var sampleObject1 = sampleObjectPool.get();
 
-                if (sampleObject1 == null) {
-                    return;
-                }
-
-                console.log("sampleObject1.count = " + sampleObject1.count);
-
-                sampleObject1.count++;
-
-                sampleObjectPool.recycle(sampleObject1);
+            if (sampleObject1 == null) {
+                return;
             }
 
-            sampleObjectPool.free();
+            console.log("sampleObject1.count = " + sampleObject1.count);
+
+            sampleObject1.count++;
+
+            sampleObjectPool.recycle(sampleObject1);
         }
+
+        sampleObjectPool.free();
     }
+}
 ```
