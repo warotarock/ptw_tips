@@ -119,14 +119,14 @@ var Game;
         RenderObjectManager.prototype.removeObject = function (renderObject) {
             for (var i = 0; i < this.objects.length; i++) {
                 if (this.objects[i] === renderObject) {
-                    this.objects.splice(i, 1);
+                    ListRemoveAt(this.objects, i);
                     break;
                 }
             }
             var layer = this.getObjectLayer(renderObject.lastLayerID);
             for (var i = 0; i < layer.objects.length; i++) {
                 if (layer.objects[i] === renderObject) {
-                    layer.objects.splice(i, 1);
+                    ListRemoveAt(layer.objects, i);
                     break;
                 }
             }
@@ -182,7 +182,7 @@ var Game;
                     if (obj.layerID != obj.lastLayerID) {
                         var destLayer = this.getObjectLayer(obj.layerID);
                         destLayer.objects.push(obj);
-                        layer.objects.splice(i, 1);
+                        ListRemoveAt(layer.objects, i);
                         obj.lastLayerID = obj.layerID;
                     }
                 }

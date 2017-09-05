@@ -154,7 +154,7 @@ namespace Game {
 
             for (var i = 0; i < this.objects.length; i++) {
                 if (this.objects[i] === renderObject) {
-                    this.objects.splice(i, 1);
+                    ListRemoveAt(this.objects, i);
                     break;
                 }
             }
@@ -163,7 +163,7 @@ namespace Game {
 
             for (var i = 0; i < layer.objects.length; i++) {
                 if (layer.objects[i] === renderObject) {
-                    layer.objects.splice(i, 1);
+                    ListRemoveAt(layer.objects, i);
                     break;
                 }
             }
@@ -256,7 +256,7 @@ namespace Game {
                         var destLayer = this.getObjectLayer(obj.layerID);
                         destLayer.objects.push(obj);
 
-                        layer.objects.splice(i, 1);
+                        ListRemoveAt(layer.objects, i);
 
                         obj.lastLayerID = obj.layerID;
                     }

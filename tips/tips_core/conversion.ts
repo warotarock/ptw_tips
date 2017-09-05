@@ -11,15 +11,11 @@ type char = number;
 type short = number;
 type int = number;
 type long = number;
+type ushort = number;
 type uint = number;
 type ulong = number;
-type ushort = number;
 type float = number;
-
-type stringvalue = string;
-type wchar = string;
-type wstring = string;
-type wstringvalue = string;
+type double = number;
 
 function ListAddRange<T>(destList: List<T>, addList: List<T>) {
     Array.prototype.push.apply(destList, addList);

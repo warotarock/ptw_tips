@@ -65,7 +65,7 @@ module Game {
         remove(task: TaskClass) {
             for (var i = 0; i < this.TaskList.length; i++) {
                 if (this.TaskList[i] == task) {
-                    this.TaskList.splice(i, 1);
+                    ListRemoveAt(this.TaskList, i);
                     break;
                 }
             }
@@ -126,7 +126,7 @@ module Game {
             for (var i = 0; i < g_RecyclePoolRegistryList.length; i++) {
                 if (g_RecyclePoolRegistryList[i] === this.registry) {
 
-                    g_RecyclePoolRegistryList.splice(i);
+                    ListRemoveAt(g_RecyclePoolRegistryList, i);
                     break;
                 }
             }
@@ -262,7 +262,7 @@ module Game {
 
                     this.deleteOrRecycleTask(task);
 
-                    this.tasks.splice(i, 1);
+                    ListRemoveAt(this.tasks, i);
                 }
             }
         }

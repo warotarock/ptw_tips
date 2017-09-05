@@ -32,6 +32,7 @@
     <Content Include="complex_toon_drawing\index.html" />
     <Content Include="object_animation_converting\index.html" />
     <Content Include="object_animation_drawing\index.html" />
+    <Content Include="object_pooling\index.html" />
     <Content Include="render_object_management\index.html" />
     <Content Include="skinning_model_drawing\index.html" />
     <Content Include="skinning_model_converting\index.html" />
@@ -53,6 +54,8 @@
     <Content Include="render_object_management\README.md" />
     <Content Include="task_management\README.md" />
     <Content Include="basic_model_drawing\README.md" />
+    <Content Include="basic_type_conversion\README.md" />
+    <Content Include="object_pooling\README.md" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -72,6 +75,7 @@
     <TypeScriptCompile Include="complex_toon_drawing\main.ts" />
     <TypeScriptCompile Include="object_animation_converting\main.ts" />
     <TypeScriptCompile Include="object_animation_drawing\main.ts" />
+    <TypeScriptCompile Include="object_pooling\main.ts" />
     <TypeScriptCompile Include="render_object_management\main.ts" />
     <TypeScriptCompile Include="task_management\main.ts" />
     <TypeScriptCompile Include="tips_core\game_task_manager.ts" />

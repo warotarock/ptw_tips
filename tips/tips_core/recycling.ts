@@ -37,10 +37,6 @@ class RecyclePool<T extends IRecyclableObject> {
     }
 
     free() {
-        for (var i = 0; i < this.objectList.length; i++) {
-            delete (this.objectList[i]);
-        }
-
         this.objectList = null;
     }
 

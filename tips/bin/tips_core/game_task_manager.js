@@ -57,7 +57,7 @@ var Game;
         TaskGroup.prototype.remove = function (task) {
             for (var i = 0; i < this.TaskList.length; i++) {
                 if (this.TaskList[i] == task) {
-                    this.TaskList.splice(i, 1);
+                    ListRemoveAt(this.TaskList, i);
                     break;
                 }
             }
@@ -96,7 +96,7 @@ var Game;
             }
             for (var i = 0; i < g_RecyclePoolRegistryList.length; i++) {
                 if (g_RecyclePoolRegistryList[i] === this.registry) {
-                    g_RecyclePoolRegistryList.splice(i);
+                    ListRemoveAt(g_RecyclePoolRegistryList, i);
                     break;
                 }
             }
@@ -183,7 +183,7 @@ var Game;
                 var task = this.tasks[i];
                 if (task.state == TaskState.WaitingForDestroy) {
                     this.deleteOrRecycleTask(task);
-                    this.tasks.splice(i, 1);
+                    ListRemoveAt(this.tasks, i);
                 }
             }
         };
