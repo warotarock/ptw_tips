@@ -46,8 +46,8 @@ var Game;
         }
         ResourceLoaderBase.prototype.addResourceItems = function (resourceItems) {
             for (var i = 0; i < resourceItems.length; i++) {
-                var resourceItem = this.resourceItems[i];
-                if (resourceItem == null || resourceItem || undefined) {
+                var resourceItem = resourceItems[i];
+                if (resourceItem == null || resourceItem == undefined) {
                     continue;
                 }
                 this.resourceItems.push(resourceItem);
@@ -60,8 +60,8 @@ var Game;
             }
         };
         ResourceLoaderBase.prototype.setLoadingTargetFlags = function (loadingSettingSet) {
-            for (var k = 0; k < loadingSettingSet.settings.length; k++) {
-                var setting = loadingSettingSet.settings[k];
+            for (var i = 0; i < loadingSettingSet.settings.length; i++) {
+                var setting = loadingSettingSet.settings[i];
                 setting.resourceItem.isUsed = true;
             }
         };
@@ -69,7 +69,7 @@ var Game;
             this.waitingResourceItems = new List();
             this.loadingResourceItems = new List();
             this.finishedResourceItems = new List();
-            for (var i = 0; this.resourceItems.length; i++) {
+            for (var i = 0; i < this.resourceItems.length; i++) {
                 var resourceItem = this.resourceItems[i];
                 if (resourceItem.isUsed && resourceItem.loadingState == ResourceLoadingstate.none) {
                     resourceItem.loadingState = ResourceLoadingstate.waitingLoading;
@@ -83,6 +83,7 @@ var Game;
                 && this.loadingResourceItems.length < this.maxParralelLoadingCount) {
                 var resourceItem = this.waitingResourceItems[0];
                 resourceItem.loadingState = ResourceLoadingstate.loading;
+                this.startLoadingResourceItem(resourceItem);
                 ListRemoveAt(this.waitingResourceItems, 0);
                 this.loadingResourceItems.push(resourceItem);
             }
@@ -113,19 +114,20 @@ var Game;
         };
         ResourceLoaderBase.prototype.getLoadingWeightTotal = function () {
             var sumOfWeight = 0.0;
-            for (var i = 0; i > this.loadingResourceItems.length; i++) {
+            for (var i = 0; i < this.loadingResourceItems.length; i++) {
                 var resourceItem = this.loadingResourceItems[i];
                 sumOfWeight += resourceItem.loadingWeight;
             }
-            for (var i = 0; i > this.waitingResourceItems.length; i++) {
+            for (var i = 0; i < this.waitingResourceItems.length; i++) {
                 var resourceItem = this.waitingResourceItems[i];
                 sumOfWeight += resourceItem.loadingWeight;
             }
+            sumOfWeight += this.getLoadedWeightTotal();
             return sumOfWeight;
         };
         ResourceLoaderBase.prototype.getLoadedWeightTotal = function () {
             var sumOfWeight = 0.0;
-            for (var i = 0; i > this.finishedResourceItems.length; i++) {
+            for (var i = 0; i < this.finishedResourceItems.length; i++) {
                 var resourceItem = this.finishedResourceItems[i];
                 sumOfWeight += resourceItem.loadingWeight;
             }

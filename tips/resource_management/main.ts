@@ -9,11 +9,11 @@ namespace ResourceManagement {
         MaxID = 3,
     }
 
-    enum ModelResourceID {
+    enum SceneResourceID {
         None = 0,
-        Model00 = 1,
-        Model01 = 2,
-        Model02 = 3,
+        Scene00 = 1,
+        Scene01 = 2,
+        Scene02 = 3,
         MaxID = 3,
     }
 
@@ -110,7 +110,7 @@ namespace ResourceManagement {
         }
     }
 
-    class ModelResourceLoader extends Game.ResourceLoaderBase<SceneResource> {
+    class SceneResourceLoader extends Game.ResourceLoaderBase<SceneResource> {
 
         maxParralelLoadingCount = 1;
 
@@ -134,7 +134,7 @@ namespace ResourceManagement {
 
                     var models = data['models'];
 
-                    for (var modelName in data) {
+                    for (var modelName in models) {
                         var modelData = models[modelName];
 
                         var modelResource = new ModelResource();
@@ -166,7 +166,7 @@ namespace ResourceManagement {
         loadingSettings: List<Game.ResourceItemLoadingSettingSet> = null;
 
         imageResourceLoader = new ImageResourceLoader();
-        modelResourceLoader = new ModelResourceLoader();
+        sceneResourceLoader = new SceneResourceLoader();
         resourceManager = new Game.ResourceManager();
 
         eyeLocation = vec3.create();
@@ -185,25 +185,32 @@ namespace ResourceManagement {
 
         isLoaded = false;
 
-        initialize() {
+        initialize(canvas: HTMLCanvasElement) {
+
+            canvas.width = this.logicalScreenWidth;
+            canvas.height = this.logicalScreenHeight;
+
+            if (this.render.initializeWebGL(canvas)) {
+                return;
+            }
 
             // Image resource settings
             var imageResources = new List<ImageResource>(ImageResourceID.MaxID + 1);
 
             imageResources[ImageResourceID.None] = new ImageResource();
-            imageResources[ImageResourceID.Image00] = new ImageResource().path('image01.png').mipmap(true).weight(0.5);
+            imageResources[ImageResourceID.Image00] = new ImageResource().path('image01.png').mipmap(true).weight(1.0);
             imageResources[ImageResourceID.Image01] = new ImageResource().path('image02.png').mipmap(true).weight(1.0);
-            imageResources[ImageResourceID.Image02] = new ImageResource().path('image03.png').mipmap(true).weight(1.0);
+            imageResources[ImageResourceID.Image02] = new ImageResource().path('image03.png').mipmap(true).weight(1.2);
 
             this.imageResources = imageResources;
 
-            // Model resource settings
-            var sceneResources = new List<SceneResource>(ModelResourceID.MaxID + 1);
+            // Scene resource settings
+            var sceneResources = new List<SceneResource>(SceneResourceID.MaxID + 1);
 
-            sceneResources[ModelResourceID.None] = new SceneResource();
-            sceneResources[ModelResourceID.Model00] = new SceneResource().path('model01.json').image(ImageResourceID.Image00).weight(0.5);
-            sceneResources[ModelResourceID.Model01] = new SceneResource().path('model02.json').image(ImageResourceID.Image01).weight(1.0);
-            sceneResources[ModelResourceID.Model02] = new SceneResource().path('model03.json').image(ImageResourceID.Image02).weight(1.0);
+            sceneResources[SceneResourceID.None] = new SceneResource();
+            sceneResources[SceneResourceID.Scene00] = new SceneResource().path('scene01.json').image(ImageResourceID.Image00).weight(1.0);
+            sceneResources[SceneResourceID.Scene01] = new SceneResource().path('scene02.json').image(ImageResourceID.Image01).weight(1.0);
+            sceneResources[SceneResourceID.Scene02] = new SceneResource().path('scene03.json').image(ImageResourceID.Image02).weight(1.2);
 
             this.sceneResources = sceneResources;
 
@@ -214,15 +221,15 @@ namespace ResourceManagement {
 
             loadingSettings[SceneID.Common] = new Game.ResourceItemLoadingSettingSet()
                 .add(imageResources[ImageResourceID.Image00])
-                .add(sceneResources[ModelResourceID.Model00]);
+                .add(sceneResources[SceneResourceID.Scene00]);
 
             loadingSettings[SceneID.Scene01] = new Game.ResourceItemLoadingSettingSet()
                 .add(imageResources[ImageResourceID.Image01])
-                .add(sceneResources[ModelResourceID.Model01]);
+                .add(sceneResources[SceneResourceID.Scene01]);
 
             loadingSettings[SceneID.Scene02] = new Game.ResourceItemLoadingSettingSet()
                 .add(imageResources[ImageResourceID.Image02])
-                .add(sceneResources[ModelResourceID.Model02]);
+                .add(sceneResources[SceneResourceID.Scene02]);
 
             this.loadingSettings = loadingSettings;
 
@@ -230,11 +237,11 @@ namespace ResourceManagement {
             this.imageResourceLoader.render = this.render;
             this.imageResourceLoader.addResourceItems(imageResources);
 
-            this.imageResourceLoader.render = this.render;
-            this.modelResourceLoader.addResourceItems(sceneResources);
+            this.sceneResourceLoader.render = this.render;
+            this.sceneResourceLoader.addResourceItems(sceneResources);
 
             this.resourceManager.addLoader(this.imageResourceLoader);
-            this.resourceManager.addLoader(this.modelResourceLoader);
+            this.resourceManager.addLoader(this.sceneResourceLoader);
 
             // Start loading resources
             this.startSceneLoading(SceneID.Scene01);
@@ -281,7 +288,7 @@ namespace ResourceManagement {
 
             var continueLoading = this.resourceManager.processLoading();
 
-            console.log('Loading progress: ' + (this.resourceManager.getLoadingProgress() * 100.0) + '%');
+            console.log('Loading progress: ' + (this.resourceManager.getLoadingProgress() * 100.0).toFixed(2) + '%');
 
             if (continueLoading) {
                 return;
@@ -335,8 +342,9 @@ namespace ResourceManagement {
 
     window.onload = () => {
 
+        var canvas = <HTMLCanvasElement>document.getElementById('canvas');
         _Main = new Main();
-        _Main.initialize();
+        _Main.initialize(canvas);
 
         setTimeout(run, 1000 / 30);
     };
