@@ -34,6 +34,7 @@
     <Content Include="object_animation_drawing\index.html" />
     <Content Include="object_pooling\index.html" />
     <Content Include="render_object_management\index.html" />
+    <Content Include="resource_management\index.html" />
     <Content Include="skinning_model_drawing\index.html" />
     <Content Include="skinning_model_converting\index.html" />
     <Content Include="task_management\index.html" />
@@ -56,6 +57,7 @@
     <Content Include="basic_model_drawing\README.md" />
     <Content Include="basic_type_conversion\README.md" />
     <Content Include="object_pooling\README.md" />
+    <Content Include="resource_management\README.md" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -77,10 +79,12 @@
     <TypeScriptCompile Include="object_animation_drawing\main.ts" />
     <TypeScriptCompile Include="object_pooling\main.ts" />
     <TypeScriptCompile Include="render_object_management\main.ts" />
+    <TypeScriptCompile Include="resource_management\main.ts" />
     <TypeScriptCompile Include="task_management\main.ts" />
+    <TypeScriptCompile Include="tips_core\game_resource_manager.ts" />
     <TypeScriptCompile Include="tips_core\game_task_manager.ts" />
     <TypeScriptCompile Include="tips_core\game_task_environment.ts" />
-    <TypeScriptCompile Include="tips_core\game_resouce_classes.ts" />
+    <TypeScriptCompile Include="tips_core\game_resource_classes.ts" />
     <TypeScriptCompile Include="tips_core\recycling.ts" />
     <TypeScriptCompile Include="tips_core\game_render_object_manager.ts" />
     <TypeScriptCompile Include="skinning_model_drawing\main.ts" />

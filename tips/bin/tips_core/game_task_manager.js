@@ -26,16 +26,22 @@ var Game;
             // override method
         };
         TaskClass.prototype.onCreate = function (env) {
+            // Override method
         };
         TaskClass.prototype.onDestroy = function (env) {
+            // Override method
         };
         TaskClass.prototype.run = function (env) {
+            // Override method
         };
         TaskClass.prototype.onBeforeRendering = function (env) {
+            // Override method
         };
         TaskClass.prototype.onSampleEvent1 = function (env) {
+            // Override method
         };
         TaskClass.prototype.onSampleEvent2 = function (env) {
+            // Override method
         };
         return TaskClass;
     }());
@@ -67,40 +73,14 @@ var Game;
         };
         return TaskGroup;
     }());
-    var ClassRecyclePoolRegistry = (function () {
-        function ClassRecyclePoolRegistry(pool, name) {
-            this.recyclePool = pool;
-            this.name = name;
-        }
-        return ClassRecyclePoolRegistry;
-    }());
-    var g_RecyclePoolRegistryList = new List();
     var TaskRecyclePool = (function (_super) {
         __extends(TaskRecyclePool, _super);
         function TaskRecyclePool(ObjectType, poolSize, name) {
             var _this = _super.call(this, ObjectType, poolSize) || this;
             _this.ObjectType = ObjectType;
             _this.name = name;
-            if (!StringIsNullOrEmpty(name)) {
-                _this.registry = new ClassRecyclePoolRegistry(_this, name);
-                g_RecyclePoolRegistryList.push(_this.registry);
-            }
-            else {
-                _this.registry = null;
-            }
             return _this;
         }
-        TaskRecyclePool.prototype.unregister = function () {
-            if (this.registry == null) {
-                return;
-            }
-            for (var i = 0; i < g_RecyclePoolRegistryList.length; i++) {
-                if (g_RecyclePoolRegistryList[i] === this.registry) {
-                    ListRemoveAt(g_RecyclePoolRegistryList, i);
-                    break;
-                }
-            }
-        };
         TaskRecyclePool.prototype.resetPool = function () {
             this.reset();
         };
@@ -136,10 +116,6 @@ var Game;
             for (var i = 0; i < this.taskGroups.length; i++) {
                 var taskGroup = this.taskGroups[i];
                 taskGroup.clear();
-            }
-            for (var i = 0; i < g_RecyclePoolRegistryList.length; i++) {
-                var poolReg = g_RecyclePoolRegistryList[i];
-                poolReg.recyclePool.reset();
             }
         };
         TaskManager.prototype.addTask = function (task) {

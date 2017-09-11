@@ -14,7 +14,7 @@
 - [スキンモデルとアニメーションの再生](./skinning_model_drawing/) - Skinning Model Drawing
 
 ### 補助技術編
-- [基本的な型の扱いについて](./basic_type_conversion/) - Basic type conversion （予定）
+- [基本的な型の扱いについて](./basic_type_conversion/) - Basic type conversion
 - [オブジェクト・プーリング（メモリ管理手法）](./object_pooling/) - Object pooling (memory management)
 - コーディングによるアニメーションのための補助関数（予定）
 - IPOによる滑らかな補間（予定）

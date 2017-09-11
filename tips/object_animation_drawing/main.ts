@@ -11,10 +11,10 @@ namespace ObjectAnimationDrawing {
         model = new RenderModel();
         images = new List<RenderImage>();
 
-        animationSolver = new AnimationSolver();
-
         animationDatas = new Dictionary<IPOObjectAnimation>();
         cubeAnimation: IPOObjectAnimation = null;
+
+        animationSolver = new AnimationSolver();
 
         eyeLocation = vec3.create();
         lookatLocation = vec3.create();

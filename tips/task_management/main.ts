@@ -149,12 +149,6 @@ namespace TaskManagement {
         images1 = new List<RenderImage>();
         images2 = new List<RenderImage>();
 
-        eyeLocation = vec3.create();
-        lookatLocation = vec3.create();
-        upVector = vec3.create();
-
-        location = vec3.create();
-
         renderObjectManager = new Game.RenderObjectManager();
         MAX_RENDER_OBJECT = 100;
 
@@ -162,6 +156,12 @@ namespace TaskManagement {
         sampleTask2Pool = new Game.TaskRecyclePool<SampleTask2>(SampleTask2, 50, "SampleTask2");
 
         taskManager = new Game.TaskManager();
+
+        eyeLocation = vec3.create();
+        lookatLocation = vec3.create();
+        upVector = vec3.create();
+
+        location = vec3.create();
 
         modelMatrix = mat4.create();
         viewMatrix = mat4.create();

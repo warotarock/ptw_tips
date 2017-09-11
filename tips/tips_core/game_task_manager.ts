@@ -23,21 +23,33 @@ module Game {
         state: TaskState = TaskState.created;
 
         onCreate(env: Game.TaskEnvironment) {
+
+            // Override method
         }
 
         onDestroy(env: Game.TaskEnvironment) {
+
+            // Override method
         }
 
         run(env: Game.TaskEnvironment) {
+
+            // Override method
         }
 
         onBeforeRendering(env: Game.TaskEnvironment) {
+
+            // Override method
         }
 
         onSampleEvent1(env: Game.TaskEnvironment) {
+
+            // Override method
         }
 
         onSampleEvent2(env: Game.TaskEnvironment) {
+
+            // Override method
         }
     }
 
@@ -76,7 +88,7 @@ module Game {
         }
     }
 
-    // Recycling management
+    // For auto recycling tasks
 
     interface ITaskRecyclePool {
         reset();
@@ -85,51 +97,14 @@ module Game {
         recycle(obj: TaskClass);
     }
 
-    class ClassRecyclePoolRegistry {
-
-        recyclePool: ITaskRecyclePool;
-        name: string;
-
-        constructor(pool: ITaskRecyclePool, name: string) {
-            this.recyclePool = pool;
-            this.name = name;
-        }
-    }
-
-    var g_RecyclePoolRegistryList = new List<ClassRecyclePoolRegistry>();
-
     export class TaskRecyclePool<T extends TaskClass> extends RecyclePool<T> implements ITaskRecyclePool {
 
         name: string;
-        registry: ClassRecyclePoolRegistry;
 
         constructor(protected ObjectType, poolSize: int, name: string) {
             super(ObjectType, poolSize);
 
             this.name = name;
-
-            if (!StringIsNullOrEmpty(name)) {
-                this.registry = new ClassRecyclePoolRegistry(this, name);
-                g_RecyclePoolRegistryList.push(this.registry);
-            }
-            else {
-                this.registry = null;
-            }
-        }
-
-        unregister() {
-
-            if (this.registry == null) {
-                return;
-            }
-
-            for (var i = 0; i < g_RecyclePoolRegistryList.length; i++) {
-                if (g_RecyclePoolRegistryList[i] === this.registry) {
-
-                    ListRemoveAt(g_RecyclePoolRegistryList, i);
-                    break;
-                }
-            }
         }
 
         resetPool() {
@@ -185,12 +160,6 @@ module Game {
                 var taskGroup = this.taskGroups[i];
 
                 taskGroup.clear();
-            }
-
-            for (var i = 0; i < g_RecyclePoolRegistryList.length; i++) {
-                var poolReg = g_RecyclePoolRegistryList[i];
-
-                poolReg.recyclePool.reset();
             }
         }
 

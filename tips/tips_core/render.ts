@@ -43,11 +43,13 @@ class RenderShader {
     }
 
     protected initializeVertexSourceCode() {
-        // override method
+
+        // Override method
     }
 
     protected initializeFragmentSourceCode() {
-        // override method
+
+        // Override method
     }
 
     initializeAttributes(gl: WebGLRenderingContext) {
@@ -75,7 +77,8 @@ class RenderShader {
     }
 
     setBuffers(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
-        // override method
+
+        // Override method
     }
 
     enableVertexAttributes(gl: WebGLRenderingContext) {
@@ -172,7 +175,7 @@ class WebGLRender {
         model.vertexDataStride = vertexDataStride;
     }
 
-    private createVertexBuffer(data: List<float>, gl: WebGLRenderingContext) {
+    private createVertexBuffer(data: List<float>, gl: WebGLRenderingContext): WebGLBuffer {
 
         var glBuffer = gl.createBuffer();
 
@@ -183,7 +186,7 @@ class WebGLRender {
         return glBuffer;
     }
 
-    private createIndexBuffer(data: List<int>, gl: WebGLRenderingContext) {
+    private createIndexBuffer(data: List<int>, gl: WebGLRenderingContext): WebGLBuffer {
 
         var glBuffer = gl.createBuffer();
 
@@ -192,6 +195,29 @@ class WebGLRender {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
         return glBuffer;
+    }
+
+    releaseModelBuffer(model: RenderModel) {
+
+        var gl = this.gl;
+
+        if (model.vertexBuffer != null) {
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+            gl.deleteBuffer(model.vertexBuffer);
+
+            model.vertexBuffer = null;
+        }
+
+        if (model.indexBuffer != null) {
+
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+            gl.deleteBuffer(model.indexBuffer);
+
+            model.indexBuffer = null;
+        }
     }
 
     initializeImageTexture(image: RenderImage) {
@@ -214,6 +240,20 @@ class WebGLRender {
         gl.bindTexture(gl.TEXTURE_2D, null);
 
         image.texture = glTexture;
+    }
+
+    releaseImageTexture(image: RenderImage) {
+
+        var gl = this.gl;
+
+        if (image.texture != null) {
+
+            gl.bindTexture(gl.TEXTURE_2D, null);
+
+            gl.deleteTexture(image.texture);
+
+            image.texture = null;
+        }
     }
 
     initializeShader(shader: RenderShader) {
@@ -263,6 +303,27 @@ class WebGLRender {
             return shader;
         } else {
             alert(gl.getShaderInfoLog(shader));
+        }
+    }
+
+    releaseShader(shader: RenderShader) {
+
+        var gl = this.gl;
+
+        if (shader.program != null) {
+
+            gl.useProgram(null);
+
+            gl.detachShader(shader.program, shader.vertexShader);
+            gl.deleteShader(shader.vertexShader);
+            shader.vertexShader = null;
+
+            gl.detachShader(shader.program, shader.fragmentShader);
+            gl.deleteShader(shader.fragmentShader);
+            shader.fragmentShader = null;
+
+            gl.deleteShader(shader.program);
+            shader.program = null;
         }
     }
 

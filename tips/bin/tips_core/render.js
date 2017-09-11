@@ -35,10 +35,10 @@ var RenderShader = (function () {
         this.initializeFragmentSourceCode();
     };
     RenderShader.prototype.initializeVertexSourceCode = function () {
-        // override method
+        // Override method
     };
     RenderShader.prototype.initializeFragmentSourceCode = function () {
-        // override method
+        // Override method
     };
     RenderShader.prototype.initializeAttributes = function (gl) {
         this.initializeAttributes_RenderShader(gl);
@@ -56,7 +56,7 @@ var RenderShader = (function () {
         return gl.getUniformLocation(this.program, name);
     };
     RenderShader.prototype.setBuffers = function (model, images, gl) {
-        // override method
+        // Override method
     };
     RenderShader.prototype.enableVertexAttributes = function (gl) {
         for (var i = 0; i < this.attribLocationList.length; i++) {
@@ -141,6 +141,19 @@ var WebGLRender = (function () {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
         return glBuffer;
     };
+    WebGLRender.prototype.releaseModelBuffer = function (model) {
+        var gl = this.gl;
+        if (model.vertexBuffer != null) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            gl.deleteBuffer(model.vertexBuffer);
+            model.vertexBuffer = null;
+        }
+        if (model.indexBuffer != null) {
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+            gl.deleteBuffer(model.indexBuffer);
+            model.indexBuffer = null;
+        }
+    };
     WebGLRender.prototype.initializeImageTexture = function (image) {
         var gl = this.gl;
         var glTexture = gl.createTexture();
@@ -154,6 +167,14 @@ var WebGLRender = (function () {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
         gl.bindTexture(gl.TEXTURE_2D, null);
         image.texture = glTexture;
+    };
+    WebGLRender.prototype.releaseImageTexture = function (image) {
+        var gl = this.gl;
+        if (image.texture != null) {
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            gl.deleteTexture(image.texture);
+            image.texture = null;
+        }
     };
     WebGLRender.prototype.initializeShader = function (shader) {
         var gl = this.gl;
@@ -190,6 +211,20 @@ var WebGLRender = (function () {
         }
         else {
             alert(gl.getShaderInfoLog(shader));
+        }
+    };
+    WebGLRender.prototype.releaseShader = function (shader) {
+        var gl = this.gl;
+        if (shader.program != null) {
+            gl.useProgram(null);
+            gl.detachShader(shader.program, shader.vertexShader);
+            gl.deleteShader(shader.vertexShader);
+            shader.vertexShader = null;
+            gl.detachShader(shader.program, shader.fragmentShader);
+            gl.deleteShader(shader.fragmentShader);
+            shader.fragmentShader = null;
+            gl.deleteShader(shader.program);
+            shader.program = null;
         }
     };
     WebGLRender.prototype.setShader = function (shader) {

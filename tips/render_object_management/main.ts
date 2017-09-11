@@ -12,12 +12,12 @@ namespace RenderObjectManagement {
         images1 = new List<RenderImage>();
         images2 = new List<RenderImage>();
 
+        renderObjectManager = new Game.RenderObjectManager();
+        MAX_RENDER_OBJECT = 100;
+
         eyeLocation = vec3.create();
         lookatLocation = vec3.create();
         upVector = vec3.create();
-
-        renderObjectManager = new Game.RenderObjectManager();
-        MAX_RENDER_OBJECT = 100;
 
         modelMatrix = mat4.create();
         viewMatrix = mat4.create();
