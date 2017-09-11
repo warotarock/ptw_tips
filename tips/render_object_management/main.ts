@@ -93,7 +93,7 @@ namespace RenderObjectManagement {
             this.animationTime += 1.0;
 
             // Camera position
-            vec3.set(this.eyeLocation, 14.1, -12.8, 10.0);
+            vec3.set(this.eyeLocation, -20.0, 0.0, 0.0);
             vec3.set(this.lookatLocation, 0.0, 0.0, 0.0);
             vec3.set(this.upVector, 0.0, 0.0, 1.0);
 
@@ -121,9 +121,9 @@ namespace RenderObjectManagement {
                 renderObject.images = this.images1;
                 renderObject.layerID = Game.RenderObjectLayerID.foreGround;
 
-                var locationRange = 20.0;
+                var locationRange = 30.0;
                 vec3.set(renderObject.location
-                    , (-0.5 + Math.random()) * locationRange
+                    , (0.00 + Math.random()) * locationRange
                     , (-0.5 + Math.random()) * locationRange
                     , (-0.5 + Math.random()) * locationRange
                 );
@@ -263,11 +263,12 @@ namespace RenderObjectManagement {
                     var data: any;
                     if (xhr.responseType == 'json') {
                         data = xhr.response;
-                    } else {
+                    }
+                    else {
                         data = JSON.parse(xhr.response);
                     }
 
-                    var modelData = data[modelName];
+                    var modelData = data['models'][modelName];
 
                     this.render.initializeModelBuffer(this.model, modelData.vertex, modelData.index, 4 * modelData.vertexStride); // 4 = size of float
                 }

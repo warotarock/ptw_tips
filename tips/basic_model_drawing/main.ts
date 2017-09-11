@@ -126,11 +126,12 @@ namespace ObjectAnimationDrawing {
                     var data: any;
                     if (xhr.responseType == 'json') {
                         data = xhr.response;
-                    } else {
+                    }
+                    else {
                         data = JSON.parse(xhr.response);
                     }
 
-                    var modelData = data[modelName];
+                    var modelData = data['models'][modelName];
 
                     this.render.initializeModelBuffer(this.model, modelData.vertex, modelData.index, 4 * modelData.vertexStride); // 4 = size of float
                 }

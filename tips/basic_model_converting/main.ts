@@ -59,9 +59,9 @@ namespace BasicModelConverting {
                 vertices.push(modelVertex.position[1]);
                 vertices.push(modelVertex.position[2]);
 
-                //vertices.push(modelVertex.normal[0]);
-                //vertices.push(modelVertex.normal[1]);
-                //vertices.push(modelVertex.normal[2]);
+                vertices.push(modelVertex.normal[0]);
+                vertices.push(modelVertex.normal[1]);
+                vertices.push(modelVertex.normal[2]);
 
                 for (var k = 0; k < modelVertex.texcoords.length; k++) {
                     vertices.push(modelVertex.texcoords[k][0]);
@@ -91,16 +91,28 @@ namespace BasicModelConverting {
 
     function output(convetedMeshes: List<ConvertedModel>, outFileName: string) {
 
+        var tab1 = '  ';
+        var tab2 = '    ';
+        var tab3 = '      ';
+
         var out = [];
+
         out.push('{')
+
+        out.push(tab1 + '\"models\": {')
+
         for (var i = 0; i < convetedMeshes.length; i++) {
             var convetedMesh = convetedMeshes[i];
-            out.push('  \"' + convetedMesh.name + '\": {');
-            out.push('    \"vertexStride\": ' + convetedMesh.vertexStride);
-            out.push('    , \"vertex\": ' + JSON.stringify(convetedMesh.vertices, jsonStringifyReplacer));
-            out.push('    , \"index\": ' + JSON.stringify(convetedMesh.indices));
-            out.push('  }' + (i < convetedMeshes.length - 1 ? ',' : ''));
+
+            out.push(tab2 + '\"' + convetedMesh.name + '\": {');
+            out.push(tab3 + '\"vertexStride\": ' + convetedMesh.vertexStride);
+            out.push(tab3 + ', \"vertex\": ' + JSON.stringify(convetedMesh.vertices, jsonStringifyReplacer));
+            out.push(tab3 + ', \"index\": ' + JSON.stringify(convetedMesh.indices));
+            out.push(tab2 + '}' + (i < convetedMeshes.length - 1 ? ',' : ''));
         }
+
+        out.push(tab1 + '}')
+
         out.push('}')
 
         fs.writeFile(outFileName, out.join('\r\n'), function (error) {

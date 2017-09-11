@@ -190,14 +190,19 @@ var SkinningModelConverting;
         return -1;
     }
     function output(skinningModels, outFileName) {
+        var tab1 = '  ';
+        var tab2 = '    ';
+        var tab3 = '      ';
+        var tab4 = '        ';
         var out = [];
         out.push('{');
+        out.push(tab1 + '\"models\": {');
         for (var modelIndex = 0; modelIndex < skinningModels.length; modelIndex++) {
             var skinningModel = skinningModels[modelIndex];
-            out.push('  \"' + skinningModel.name + '\": {');
+            out.push(tab2 + '\"' + skinningModel.name + '\": {');
             // images
             var imagesText = [];
-            imagesText.push('    \"images\": [');
+            imagesText.push(tab3 + '\"images\": [');
             for (var imageIndex = 0; imageIndex < skinningModel.images.length; imageIndex++) {
                 var imageName = skinningModel.images[imageIndex];
                 if (imageName.length > 2 && imageName.substr(0, 2) == '//') {
@@ -209,31 +214,32 @@ var SkinningModelConverting;
             imagesText.push('],');
             out.push(imagesText.join(''));
             // bones
-            out.push('    \"bones\": [');
+            out.push(tab3 + '\"bones\": [');
             for (var boneIndex = 0; boneIndex < skinningModel.bones.length; boneIndex++) {
                 var bone = skinningModel.bones[boneIndex];
-                out.push('      {' +
+                out.push(tab4 + '{' +
                     '\"name\": \"' + bone.name + '\"' +
                     ', \"parent\": ' + getBoneParentIndex(skinningModel.bones, bone.parent) +
                     ', \"matrix\": ' + JSON.stringify(floatArrayToArray(bone.localMatrix), jsonStringifyReplacer) +
                     '}' + (boneIndex < skinningModel.bones.length - 1 ? ',' : ''));
             }
-            out.push('    ],');
+            out.push(tab3 + '],');
             // parts
-            out.push('    \"parts\": [');
+            out.push(tab3 + '\"parts\": [');
             for (var partIndex = 0; partIndex < skinningModel.parts.length; partIndex++) {
                 var convetedPart = skinningModel.parts[partIndex];
-                out.push('      {');
-                out.push('        \"bone\": ' + JSON.stringify(convetedPart.boneIndices, jsonStringifyReplacer));
-                out.push('        , \"material\": ' + convetedPart.materialIndex);
-                out.push('        , \"vertexStride\": ' + convetedPart.vertexStride);
-                out.push('        , \"vertex\": ' + JSON.stringify(convetedPart.vertices, jsonStringifyReplacer));
-                out.push('        , \"index\": ' + JSON.stringify(convetedPart.indices));
-                out.push('      }' + (partIndex < skinningModel.parts.length - 1 ? ',' : ''));
+                out.push(tab4 + '{');
+                out.push(tab4 + '  \"bone\": ' + JSON.stringify(convetedPart.boneIndices, jsonStringifyReplacer));
+                out.push(tab4 + '  , \"material\": ' + convetedPart.materialIndex);
+                out.push(tab4 + '  , \"vertexStride\": ' + convetedPart.vertexStride);
+                out.push(tab4 + '  , \"vertex\": ' + JSON.stringify(convetedPart.vertices, jsonStringifyReplacer));
+                out.push(tab4 + '  , \"index\": ' + JSON.stringify(convetedPart.indices));
+                out.push(tab4 + '}' + (partIndex < skinningModel.parts.length - 1 ? ',' : ''));
             }
-            out.push('    ]');
-            out.push('  }' + (modelIndex < skinningModels.length - 1 ? ',' : ''));
+            out.push(tab3 + ']');
+            out.push(tab2 + '}' + (modelIndex < skinningModels.length - 1 ? ',' : ''));
         }
+        out.push(tab1 + '}');
         out.push('}');
         fs.writeFile(outFileName, out.join('\r\n'), function (error) {
             if (error != null) {

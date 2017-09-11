@@ -151,7 +151,7 @@ var SkinningModelDrawing;
                 else {
                     data = JSON.parse(xhr.response);
                 }
-                model.data = data['Cube'];
+                model.data = data['models']['Cube'];
                 model.loaded = true;
             });
             xhr.send();

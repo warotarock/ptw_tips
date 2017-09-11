@@ -66,7 +66,7 @@ var RenderObjectManagement;
         Main.prototype.run = function () {
             this.animationTime += 1.0;
             // Camera position
-            vec3.set(this.eyeLocation, 14.1, -12.8, 10.0);
+            vec3.set(this.eyeLocation, -20.0, 0.0, 0.0);
             vec3.set(this.lookatLocation, 0.0, 0.0, 0.0);
             vec3.set(this.upVector, 0.0, 0.0, 1.0);
             // Create objects time by time
@@ -85,8 +85,8 @@ var RenderObjectManagement;
                 renderObject.model = this.model;
                 renderObject.images = this.images1;
                 renderObject.layerID = Game.RenderObjectLayerID.foreGround;
-                var locationRange = 20.0;
-                vec3.set(renderObject.location, (-0.5 + Math.random()) * locationRange, (-0.5 + Math.random()) * locationRange, (-0.5 + Math.random()) * locationRange);
+                var locationRange = 30.0;
+                vec3.set(renderObject.location, (0.00 + Math.random()) * locationRange, (-0.5 + Math.random()) * locationRange, (-0.5 + Math.random()) * locationRange);
                 var rotationRange = Math.PI * 2.0;
                 vec3.set(renderObject.rotation, Math.random() * rotationRange, Math.random() * rotationRange, Math.random() * rotationRange);
                 this.renderObjectManager.addObject(renderObject);
@@ -183,7 +183,7 @@ var RenderObjectManagement;
                 else {
                     data = JSON.parse(xhr.response);
                 }
-                var modelData = data[modelName];
+                var modelData = data['models'][modelName];
                 _this.render.initializeModelBuffer(_this.model, modelData.vertex, modelData.index, 4 * modelData.vertexStride); // 4 = size of float
             });
             xhr.send();

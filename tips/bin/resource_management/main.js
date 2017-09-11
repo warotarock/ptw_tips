@@ -57,7 +57,6 @@ var ResourceManagement;
         };
         return ImageResource;
     }(Game.ResourceItem));
-    ResourceManagement.ImageResource = ImageResource;
     var ImageResourceLoader = (function (_super) {
         __extends(ImageResourceLoader, _super);
         function ImageResourceLoader() {
@@ -76,41 +75,43 @@ var ResourceManagement;
         };
         return ImageResourceLoader;
     }(Game.ResourceLoaderBase));
-    var ModelResource = (function (_super) {
-        __extends(ModelResource, _super);
+    var ModelResource = (function () {
         function ModelResource() {
+            this.modelName = null;
+            this.model = new RenderModel();
+            this.images = null;
+        }
+        return ModelResource;
+    }());
+    var SceneResource = (function (_super) {
+        __extends(SceneResource, _super);
+        function SceneResource() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.maxParralelLoadingCount = 1;
             _this.filePath = null;
-            _this.modelName = null;
             _this.imageIDs = new List();
-            _this.model = new RenderModel();
-            _this.images = null;
+            _this.modelResources = new Dictionary();
             return _this;
         }
-        ModelResource.prototype.weight = function (loadingWeight) {
+        SceneResource.prototype.weight = function (loadingWeight) {
             this.loadingWeight = loadingWeight;
             return this;
         };
-        ModelResource.prototype.path = function (filePath) {
+        SceneResource.prototype.path = function (filePath) {
             this.filePath = filePath;
             return this;
         };
-        ModelResource.prototype.name = function (modelName) {
-            this.modelName = modelName;
-            return this;
-        };
-        ModelResource.prototype.image = function (id) {
+        SceneResource.prototype.image = function (id) {
             this.imageIDs.push(id);
             return this;
         };
-        return ModelResource;
+        return SceneResource;
     }(Game.ResourceItem));
-    ResourceManagement.ModelResource = ModelResource;
     var ModelResourceLoader = (function (_super) {
         __extends(ModelResourceLoader, _super);
         function ModelResourceLoader() {
-            return _super !== null && _super.apply(this, arguments) || this;
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.maxParralelLoadingCount = 1;
+            return _this;
         }
         ModelResourceLoader.prototype.startLoadingResourceItem = function (resourceItem) {
             var _this = this;
@@ -125,9 +126,14 @@ var ResourceManagement;
                 else {
                     data = JSON.parse(xhr.response);
                 }
-                var modelData = data[resourceItem.modelName];
-                _this.render.initializeModelBuffer(resourceItem.model, modelData.vertex, modelData.index, 4 * modelData.vertexStride); // 4 = size of float
-                _this.endLoadingResourceItem(resourceItem);
+                var models = data['models'];
+                for (var modelName in data) {
+                    var modelData = models[modelName];
+                    var modelResource = new ModelResource();
+                    _this.render.initializeModelBuffer(modelResource.model, modelData.vertex, modelData.index, 4 * modelData.vertexStride); // 4 = size of float
+                    resourceItem.modelResources[modelName] = modelResource;
+                    _this.endLoadingResourceItem(resourceItem);
+                }
             });
             xhr.send();
         };
@@ -140,7 +146,7 @@ var ResourceManagement;
             this.render = new WebGLRender();
             this.shader = new SampleShaders.PlainShader();
             this.imageResources = null;
-            this.modelResources = null;
+            this.sceneResources = null;
             this.loadingSettings = null;
             this.imageResourceLoader = new ImageResourceLoader();
             this.modelResourceLoader = new ModelResourceLoader();
@@ -166,30 +172,30 @@ var ResourceManagement;
             imageResources[ImageResourceID.Image02] = new ImageResource().path('image03.png').mipmap(true).weight(1.0);
             this.imageResources = imageResources;
             // Model resource settings
-            var modelResources = new List(ModelResourceID.MaxID + 1);
-            modelResources[ModelResourceID.None] = new ModelResource();
-            modelResources[ModelResourceID.Model00] = new ModelResource().path('model01.json').name('Cube').image(ImageResourceID.Image00).weight(0.5);
-            modelResources[ModelResourceID.Model01] = new ModelResource().path('model02.json').name('Cube').image(ImageResourceID.Image01).weight(1.0);
-            modelResources[ModelResourceID.Model02] = new ModelResource().path('model03.json').name('Cube').image(ImageResourceID.Image02).weight(1.0);
-            this.modelResources = modelResources;
+            var sceneResources = new List(ModelResourceID.MaxID + 1);
+            sceneResources[ModelResourceID.None] = new SceneResource();
+            sceneResources[ModelResourceID.Model00] = new SceneResource().path('model01.json').image(ImageResourceID.Image00).weight(0.5);
+            sceneResources[ModelResourceID.Model01] = new SceneResource().path('model02.json').image(ImageResourceID.Image01).weight(1.0);
+            sceneResources[ModelResourceID.Model02] = new SceneResource().path('model03.json').image(ImageResourceID.Image02).weight(1.0);
+            this.sceneResources = sceneResources;
             // Scene resource settings
             var loadingSettings = new List(SceneID.MaxID + 1);
             loadingSettings[SceneID.None] = new Game.ResourceItemLoadingSettingSet();
             loadingSettings[SceneID.Common] = new Game.ResourceItemLoadingSettingSet()
                 .add(imageResources[ImageResourceID.Image00])
-                .add(modelResources[ModelResourceID.Model00]);
+                .add(sceneResources[ModelResourceID.Model00]);
             loadingSettings[SceneID.Scene01] = new Game.ResourceItemLoadingSettingSet()
                 .add(imageResources[ImageResourceID.Image01])
-                .add(modelResources[ModelResourceID.Model01]);
+                .add(sceneResources[ModelResourceID.Model01]);
             loadingSettings[SceneID.Scene02] = new Game.ResourceItemLoadingSettingSet()
                 .add(imageResources[ImageResourceID.Image02])
-                .add(modelResources[ModelResourceID.Model02]);
+                .add(sceneResources[ModelResourceID.Model02]);
             this.loadingSettings = loadingSettings;
             // Resource manager setup
             this.imageResourceLoader.render = this.render;
             this.imageResourceLoader.addResourceItems(imageResources);
             this.imageResourceLoader.render = this.render;
-            this.modelResourceLoader.addResourceItems(modelResources);
+            this.modelResourceLoader.addResourceItems(sceneResources);
             this.resourceManager.addLoader(this.imageResourceLoader);
             this.resourceManager.addLoader(this.modelResourceLoader);
             // Start loading resources
@@ -207,10 +213,13 @@ var ResourceManagement;
                     this.render.releaseImageTexture(imageResource.image);
                 }
             }
-            for (var i = 0; i < this.modelResources.length; i++) {
-                var modelResource = this.modelResources[i];
-                if (!modelResource.isUsed && modelResource.loadingState == Game.ResourceLoadingstate.finished) {
-                    this.render.releaseModelBuffer(modelResource.model);
+            for (var i = 0; i < this.sceneResources.length; i++) {
+                var sceneResource = this.sceneResources[i];
+                if (!sceneResource.isUsed && sceneResource.loadingState == Game.ResourceLoadingstate.finished) {
+                    for (var modelName in sceneResource.modelResources) {
+                        var modelResource = sceneResource.modelResources[modelName];
+                        this.render.releaseModelBuffer(modelResource.model);
+                    }
                 }
             }
             // Start loading
@@ -228,17 +237,20 @@ var ResourceManagement;
             this.isLoaded = true;
         };
         Main.prototype.linkResources = function () {
-            for (var i = 0; i < this.modelResources.length; i++) {
-                var modelResource = this.modelResources[i];
-                if (modelResource.loadingState != Game.ResourceLoadingstate.finished) {
+            for (var i = 0; i < this.sceneResources.length; i++) {
+                var sceneResource = this.sceneResources[i];
+                if (sceneResource.loadingState != Game.ResourceLoadingstate.finished) {
                     continue;
                 }
-                if (modelResource.images == null) {
-                    modelResource.images = new List(modelResource.imageIDs.length);
-                }
-                for (var k = 0; k < modelResource.imageIDs.length; k++) {
-                    var imageID = modelResource.imageIDs[k];
-                    modelResource.images[k] = this.imageResources[imageID].image;
+                for (var modelName in sceneResource.modelResources) {
+                    var modelResource = sceneResource.modelResources[modelName];
+                    if (modelResource.images == null) {
+                        modelResource.images = new List(sceneResource.imageIDs.length);
+                    }
+                    for (var k = 0; k < sceneResource.imageIDs.length; k++) {
+                        var imageID = sceneResource.imageIDs[k];
+                        modelResource.images[k] = this.imageResources[imageID].image;
+                    }
                 }
             }
         };

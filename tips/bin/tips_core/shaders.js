@@ -15,6 +15,7 @@ var SampleShaders;
         function PlainShader() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
             _this.aPosition = -1;
+            _this.aNormal = -1;
             _this.aTexCoord = -1;
             _this.uTexture0 = null;
             return _this;
@@ -23,18 +24,22 @@ var SampleShaders;
             this.vertexShaderSourceCode = ''
                 + this.floatPrecisionDefinitionCode
                 + 'attribute vec3 aPosition;'
+                + 'attribute vec3 aNormal;'
                 + 'attribute vec2 aTexCoord;'
                 + 'uniform mat4 uPMatrix;'
                 + 'uniform mat4 uMVMatrix;'
+                + 'varying vec3 vNormal;'
                 + 'varying vec2 vTexCoord;'
                 + 'void main(void) {'
                 + '	   gl_Position = uPMatrix * uMVMatrix * vec4(aPosition, 1.0);'
+                + '    vNormal = aNormal;'
                 + '    vTexCoord = aTexCoord;'
                 + '}';
         };
         PlainShader.prototype.initializeFragmentSourceCode = function () {
             this.fragmentShaderSourceCode = ''
                 + this.floatPrecisionDefinitionCode
+                + 'varying vec3 vNormal;'
                 + 'varying vec2 vTexCoord;'
                 + 'uniform sampler2D uTexture0;'
                 + 'void main(void) {'
@@ -47,6 +52,7 @@ var SampleShaders;
         };
         PlainShader.prototype.initializeAttributes_BasicShader = function (gl) {
             this.aPosition = this.getAttribLocation('aPosition', gl);
+            this.aNormal = this.getAttribLocation('aNormal', gl);
             this.aTexCoord = this.getAttribLocation('aTexCoord', gl);
             this.uTexture0 = this.getUniformLocation('uTexture0', gl);
         };
@@ -55,6 +61,7 @@ var SampleShaders;
             this.enableVertexAttributes(gl);
             this.resetVertexAttribPointerOffset();
             this.vertexAttribPointer(this.aPosition, 3, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aNormal, 3, gl.FLOAT, model.vertexDataStride, gl);
             this.vertexAttribPointer(this.aTexCoord, 2, gl.FLOAT, model.vertexDataStride, gl);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
             gl.activeTexture(gl.TEXTURE0);
