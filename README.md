@@ -24,7 +24,7 @@
 全てのソースコードが一度にビルドできるTypeScriptプロジェクトが開きます。
 
 ## ・Visual Studio 2015 Community を使う場合
-[Visual Studio 2015 Community](https://www.visualstudio.com/ja-jp/products/visual-studio-community-vs.aspx)からダウンロード可能です。
+[Visual Studio 2015 Community](https://www.visualstudio.com/ja/vs/older-downloads/)からダウンロード可能です。
 
 インストーラでTypeScriptにチェックを入れてインストールしてください。
 

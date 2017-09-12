@@ -83,6 +83,6 @@ TaskClass -> RenderObjectTask -> SampleTask1 -> SampleTask2
 
 
 ## 関連情報
-- [オブジェクト・プーリング（再利用管理）]()
+- [オブジェクト・プーリング（再利用管理）](../object_pooling/)
 - [モデルの描画](../basic_model_drawing/)
-- [描画オブジェクト管理](./render_object_management/)
+- [描画オブジェクト管理](../render_object_management/)

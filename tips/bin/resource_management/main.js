@@ -16,12 +16,13 @@ var ResourceManagement;
         ImageResourceID[ImageResourceID["Image00"] = 1] = "Image00";
         ImageResourceID[ImageResourceID["Image01"] = 2] = "Image01";
         ImageResourceID[ImageResourceID["Image02"] = 3] = "Image02";
-        ImageResourceID[ImageResourceID["MaxID"] = 3] = "MaxID";
+        ImageResourceID[ImageResourceID["Image03"] = 4] = "Image03";
+        ImageResourceID[ImageResourceID["MaxID"] = 4] = "MaxID";
     })(ImageResourceID || (ImageResourceID = {}));
     var SceneResourceID;
     (function (SceneResourceID) {
         SceneResourceID[SceneResourceID["None"] = 0] = "None";
-        SceneResourceID[SceneResourceID["Scene00"] = 1] = "Scene00";
+        SceneResourceID[SceneResourceID["Common"] = 1] = "Common";
         SceneResourceID[SceneResourceID["Scene01"] = 2] = "Scene01";
         SceneResourceID[SceneResourceID["Scene02"] = 3] = "Scene02";
         SceneResourceID[SceneResourceID["MaxID"] = 3] = "MaxID";
@@ -143,6 +144,8 @@ var ResourceManagement;
         function Main() {
             this.logicalScreenWidth = 640.0;
             this.logicalScreenHeight = 360.0;
+            this.drawer_canvas = HTMLCanvasElement = null;
+            this.context2D = null;
             this.render = new WebGLRender();
             this.shader = new SampleShaders.PlainShader();
             this.imageResources = null;
@@ -151,50 +154,64 @@ var ResourceManagement;
             this.imageResourceLoader = new ImageResourceLoader();
             this.sceneResourceLoader = new SceneResourceLoader();
             this.resourceManager = new Game.ResourceManager();
+            this.common_ModelResource = null;
+            this.scene_ModelResource = null;
             this.eyeLocation = vec3.create();
             this.lookatLocation = vec3.create();
             this.upVector = vec3.create();
-            this.location = vec3.create();
+            this.commonModel_Location = vec3.create();
+            this.sceneModel_Location = vec3.create();
             this.modelMatrix = mat4.create();
             this.viewMatrix = mat4.create();
             this.pMatrix = mat4.create();
             this.mvMatrix = mat4.create();
+            this.currentSceneID = SceneID.None;
             this.requestedSeneID = SceneID.None;
             this.animationTime = 0.0;
             this.isLoaded = false;
+            this.loadingAnimationTime = 0.0;
         }
-        Main.prototype.initialize = function (canvas) {
-            canvas.width = this.logicalScreenWidth;
-            canvas.height = this.logicalScreenHeight;
-            if (this.render.initializeWebGL(canvas)) {
+        Main.prototype.initialize = function (webgl_canvas, drawer_canvas) {
+            // Initialize WebGL
+            webgl_canvas.width = this.logicalScreenWidth;
+            webgl_canvas.height = this.logicalScreenHeight;
+            if (this.render.initializeWebGL(webgl_canvas)) {
                 return;
             }
+            this.render.initializeShader(this.shader);
+            // Initialize Canvas2D
+            drawer_canvas.width = this.logicalScreenWidth;
+            drawer_canvas.height = this.logicalScreenHeight;
+            this.drawer_canvas = drawer_canvas;
+            this.context2D = drawer_canvas.getContext('2d');
             // Image resource settings
             var imageResources = new List(ImageResourceID.MaxID + 1);
             imageResources[ImageResourceID.None] = new ImageResource();
-            imageResources[ImageResourceID.Image00] = new ImageResource().path('image01.png').mipmap(true).weight(1.0);
-            imageResources[ImageResourceID.Image01] = new ImageResource().path('image02.png').mipmap(true).weight(1.0);
-            imageResources[ImageResourceID.Image02] = new ImageResource().path('image03.png').mipmap(true).weight(1.2);
+            imageResources[ImageResourceID.Image00] = new ImageResource().path('image00.png').mipmap(true).weight(1.0);
+            imageResources[ImageResourceID.Image01] = new ImageResource().path('image01.png').mipmap(true).weight(1.0);
+            imageResources[ImageResourceID.Image02] = new ImageResource().path('image02.png').mipmap(true).weight(1.2);
+            imageResources[ImageResourceID.Image03] = new ImageResource().path('image03.png').mipmap(true).weight(1.2);
             this.imageResources = imageResources;
             // Scene resource settings
             var sceneResources = new List(SceneResourceID.MaxID + 1);
             sceneResources[SceneResourceID.None] = new SceneResource();
-            sceneResources[SceneResourceID.Scene00] = new SceneResource().path('scene01.json').image(ImageResourceID.Image00).weight(1.0);
-            sceneResources[SceneResourceID.Scene01] = new SceneResource().path('scene02.json').image(ImageResourceID.Image01).weight(1.0);
-            sceneResources[SceneResourceID.Scene02] = new SceneResource().path('scene03.json').image(ImageResourceID.Image02).weight(1.2);
+            sceneResources[SceneResourceID.Common] = new SceneResource().path('scene00.json').image(ImageResourceID.Image00).weight(1.0);
+            sceneResources[SceneResourceID.Scene01] = new SceneResource().path('scene01.json').image(ImageResourceID.Image01).weight(1.0);
+            sceneResources[SceneResourceID.Scene02] = new SceneResource().path('scene02.json').image(ImageResourceID.Image02).weight(1.0);
             this.sceneResources = sceneResources;
-            // Scene resource settings
+            // Loading settings
             var loadingSettings = new List(SceneID.MaxID + 1);
             loadingSettings[SceneID.None] = new Game.ResourceItemLoadingSettingSet();
             loadingSettings[SceneID.Common] = new Game.ResourceItemLoadingSettingSet()
-                .add(imageResources[ImageResourceID.Image00])
-                .add(sceneResources[SceneResourceID.Scene00]);
+                .add(sceneResources[SceneResourceID.Common])
+                .add(imageResources[ImageResourceID.Image00]);
             loadingSettings[SceneID.Scene01] = new Game.ResourceItemLoadingSettingSet()
-                .add(imageResources[ImageResourceID.Image01])
-                .add(sceneResources[SceneResourceID.Scene01]);
+                .add(sceneResources[SceneResourceID.Scene01])
+                .add(imageResources[ImageResourceID.Image01]);
             loadingSettings[SceneID.Scene02] = new Game.ResourceItemLoadingSettingSet()
+                .add(sceneResources[SceneResourceID.Scene02])
                 .add(imageResources[ImageResourceID.Image02])
-                .add(sceneResources[SceneResourceID.Scene02]);
+                .add(imageResources[ImageResourceID.Image03]); // *This line (Image03) is a sample code: SettingSet can include images which is not used by models
             this.loadingSettings = loadingSettings;
             // Resource manager setup
             this.imageResourceLoader.render = this.render;
@@ -204,7 +221,8 @@ var ResourceManagement;
             this.resourceManager.addLoader(this.imageResourceLoader);
             this.resourceManager.addLoader(this.sceneResourceLoader);
             // Start loading resources
-            this.startSceneLoading(SceneID.Scene01);
+            this.currentSceneID = SceneID.Scene02;
+            this.startSceneLoading(this.currentSceneID);
         };
         Main.prototype.startSceneLoading = function (sceneID) {
             // Target resource setup
@@ -230,16 +248,48 @@ var ResourceManagement;
             // Start loading
             this.resourceManager.startLoading();
             this.isLoaded = false;
+            this.loadingAnimationTime = 0.0;
         };
         Main.prototype.processLoading = function () {
+            // Process loading
             var continueLoading = this.resourceManager.processLoading();
-            console.log('Loading progress: ' + (this.resourceManager.getLoadingProgress() * 100.0).toFixed(2) + '%');
-            if (continueLoading) {
+            // Draw Progress
+            this.showLoadingProgress();
+            if (continueLoading || this.loadingAnimationTime < 1.0) {
                 return;
             }
+            // Loading finished
+            this.drawer_canvas.style.display = 'none';
             // Link models and images
             this.linkResources();
+            // Start scene
+            this.initializeScene();
             this.isLoaded = true;
+        };
+        Main.prototype.showLoadingProgress = function () {
+            // Calculate animation
+            var loadingProgress = this.resourceManager.getLoadingProgress();
+            this.loadingAnimationTime += (loadingProgress - this.loadingAnimationTime) * 0.3;
+            if (this.loadingAnimationTime >= 0.999) {
+                this.loadingAnimationTime = 1.0;
+            }
+            // Draw
+            var centerX = this.logicalScreenWidth * 0.5;
+            var centerY = this.logicalScreenHeight * 0.5;
+            var size = Math.min(this.logicalScreenWidth, this.logicalScreenHeight);
+            this.context2D.clearRect(0, 0, this.logicalScreenWidth, this.logicalScreenHeight);
+            this.context2D.beginPath();
+            this.context2D.arc(centerX, centerY, size * 0.3, Math.PI * 1.5, Math.PI * 1.5 + this.loadingAnimationTime * Math.PI * 2.0, false);
+            this.context2D.stroke();
+            var percentage = this.loadingAnimationTime * 100.0;
+            if (percentage >= 99.0) {
+                // Shows 100% virtualy...
+                percentage = 100.0;
+            }
+            this.context2D.font = "bold 16px";
+            this.context2D.textAlign = 'center';
+            this.context2D.fillText(percentage.toFixed(2) + '%', centerX, centerY);
+            console.log('Loading progress: ' + (loadingProgress * 100.0).toFixed(2) + '%');
         };
         Main.prototype.linkResources = function () {
             for (var i = 0; i < this.sceneResources.length; i++) {
@@ -259,22 +309,67 @@ var ResourceManagement;
                 }
             }
         };
+        Main.prototype.initializeScene = function () {
+            this.common_ModelResource = this.sceneResources[SceneResourceID.Common].modelResources['Cube'];
+            vec3.set(this.commonModel_Location, 2.0, 0.0, 0.0);
+            if (this.currentSceneID == SceneID.Scene01) {
+                this.scene_ModelResource = this.sceneResources[SceneResourceID.Scene01].modelResources['Cube'];
+            }
+            else {
+                this.scene_ModelResource = this.sceneResources[SceneResourceID.Scene02].modelResources['Cube'];
+            }
+            vec3.set(this.sceneModel_Location, -2.0, 0.0, 0.0);
+        };
         Main.prototype.run = function () {
+            // Scene switching
             if (this.requestedSeneID != SceneID.None) {
                 this.startSceneLoading(this.requestedSeneID);
+                this.currentSceneID = this.requestedSeneID;
                 this.requestedSeneID = SceneID.None;
                 return;
             }
+            this.animationTime += 1.0;
+            // Camera position
+            vec3.set(this.eyeLocation, 0.0, 8.0, 3.0);
+            vec3.set(this.lookatLocation, 0.0, 0.0, 0.0);
+            vec3.set(this.upVector, 0.0, 0.0, 1.0);
         };
         Main.prototype.draw = function () {
+            var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
+            mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 100.0);
+            mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
+            this.render.setDepthTest(true);
+            this.render.setCulling(false);
+            this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
+            // Common model
+            mat4.identity(this.modelMatrix);
+            mat4.translate(this.modelMatrix, this.modelMatrix, this.commonModel_Location);
+            mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.animationTime * 0.02);
+            this.drawModel(this.modelMatrix, this.common_ModelResource);
+            // Scene model
+            mat4.identity(this.modelMatrix);
+            mat4.translate(this.modelMatrix, this.modelMatrix, this.sceneModel_Location);
+            mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.animationTime * 0.02);
+            this.drawModel(this.modelMatrix, this.scene_ModelResource);
+        };
+        Main.prototype.drawModel = function (modelMatrix, modelResource) {
+            mat4.multiply(this.mvMatrix, this.viewMatrix, modelMatrix);
+            this.render.setShader(this.shader);
+            this.render.setProjectionMatrix(this.pMatrix);
+            this.render.setModelViewMatrix(this.mvMatrix);
+            this.render.setBuffers(modelResource.model, modelResource.images);
+            this.render.setDepthTest(true);
+            this.render.setCulling(false);
+            this.render.drawElements(modelResource.model);
         };
         return Main;
     }());
     var _Main;
     window.onload = function () {
-        var canvas = document.getElementById('canvas');
+        var webgl_canvas = document.getElementById('webgl_canvas');
+        var drawer_canvas = document.getElementById('drawer_canvas');
         _Main = new Main();
-        _Main.initialize(canvas);
+        _Main.initialize(webgl_canvas, drawer_canvas);
         setTimeout(run, 1000 / 30);
     };
     function run() {

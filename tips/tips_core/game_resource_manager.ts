@@ -243,6 +243,10 @@ namespace Game {
 
         processLoading(): boolean {
 
+            if (this.loadingLoaderProgressCount >= this.loaders.length) {
+                return false;
+            }
+
             var loader = this.loaders[this.loadingLoaderProgressCount];
 
             if (loader.processLoading()) {

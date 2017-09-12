@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>リソース管理 Resource management - PTW Tips</title>
+    <title>リソース管理 - Resource management - PTW Tips</title>
     <script src="../external/glmatrix/gl-matrix-min.js"></script>
     <script src="../bin/tips_core/conversion.js"></script>
     <script src="../bin/tips_core/render.js"></script>
@@ -11,11 +11,18 @@
     <script src="../bin/tips_core/recycling.js"></script>
     <script src="../bin/tips_core/game_resource_manager.js"></script>
     <script src="../bin/resource_management/main.js"></script>
+    <style>
+        canvas {
+            position: absolute;
+        }
+    </style>
 </head>
 <body>
-    <h1>リソース管理 Resource management - PTW Tips</h1>
+    <h2>PTW Tips</h2>
+    <h1>リソース管理 - Resource management</h1>
     <div id="content">
-        <canvas id="canvas" width="960" height="540"></canvas>
+        <canvas id="webgl_canvas" width="960" height="540"></canvas>
+        <canvas id="drawer_canvas" width="960" height="540"></canvas>
     </div>
 </body>
 </html>
