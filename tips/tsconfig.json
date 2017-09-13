@@ -27,13 +27,7 @@
   },
   "compileOnSave": true,
   "filesGlob": [
-    "./**/*.ts",
     "!./node_modules/**/*.ts",
-    "!./bower_components/**/*.ts",
-    "!./typings/**/*.ts",
-    "./typings/**/*.ts"
-  ],
-  "files": [
     "./**/*.ts"
   ]
 }
