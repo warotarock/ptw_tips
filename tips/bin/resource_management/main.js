@@ -165,7 +165,7 @@ var ResourceManagement;
             this.viewMatrix = mat4.create();
             this.pMatrix = mat4.create();
             this.mvMatrix = mat4.create();
-            this.currentSceneID = SceneID.None;
+            this.currentSceneID = SceneID.Scene01;
             this.requestedSeneID = SceneID.None;
             this.animationTime = 0.0;
             this.isLoaded = false;
@@ -221,7 +221,6 @@ var ResourceManagement;
             this.resourceManager.addLoader(this.imageResourceLoader);
             this.resourceManager.addLoader(this.sceneResourceLoader);
             // Start loading resources
-            this.currentSceneID = SceneID.Scene02;
             this.startSceneLoading(this.currentSceneID);
         };
         Main.prototype.startSceneLoading = function (sceneID) {
@@ -234,6 +233,7 @@ var ResourceManagement;
                 var imageResource = this.imageResources[i];
                 if (!imageResource.isUsed && imageResource.loadingState == Game.ResourceLoadingstate.finished) {
                     this.render.releaseImageTexture(imageResource.image);
+                    imageResource.loadingState = Game.ResourceLoadingstate.none;
                 }
             }
             for (var i = 0; i < this.sceneResources.length; i++) {
@@ -242,6 +242,7 @@ var ResourceManagement;
                     for (var modelName in sceneResource.modelResources) {
                         var modelResource = sceneResource.modelResources[modelName];
                         this.render.releaseModelBuffer(modelResource.model);
+                        sceneResource.loadingState = Game.ResourceLoadingstate.none;
                     }
                 }
             }
@@ -249,11 +250,20 @@ var ResourceManagement;
             this.resourceManager.startLoading();
             this.isLoaded = false;
             this.loadingAnimationTime = 0.0;
+            this.drawer_canvas.style.display = 'block';
+            this.showLoadingProgress();
+        };
+        Main.prototype.requestSwitchingScene = function (nextSceneID) {
+            if (!this.isLoaded) {
+                return;
+            }
+            this.requestedSeneID = nextSceneID;
         };
         Main.prototype.processLoading = function () {
             // Process loading
             var continueLoading = this.resourceManager.processLoading();
             // Draw Progress
+            this.animateLoadingProgress();
             this.showLoadingProgress();
             if (continueLoading || this.loadingAnimationTime < 1.0) {
                 return;
@@ -266,18 +276,29 @@ var ResourceManagement;
             this.initializeScene();
             this.isLoaded = true;
         };
-        Main.prototype.showLoadingProgress = function () {
-            // Calculate animation
+        Main.prototype.animateLoadingProgress = function () {
             var loadingProgress = this.resourceManager.getLoadingProgress();
-            this.loadingAnimationTime += (loadingProgress - this.loadingAnimationTime) * 0.3;
-            if (this.loadingAnimationTime >= 0.999) {
+            if (loadingProgress == -1.0) {
+                // Already loaded
+                loadingProgress = 1.0;
                 this.loadingAnimationTime = 1.0;
             }
+            this.loadingAnimationTime += (loadingProgress - this.loadingAnimationTime) * 0.3;
+            if (this.loadingAnimationTime >= 0.999) {
+                // Finish
+                this.loadingAnimationTime = 1.0;
+            }
+            console.log('Loading progress: ' + (loadingProgress * 100.0).toFixed(2) + '%');
+        };
+        Main.prototype.showLoadingProgress = function () {
             // Draw
             var centerX = this.logicalScreenWidth * 0.5;
             var centerY = this.logicalScreenHeight * 0.5;
             var size = Math.min(this.logicalScreenWidth, this.logicalScreenHeight);
             this.context2D.clearRect(0, 0, this.logicalScreenWidth, this.logicalScreenHeight);
+            this.context2D.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            this.context2D.fillRect(0, 0, this.logicalScreenWidth, this.logicalScreenHeight);
+            this.context2D.fillStyle = 'rgba(0, 0, 0, 1.0)';
             this.context2D.beginPath();
             this.context2D.arc(centerX, centerY, size * 0.3, Math.PI * 1.5, Math.PI * 1.5 + this.loadingAnimationTime * Math.PI * 2.0, false);
             this.context2D.stroke();
@@ -289,7 +310,6 @@ var ResourceManagement;
             this.context2D.font = "bold 16px";
             this.context2D.textAlign = 'center';
             this.context2D.fillText(percentage.toFixed(2) + '%', centerX, centerY);
-            console.log('Loading progress: ' + (loadingProgress * 100.0).toFixed(2) + '%');
         };
         Main.prototype.linkResources = function () {
             for (var i = 0; i < this.sceneResources.length; i++) {
@@ -335,6 +355,9 @@ var ResourceManagement;
             vec3.set(this.upVector, 0.0, 0.0, 1.0);
         };
         Main.prototype.draw = function () {
+            if (!this.isLoaded) {
+                return;
+            }
             var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
             mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 100.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
@@ -370,6 +393,12 @@ var ResourceManagement;
         var drawer_canvas = document.getElementById('drawer_canvas');
         _Main = new Main();
         _Main.initialize(webgl_canvas, drawer_canvas);
+        document.getElementById('scene01').onclick = function () {
+            _Main.requestSwitchingScene(SceneID.Scene01);
+        };
+        document.getElementById('scene02').onclick = function () {
+            _Main.requestSwitchingScene(SceneID.Scene02);
+        };
         setTimeout(run, 1000 / 30);
     };
     function run() {

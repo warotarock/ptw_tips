@@ -188,7 +188,7 @@ namespace ResourceManagement {
         pMatrix = mat4.create();
         mvMatrix = mat4.create();
 
-        currentSceneID = SceneID.None;
+        currentSceneID = SceneID.Scene01;
         requestedSeneID = SceneID.None;
         animationTime = 0.0;
 
@@ -266,7 +266,6 @@ namespace ResourceManagement {
             this.resourceManager.addLoader(this.sceneResourceLoader);
 
             // Start loading resources
-            this.currentSceneID = SceneID.Scene02;
             this.startSceneLoading(this.currentSceneID);
         }
 
@@ -285,6 +284,8 @@ namespace ResourceManagement {
                 if (!imageResource.isUsed && imageResource.loadingState == Game.ResourceLoadingstate.finished) {
 
                     this.render.releaseImageTexture(imageResource.image);
+
+                    imageResource.loadingState = Game.ResourceLoadingstate.none;
                 }
             }
 
@@ -297,6 +298,8 @@ namespace ResourceManagement {
                         var modelResource: ModelResource = sceneResource.modelResources[modelName];
 
                         this.render.releaseModelBuffer(modelResource.model);
+
+                        sceneResource.loadingState = Game.ResourceLoadingstate.none;
                     }
                 }
             }
@@ -306,6 +309,18 @@ namespace ResourceManagement {
 
             this.isLoaded = false;
             this.loadingAnimationTime = 0.0;
+
+            this.drawer_canvas.style.display = 'block';
+            this.showLoadingProgress();
+        }
+
+        requestSwitchingScene(nextSceneID: SceneID) {
+
+            if (!this.isLoaded) {
+                return;
+            }
+
+            this.requestedSeneID = nextSceneID;
         }
 
         processLoading() {
@@ -314,6 +329,7 @@ namespace ResourceManagement {
             var continueLoading = this.resourceManager.processLoading();
 
             // Draw Progress
+            this.animateLoadingProgress();
             this.showLoadingProgress();
 
             if (continueLoading || this.loadingAnimationTime < 1.0) {
@@ -332,16 +348,27 @@ namespace ResourceManagement {
             this.isLoaded = true;
         }
 
-        private showLoadingProgress() {
-            
-            // Calculate animation
+        private animateLoadingProgress() {
+
             var loadingProgress = this.resourceManager.getLoadingProgress();
+
+            if (loadingProgress == -1.0) {
+                // Already loaded
+                loadingProgress = 1.0;
+                this.loadingAnimationTime = 1.0;
+            }
 
             this.loadingAnimationTime += (loadingProgress - this.loadingAnimationTime) * 0.3;
 
             if (this.loadingAnimationTime >= 0.999) {
+                // Finish
                 this.loadingAnimationTime = 1.0;
             }
+
+            console.log('Loading progress: ' + (loadingProgress * 100.0).toFixed(2) + '%');
+        }
+
+        private showLoadingProgress() {
 
             // Draw
             var centerX = this.logicalScreenWidth * 0.5;
@@ -350,6 +377,10 @@ namespace ResourceManagement {
 
             this.context2D.clearRect(0, 0, this.logicalScreenWidth, this.logicalScreenHeight);
 
+            this.context2D.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            this.context2D.fillRect(0, 0, this.logicalScreenWidth, this.logicalScreenHeight);
+
+            this.context2D.fillStyle = 'rgba(0, 0, 0, 1.0)';
             this.context2D.beginPath();
             this.context2D.arc(
                 centerX
@@ -368,8 +399,6 @@ namespace ResourceManagement {
             this.context2D.font = "bold 16px";
             this.context2D.textAlign = 'center';
             this.context2D.fillText(percentage.toFixed(2) + '%', centerX, centerY);
-
-            console.log('Loading progress: ' + (loadingProgress * 100.0).toFixed(2) + '%');
         }
 
         private linkResources() {
@@ -438,6 +467,10 @@ namespace ResourceManagement {
 
         draw() {
 
+            if (!this.isLoaded) {
+                return;
+            }
+
             var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
             mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 100.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
@@ -485,6 +518,14 @@ namespace ResourceManagement {
         var drawer_canvas = <HTMLCanvasElement>document.getElementById('drawer_canvas');
         _Main = new Main();
         _Main.initialize(webgl_canvas, drawer_canvas);
+
+        document.getElementById('scene01').onclick = () => {
+            _Main.requestSwitchingScene(SceneID.Scene01);
+        };
+
+        document.getElementById('scene02').onclick = () => {
+            _Main.requestSwitchingScene(SceneID.Scene02);
+        };
 
         setTimeout(run, 1000 / 30);
     };

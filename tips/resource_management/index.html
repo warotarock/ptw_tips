@@ -15,14 +15,29 @@
         canvas {
             position: absolute;
         }
+
+        div#content {
+            width: 640px;
+            height: 360px;
+            margin: 0 0 8px 0;
+        }
+
+        div#ui {
+            width: 640px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <h2>PTW Tips</h2>
     <h1>リソース管理 - Resource management</h1>
     <div id="content">
-        <canvas id="webgl_canvas" width="960" height="540"></canvas>
-        <canvas id="drawer_canvas" width="960" height="540"></canvas>
+        <canvas id="webgl_canvas"></canvas>
+        <canvas id="drawer_canvas"></canvas>
+    </div>
+    <div id="ui">
+        <input type="button" id="scene01" value="Scene01" />
+        <input type="button" id="scene02" value="Scene02" />
     </div>
 </body>
 </html>
