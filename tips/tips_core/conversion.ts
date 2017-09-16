@@ -48,3 +48,7 @@ function StringStartsWith(text: string, searchString: string): boolean {
 function StringContains(text: string, searchString: string): boolean {
     return (text.indexOf(searchString) != -1);
 }
+
+function DateGetTime(): long {
+    return (new Date().getTime());
+}

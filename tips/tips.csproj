@@ -25,6 +25,7 @@
   <ItemGroup>
     <Content Include="basic_model_converting\index.html" />
     <Content Include="basic_model_converting\README.md" />
+    <Content Include="input_management\index.html" />
     <Content Include="basic_model_drawing\index.html" />
     <Content Include="basic_webgl_ts\index.html" />
     <Content Include="blend_file_reader_sample\index.html" />
@@ -58,6 +59,7 @@
     <Content Include="basic_type_conversion\README.md" />
     <Content Include="object_pooling\README.md" />
     <Content Include="resource_management\README.md" />
+    <Content Include="input_management\README.md" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -67,6 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="basic_model_converting\main.ts" />
+    <TypeScriptCompile Include="input_management\main.ts" />
     <TypeScriptCompile Include="basic_model_drawing\main.ts" />
     <TypeScriptCompile Include="basic_webgl_ts\main.ts" />
     <TypeScriptCompile Include="blend_file_reader_sample\main.ts" />
@@ -84,7 +87,10 @@
     <TypeScriptCompile Include="tips_core\game_resource_manager.ts" />
     <TypeScriptCompile Include="tips_core\game_task_manager.ts" />
     <TypeScriptCompile Include="tips_core\game_task_environment.ts" />
-    <TypeScriptCompile Include="tips_core\game_resource_classes.ts" />
+    <TypeScriptCompile Include="tips_core\input_gamepad.ts" />
+    <TypeScriptCompile Include="tips_core\input_mouse.ts" />
+    <TypeScriptCompile Include="tips_core\input_keyboard.ts" />
+    <TypeScriptCompile Include="tips_core\input.ts" />
     <TypeScriptCompile Include="tips_core\recycling.ts" />
     <TypeScriptCompile Include="tips_core\game_render_object_manager.ts" />
     <TypeScriptCompile Include="skinning_model_drawing\main.ts" />

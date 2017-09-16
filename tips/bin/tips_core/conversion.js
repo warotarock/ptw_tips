@@ -25,3 +25,6 @@ function StringStartsWith(text, searchString) {
 function StringContains(text, searchString) {
     return (text.indexOf(searchString) != -1);
 }
+function DateGetTime() {
+    return (new Date().getTime());
+}
