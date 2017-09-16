@@ -36,15 +36,15 @@ var Game;
         return ResourceItemLoadingSettingSet;
     }());
     Game.ResourceItemLoadingSettingSet = ResourceItemLoadingSettingSet;
-    var ResourceLoaderBase = (function () {
-        function ResourceLoaderBase() {
-            this.maxParralelLoadingCount = 1;
+    var ResourceLoader = (function () {
+        function ResourceLoader() {
+            this.maxParallelLoadingCount = 1;
             this.resourceItems = new List();
             this.waitingResourceItems = null;
             this.loadingResourceItems = null;
             this.finishedResourceItems = null;
         }
-        ResourceLoaderBase.prototype.addResourceItems = function (resourceItems) {
+        ResourceLoader.prototype.addResourceItems = function (resourceItems) {
             for (var i = 0; i < resourceItems.length; i++) {
                 var resourceItem = resourceItems[i];
                 if (resourceItem == null || resourceItem == undefined) {
@@ -53,19 +53,19 @@ var Game;
                 this.resourceItems.push(resourceItem);
             }
         };
-        ResourceLoaderBase.prototype.resetLoadingTargetFlags = function () {
+        ResourceLoader.prototype.resetLoadingTargetFlags = function () {
             for (var i = 0; i < this.resourceItems.length; i++) {
                 var resourceItem = this.resourceItems[i];
                 resourceItem.isUsed = false;
             }
         };
-        ResourceLoaderBase.prototype.setLoadingTargetFlags = function (loadingSettingSet) {
+        ResourceLoader.prototype.setLoadingTargetFlags = function (loadingSettingSet) {
             for (var i = 0; i < loadingSettingSet.settings.length; i++) {
                 var setting = loadingSettingSet.settings[i];
                 setting.resourceItem.isUsed = true;
             }
         };
-        ResourceLoaderBase.prototype.startLoading = function () {
+        ResourceLoader.prototype.startLoading = function () {
             this.waitingResourceItems = new List();
             this.loadingResourceItems = new List();
             this.finishedResourceItems = new List();
@@ -77,10 +77,10 @@ var Game;
                 }
             }
         };
-        ResourceLoaderBase.prototype.processLoading = function () {
+        ResourceLoader.prototype.processLoading = function () {
             // Move waiting item to loading list
             if (this.waitingResourceItems.length > 0
-                && this.loadingResourceItems.length < this.maxParralelLoadingCount) {
+                && this.loadingResourceItems.length < this.maxParallelLoadingCount) {
                 var resourceItem = this.waitingResourceItems[0];
                 resourceItem.loadingState = ResourceLoadingstate.loading;
                 this.startLoadingResourceItem(resourceItem);
@@ -105,14 +105,14 @@ var Game;
                 return true;
             }
         };
-        ResourceLoaderBase.prototype.startLoadingResourceItem = function (resourceItem) {
+        ResourceLoader.prototype.startLoadingResourceItem = function (resourceItem) {
             // Override method
             // Must call endLoadingResourceItem at end of this method
         };
-        ResourceLoaderBase.prototype.endLoadingResourceItem = function (resourceItem) {
+        ResourceLoader.prototype.endLoadingResourceItem = function (resourceItem) {
             resourceItem.loadingState = ResourceLoadingstate.waitingFinishing;
         };
-        ResourceLoaderBase.prototype.getLoadingWeightTotal = function () {
+        ResourceLoader.prototype.getLoadingWeightTotal = function () {
             var sumOfWeight = 0.0;
             for (var i = 0; i < this.loadingResourceItems.length; i++) {
                 var resourceItem = this.loadingResourceItems[i];
@@ -125,7 +125,7 @@ var Game;
             sumOfWeight += this.getLoadedWeightTotal();
             return sumOfWeight;
         };
-        ResourceLoaderBase.prototype.getLoadedWeightTotal = function () {
+        ResourceLoader.prototype.getLoadedWeightTotal = function () {
             var sumOfWeight = 0.0;
             for (var i = 0; i < this.finishedResourceItems.length; i++) {
                 var resourceItem = this.finishedResourceItems[i];
@@ -133,9 +133,21 @@ var Game;
             }
             return sumOfWeight;
         };
-        return ResourceLoaderBase;
+        ResourceLoader.prototype.unloadUnusedResources = function () {
+            for (var i = 0; i < this.resourceItems.length; i++) {
+                var resourceItem = this.resourceItems[i];
+                if (!resourceItem.isUsed && resourceItem.loadingState == Game.ResourceLoadingstate.finished) {
+                    this.unloadResource(resourceItem);
+                    resourceItem.loadingState = Game.ResourceLoadingstate.none;
+                }
+            }
+        };
+        ResourceLoader.prototype.unloadResource = function (resourceItem) {
+            // Override method
+        };
+        return ResourceLoader;
     }());
-    Game.ResourceLoaderBase = ResourceLoaderBase;
+    Game.ResourceLoader = ResourceLoader;
     var ResourceManager = (function () {
         function ResourceManager() {
             this.loaders = new List();
@@ -195,6 +207,12 @@ var Game;
             }
             else {
                 return sumOfLoaded / sumOfLoading;
+            }
+        };
+        ResourceManager.prototype.unloadUnusedResources = function () {
+            for (var i = 0; i < this.loaders.length; i++) {
+                var loader = this.loaders[i];
+                loader.unloadUnusedResources();
             }
         };
         return ResourceManager;

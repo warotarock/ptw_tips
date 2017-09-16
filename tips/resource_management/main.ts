@@ -52,11 +52,11 @@ namespace ResourceManagement {
         }
     }
 
-    class ImageResourceLoader extends Game.ResourceLoaderBase<ImageResource> {
+    class ImageResourceLoader extends Game.ResourceLoader<ImageResource> {
 
-        maxParralelLoadingCount = 5;
+        maxParallelLoadingCount = 5;
 
-        render: WebGLRender;
+        render: WebGLRender = null;
 
         protected startLoadingResourceItem(resourceItem: ImageResource) {
 
@@ -72,6 +72,11 @@ namespace ResourceManagement {
             );
 
             resourceItem.image.imageData.src = resourceItem.filePath;
+        }
+
+        protected unloadResource(resourceItem: ImageResource) {
+
+            this.render.releaseImageTexture(resourceItem.image);
         }
     }
 
@@ -111,11 +116,11 @@ namespace ResourceManagement {
         }
     }
 
-    class SceneResourceLoader extends Game.ResourceLoaderBase<SceneResource> {
+    class SceneResourceLoader extends Game.ResourceLoader<SceneResource> {
 
-        maxParralelLoadingCount = 1;
+        maxParallelLoadingCount = 1;
 
-        render: WebGLRender;
+        render: WebGLRender = null;
 
         protected startLoadingResourceItem(resourceItem: SceneResource) {
 
@@ -151,6 +156,15 @@ namespace ResourceManagement {
             );
 
             xhr.send();
+        }
+
+        protected unloadResource(resourceItem: SceneResource) {
+
+            for (var modelName in resourceItem.modelResources) {
+                var modelResource = resourceItem.modelResources[modelName];
+
+                this.render.releaseModelBuffer(modelResource.model);
+            }
         }
     }
 
@@ -277,34 +291,10 @@ namespace ResourceManagement {
             this.resourceManager.addLoadingTarget(this.loadingSettings[SceneID.Common]);
             this.resourceManager.addLoadingTarget(this.loadingSettings[sceneID]);
 
-            // Unload unused resources
-            for (var i = 0; i < this.imageResources.length; i++) {
-                var imageResource = this.imageResources[i];
+            // Unload unused resources -> calls unloadResource of ImageResourceLoader and SceneResourceLoader
+            this.resourceManager.unloadUnusedResources();
 
-                if (!imageResource.isUsed && imageResource.loadingState == Game.ResourceLoadingstate.finished) {
-
-                    this.render.releaseImageTexture(imageResource.image);
-
-                    imageResource.loadingState = Game.ResourceLoadingstate.none;
-                }
-            }
-
-            for (var i = 0; i < this.sceneResources.length; i++) {
-                var sceneResource = this.sceneResources[i];
-
-                if (!sceneResource.isUsed && sceneResource.loadingState == Game.ResourceLoadingstate.finished) {
-
-                    for (var modelName in sceneResource.modelResources) {
-                        var modelResource: ModelResource = sceneResource.modelResources[modelName];
-
-                        this.render.releaseModelBuffer(modelResource.model);
-
-                        sceneResource.loadingState = Game.ResourceLoadingstate.none;
-                    }
-                }
-            }
-
-            // Start loading
+            // Start loading -> calls startLoadingResourceItem of ImageResourceLoader and SceneResourceLoader
             this.resourceManager.startLoading();
 
             this.isLoaded = false;

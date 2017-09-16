@@ -42,8 +42,6 @@ namespace Game {
 
         setLoadingTargetFlags(loadingSettingSet: ResourceItemLoadingSettingSet);
 
-        startLoading(resourceItems: List<ResourceItem>);
-
         startLoading();
 
         processLoading(): boolean;
@@ -51,11 +49,13 @@ namespace Game {
         getLoadingWeightTotal(): float;
 
         getLoadedWeightTotal(): float;
+
+        unloadUnusedResources();
     }
 
-    export class ResourceLoaderBase<T extends ResourceItem> implements IResourceLoader {
+    export class ResourceLoader<T extends ResourceItem> implements IResourceLoader {
 
-        maxParralelLoadingCount = 1;
+        maxParallelLoadingCount = 1;
 
         private resourceItems = new List<T>();
 
@@ -115,7 +115,7 @@ namespace Game {
 
             // Move waiting item to loading list
             if (this.waitingResourceItems.length > 0
-                && this.loadingResourceItems.length < this.maxParralelLoadingCount) {
+                && this.loadingResourceItems.length < this.maxParallelLoadingCount) {
 
                 var resourceItem = this.waitingResourceItems[0];
 
@@ -196,6 +196,26 @@ namespace Game {
             }
 
             return sumOfWeight;
+        }
+
+        unloadUnusedResources() {
+
+            for (var i = 0; i < this.resourceItems.length; i++) {
+                var resourceItem = this.resourceItems[i];
+
+                if (!resourceItem.isUsed && resourceItem.loadingState == Game.ResourceLoadingstate.finished) {
+
+                    this.unloadResource(resourceItem);
+
+                    resourceItem.loadingState = Game.ResourceLoadingstate.none;
+                }
+            }
+
+        }
+
+        protected unloadResource(resourceItem: T) {
+
+            // Override method
         }
     }
 
@@ -281,6 +301,15 @@ namespace Game {
             }
             else {
                 return sumOfLoaded / sumOfLoading;
+            }
+        }
+
+        unloadUnusedResources() {
+
+            for (var i = 0; i < this.loaders.length; i++) {
+                var loader = this.loaders[i];
+
+                loader.unloadUnusedResources();
             }
         }
     }

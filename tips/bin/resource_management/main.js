@@ -62,7 +62,8 @@ var ResourceManagement;
         __extends(ImageResourceLoader, _super);
         function ImageResourceLoader() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.maxParralelLoadingCount = 5;
+            _this.maxParallelLoadingCount = 5;
+            _this.render = null;
             return _this;
         }
         ImageResourceLoader.prototype.startLoadingResourceItem = function (resourceItem) {
@@ -74,8 +75,11 @@ var ResourceManagement;
             });
             resourceItem.image.imageData.src = resourceItem.filePath;
         };
+        ImageResourceLoader.prototype.unloadResource = function (resourceItem) {
+            this.render.releaseImageTexture(resourceItem.image);
+        };
         return ImageResourceLoader;
-    }(Game.ResourceLoaderBase));
+    }(Game.ResourceLoader));
     var ModelResource = (function () {
         function ModelResource() {
             this.modelName = null;
@@ -111,7 +115,8 @@ var ResourceManagement;
         __extends(SceneResourceLoader, _super);
         function SceneResourceLoader() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.maxParralelLoadingCount = 1;
+            _this.maxParallelLoadingCount = 1;
+            _this.render = null;
             return _this;
         }
         SceneResourceLoader.prototype.startLoadingResourceItem = function (resourceItem) {
@@ -138,8 +143,14 @@ var ResourceManagement;
             });
             xhr.send();
         };
+        SceneResourceLoader.prototype.unloadResource = function (resourceItem) {
+            for (var modelName in resourceItem.modelResources) {
+                var modelResource = resourceItem.modelResources[modelName];
+                this.render.releaseModelBuffer(modelResource.model);
+            }
+        };
         return SceneResourceLoader;
-    }(Game.ResourceLoaderBase));
+    }(Game.ResourceLoader));
     var Main = (function () {
         function Main() {
             this.logicalScreenWidth = 640.0;
@@ -228,25 +239,9 @@ var ResourceManagement;
             this.resourceManager.resetLoadingTargets();
             this.resourceManager.addLoadingTarget(this.loadingSettings[SceneID.Common]);
             this.resourceManager.addLoadingTarget(this.loadingSettings[sceneID]);
-            // Unload unused resources
-            for (var i = 0; i < this.imageResources.length; i++) {
-                var imageResource = this.imageResources[i];
-                if (!imageResource.isUsed && imageResource.loadingState == Game.ResourceLoadingstate.finished) {
-                    this.render.releaseImageTexture(imageResource.image);
-                    imageResource.loadingState = Game.ResourceLoadingstate.none;
-                }
-            }
-            for (var i = 0; i < this.sceneResources.length; i++) {
-                var sceneResource = this.sceneResources[i];
-                if (!sceneResource.isUsed && sceneResource.loadingState == Game.ResourceLoadingstate.finished) {
-                    for (var modelName in sceneResource.modelResources) {
-                        var modelResource = sceneResource.modelResources[modelName];
-                        this.render.releaseModelBuffer(modelResource.model);
-                        sceneResource.loadingState = Game.ResourceLoadingstate.none;
-                    }
-                }
-            }
-            // Start loading
+            // Unload unused resources -> calls unloadResource of ImageResourceLoader and SceneResourceLoader
+            this.resourceManager.unloadUnusedResources();
+            // Start loading -> calls startLoadingResourceItem of ImageResourceLoader and SceneResourceLoader
             this.resourceManager.startLoading();
             this.isLoaded = false;
             this.loadingAnimationTime = 0.0;
