@@ -21,7 +21,9 @@ module Input {
 
                 this.prepareButtonControlForKey(e.key);
 
-                this.buttons[e.key].inputPressed();
+                let button: ButtonInputControl = this.buttons[e.key];
+
+                button.inputPress();
             };
 
             var keyup = (e: KeyboardEvent) => {
@@ -30,7 +32,9 @@ module Input {
 
                 this.prepareButtonControlForKey(e.key);
 
-                this.buttons[e.key].inputReleased();
+                let button: ButtonInputControl = this.buttons[e.key];
+
+                button.inputRelease();
             };
 
             document.addEventListener('keydown', keydown, false);

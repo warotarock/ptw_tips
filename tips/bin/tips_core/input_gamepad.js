@@ -14,6 +14,8 @@ var Input;
             this.doublePressMilliSecond = 200;
             this.buttons = new List();
             this.sticks = new List();
+            this.crossButtonEmulationEnabled = true;
+            this.crossButtons = new List();
             this.connected = false;
             this.gamepad = null;
             this.axisIndexMappings = null;
@@ -29,6 +31,11 @@ var Input;
             for (var i = 0; i < this.sticks.length; i++) {
                 this.sticks[i] = new Input.AxisInputControl();
                 this.sticks[i].name = ('stick' + (1 + i));
+            }
+            this.crossButtons = new List(4);
+            for (var i = 0; i < this.crossButtons.length; i++) {
+                this.crossButtons[i] = new Input.ButtonInputControl();
+                this.crossButtons[i].name = ('crossButton' + (1 + i));
             }
             this.initializeAxesIndexMap();
         };
@@ -80,35 +87,12 @@ var Input;
             if (this.gamepad == null) {
                 return;
             }
-            var gamepad = this.gamepad;
-            for (var i = 0; i < this.buttons.length && i < gamepad.buttons.length; i++) {
-                var button = this.buttons[i];
-                var gamepadButton = gamepad.buttons[i];
-                if (this.isGamepadButtonPressed(gamepadButton)) {
-                    if (!button.isPressed()) {
-                        button.inputPressed();
-                    }
-                }
-                else {
-                    if (!button.isReleased()) {
-                        button.inputReleased();
-                    }
-                }
-                button.processPollingDoublePress(time, this.doublePressMilliSecond);
-            }
-            for (var i = 0; i < this.sticks.length; i++) {
-                var axis = this.sticks[i];
-                var axisIndexMap = this.axisIndexMappings[i];
-                var gamepadAxisValueX = 0.0;
-                var gamepadAxisValueY = 0.0;
-                if (axisIndexMap.xIndex < gamepad.axes.length) {
-                    gamepadAxisValueX = gamepad.axes[axisIndexMap.xIndex];
-                }
-                if (axisIndexMap.yIndex < gamepad.axes.length) {
-                    gamepadAxisValueY = gamepad.axes[axisIndexMap.yIndex];
-                }
-                axis.inputAxis(gamepadAxisValueX, gamepadAxisValueY);
-            }
+            // Polling for each buttons
+            this.processPollingButtons(time);
+            // Polling for each axes
+            this.processPollingAxes();
+            // Emulating cross buttons by first stick
+            this.processCrossButtonEmulation();
             //var debugbuttonTexts = [];
             //for (var i = 0; i < gamepad.buttons.length; i++) {
             //    let button = gamepad.buttons[i];
@@ -123,6 +107,91 @@ var Input;
             //}
             //console.log(debugAxisTexts.join(', '));
         };
+        GamepadDevice.prototype.processPollingButtons = function (time) {
+            var gamepad = this.gamepad;
+            for (var i = 0; i < this.buttons.length && i < gamepad.buttons.length; i++) {
+                var button = this.buttons[i];
+                var gamepadButton = gamepad.buttons[i];
+                if (this.isGamepadButtonPressed(gamepadButton)) {
+                    if (!button.isPressed()) {
+                        button.inputPress();
+                    }
+                }
+                else {
+                    if (!button.isReleased()) {
+                        button.inputRelease();
+                    }
+                }
+                button.processPollingDoublePress(time, this.doublePressMilliSecond);
+            }
+        };
+        GamepadDevice.prototype.processPollingAxes = function () {
+            var gamepad = this.gamepad;
+            for (var i = 0; i < this.sticks.length; i++) {
+                var axis = this.sticks[i];
+                var axisIndexMap = this.axisIndexMappings[i];
+                var gamepadAxisValueX = 0.0;
+                var gamepadAxisValueY = 0.0;
+                if (axisIndexMap.xIndex < gamepad.axes.length) {
+                    gamepadAxisValueX = gamepad.axes[axisIndexMap.xIndex];
+                }
+                if (axisIndexMap.yIndex < gamepad.axes.length) {
+                    gamepadAxisValueY = gamepad.axes[axisIndexMap.yIndex];
+                }
+                axis.inputAxis(gamepadAxisValueX, gamepadAxisValueY);
+            }
+        };
+        GamepadDevice.prototype.processCrossButtonEmulation = function () {
+            if (!this.crossButtonEmulationEnabled) {
+                return false;
+            }
+            var axis = this.sticks[0];
+            var axis_threshold = 0.01;
+            // Up direction
+            if (axis.y <= -axis_threshold) {
+                // Press up button
+                if (this.crossButtons[0].isReleased()) {
+                    this.crossButtons[0].inputPress();
+                }
+                // Release down button
+                if (this.crossButtons[2].isPressed()) {
+                    this.crossButtons[2].inputRelease();
+                }
+            }
+            // Right direction
+            if (axis.x >= axis_threshold) {
+                // Press right button
+                if (this.crossButtons[1].isReleased()) {
+                    this.crossButtons[1].inputPress();
+                }
+                // Release left button
+                if (this.crossButtons[3].isPressed()) {
+                    this.crossButtons[3].inputRelease();
+                }
+            }
+            // Down direction
+            if (axis.y >= axis_threshold) {
+                // Press down button
+                if (this.crossButtons[2].isReleased()) {
+                    this.crossButtons[2].inputPress();
+                }
+                // Release up button
+                if (this.crossButtons[0].isPressed()) {
+                    this.crossButtons[0].inputRelease();
+                }
+            }
+            // Left direction
+            if (axis.x <= -axis_threshold) {
+                // Press left button
+                if (this.crossButtons[3].isReleased()) {
+                    this.crossButtons[3].inputPress();
+                }
+                // Release right button
+                if (this.crossButtons[1].isPressed()) {
+                    this.crossButtons[1].inputRelease();
+                }
+            }
+        };
         GamepadDevice.prototype.updateStates = function () {
             for (var i = 0; i < this.buttons.length; i++) {
                 var button = this.buttons[i];
@@ -132,6 +201,12 @@ var Input;
         GamepadDevice.prototype.getButtonControlByName = function (name) {
             for (var i = 0; i < this.buttons.length; i++) {
                 var button = this.buttons[i];
+                if (button.name == name) {
+                    return button;
+                }
+            }
+            for (var i = 0; i < this.crossButtons.length; i++) {
+                var button = this.crossButtons[i];
                 if (button.name == name) {
                     return button;
                 }

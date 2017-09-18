@@ -85,6 +85,10 @@ namespace InputMnagement {
                 'wheel': 'analog3'
             },
             'gamepad': {
+                'crossButton1': 'up',
+                'crossButton2': 'right',
+                'crossButton3': 'down',
+                'crossButton4': 'left',
                 'button1': 'attack',
                 'button3': 'shield',
                 'button4': 'start',

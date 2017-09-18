@@ -28,12 +28,12 @@ var Input;
                 _this.inputMouseLocation(_this.location, e);
             };
             var onMouseDown = function (e) {
-                _this.buttons[e.button].inputPressed();
+                _this.buttons[e.button].inputPress();
                 _this.inputMouseLocation(_this.location, e);
                 return _this.preventDefaultEvent(e);
             };
             var onMouseUp = function (e) {
-                _this.buttons[e.button].inputReleased();
+                _this.buttons[e.button].inputRelease();
                 _this.inputMouseLocation(_this.location, e);
                 return _this.preventDefaultEvent(e);
             };
@@ -56,12 +56,12 @@ var Input;
                 return _this.preventDefaultEvent(e);
             };
             var onTouchStart = function (e) {
-                _this.buttons[0].inputReleased();
+                _this.buttons[0].inputRelease();
                 _this.inputMouseLocation(_this.location, e);
                 return _this.preventDefaultEvent(e);
             };
             var onTouchEnd = function (e) {
-                _this.buttons[0].inputReleased();
+                _this.buttons[0].inputRelease();
                 _this.inputMouseLocation(_this.location, e);
                 return _this.preventDefaultEvent(e);
             };

@@ -71,7 +71,7 @@ module Input {
 
             var onMouseDown = (e) => {
 
-                this.buttons[e.button].inputPressed();
+                this.buttons[e.button].inputPress();
 
                 this.inputMouseLocation(this.location, e);
 
@@ -80,7 +80,7 @@ module Input {
 
             var onMouseUp = (e) => {
 
-                this.buttons[e.button].inputReleased();
+                this.buttons[e.button].inputRelease();
 
                 this.inputMouseLocation(this.location, e);
 
@@ -112,7 +112,7 @@ module Input {
 
             var onTouchStart = (e) => {
 
-                this.buttons[0].inputReleased();
+                this.buttons[0].inputRelease();
 
                 this.inputMouseLocation(this.location, e);
 
@@ -121,7 +121,7 @@ module Input {
 
             var onTouchEnd = (e) => {
 
-                this.buttons[0].inputReleased();
+                this.buttons[0].inputRelease();
 
                 this.inputMouseLocation(this.location, e);
 

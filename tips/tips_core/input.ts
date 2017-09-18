@@ -24,7 +24,7 @@ module Input {
 
         lastPressedTime = 0.0;
 
-        inputPressed() {
+        inputPress() {
 
             this.isInputed = true;
             this.pressure = 1.0;
@@ -37,7 +37,7 @@ module Input {
             }
         }
 
-        inputReleased() {
+        inputRelease() {
 
             this.isInputed = true;
             this.pressure = 0.0;
@@ -116,9 +116,23 @@ module Input {
         x = 0.0;
         y = 0.0;
 
+        threshold = 0.005;
+
         inputAxis(x: float, y: float) {
 
-            this.isInputed = true;
+            if (Math.abs(x) < this.threshold) {
+                x = 0.0;
+            }
+
+            if (Math.abs(y) < this.threshold) {
+                y = 0.0;
+            }
+
+            if ((this.x == 0.0 && this.y == 0.0) && (x != 0.0 || y != 0.0)) {
+
+                this.isInputed = true;
+            }
+
             this.x = x;
             this.y = y;
         }
@@ -251,7 +265,6 @@ module Input {
             return this.mapping.primaryControl.doublePressState;
         }
 
-
         isPressed(): boolean {
 
             if (this.mapping.primaryControl == null) {
@@ -329,31 +342,6 @@ module Input {
     export class PointingInputMapping extends InputMapping<PointingInputControl> {
     }
 
-    export class IntegratedPointingInputControl {
-
-        private mapping: PointingInputMapping;
-
-        constructor(mapping: PointingInputMapping) {
-
-            this.mapping = mapping;
-        }
-
-        getLocation(vec: number[]) {
-
-            if (this.mapping.primaryControl == null) {
-
-                vec[0] = 0.0;
-                vec[1] = 0.0;
-                vec[2] = 0.0;
-                return;
-            }
-
-            vec[0] = this.mapping.primaryControl.x;
-            vec[1] = this.mapping.primaryControl.y;
-            vec[2] = 0.0;
-        }
-    }
-
     class InputMappingSet<D extends InputControl, T extends InputMapping<D>> {
 
         private mappings = new List<T>();
@@ -390,6 +378,41 @@ module Input {
 
             mapping.add(control);
         }
+    }
+
+    export class IntegratedPointingInputControl {
+
+        private mapping: PointingInputMapping;
+
+        constructor(mapping: PointingInputMapping) {
+
+            this.mapping = mapping;
+        }
+
+        getLocation(vec: number[]) {
+
+            if (this.mapping.primaryControl == null) {
+
+                vec[0] = 0.0;
+                vec[1] = 0.0;
+                vec[2] = 0.0;
+                return;
+            }
+
+            vec[0] = this.mapping.primaryControl.x;
+            vec[1] = this.mapping.primaryControl.y;
+            vec[2] = 0.0;
+        }
+    }
+
+    // Config file
+
+    export interface DeviceInputMappingConfigSet {
+        [index: number]: InputMappingConfigs;
+    }
+
+    export interface InputMappingConfigs {
+        [index: string]: string;
     }
 
     // Manager
@@ -462,52 +485,52 @@ module Input {
             return integratedPointing;
         }
 
-        setMappingFromConfig(devieMappingConfigs: any) {
+        setMappingFromConfig(configSet: DeviceInputMappingConfigSet) {
 
-            for (let deviceName in devieMappingConfigs) {
+            for (let deviceName in configSet) {
 
                 let device: IInputDevice = this.deciveDictionary[deviceName];
 
-                let devieMappingConfig = devieMappingConfigs[deviceName];
+                let inputMappingConfigs: InputMappingConfigs = configSet[deviceName];
 
-                for (let deviceInputName in devieMappingConfig) {
+                for (let inputMappingConfig in inputMappingConfigs) {
 
-                    let inputMapName: string = devieMappingConfig[deviceInputName];
+                    let mappingName: string = inputMappingConfigs[inputMappingConfig];
 
                     // Add the control to an existing mapping for the control type
-                    if (this.buttonInputMappingSet.existsMapping(inputMapName)) {
+                    if (this.buttonInputMappingSet.existsMapping(mappingName)) {
 
-                        let buttonControl = device.getButtonControlByName(deviceInputName);
+                        let buttonControl = device.getButtonControlByName(inputMappingConfig);
 
                         if (buttonControl == null) {
-                            throw ('setInputMappingFromConfig: cannot find control \"' + deviceInputName + '\" in ' + deviceInputName + '.');
+                            throw ('setInputMappingFromConfig: cannot find control \"' + inputMappingConfig + '\" in ' + inputMappingConfig + '.');
                         }
 
-                        this.buttonInputMappingSet.addControl(inputMapName, buttonControl);
+                        this.buttonInputMappingSet.addControl(mappingName, buttonControl);
                     }
-                    else if (this.axisInputMapppingSet.existsMapping(inputMapName)) {
+                    else if (this.axisInputMapppingSet.existsMapping(mappingName)) {
 
-                        let axisControl = device.getAxisControlByName(deviceInputName);
+                        let axisControl = device.getAxisControlByName(inputMappingConfig);
 
                         if (axisControl == null) {
-                            throw ('setInputMappingFromConfig: cannot find control \"' + deviceInputName + '\" in ' + deviceInputName + '.');
+                            throw ('setInputMappingFromConfig: cannot find control \"' + inputMappingConfig + '\" in ' + inputMappingConfig + '.');
                         }
 
-                        this.axisInputMapppingSet.addControl(inputMapName, axisControl);
+                        this.axisInputMapppingSet.addControl(mappingName, axisControl);
                     }
-                    else if (this.pointingInputMappingSet.existsMapping(inputMapName)) {
+                    else if (this.pointingInputMappingSet.existsMapping(mappingName)) {
 
-                        let pointingControl = device.getPointingControlByName(deviceInputName);
+                        let pointingControl = device.getPointingControlByName(inputMappingConfig);
 
                         if (pointingControl == null) {
-                            throw ('setInputMappingFromConfig: cannot find control \"' + deviceInputName + '\" in ' + deviceInputName + '.');
+                            throw ('setInputMappingFromConfig: cannot find control \"' + inputMappingConfig + '\" in ' + inputMappingConfig + '.');
                         }
 
-                        this.pointingInputMappingSet.addControl(inputMapName, pointingControl);
+                        this.pointingInputMappingSet.addControl(mappingName, pointingControl);
                     }
                     else {
 
-                        throw ('setInputMappingFromConfig: cannot find map \"' + inputMapName + '\".');
+                        throw ('setInputMappingFromConfig: cannot find map \"' + mappingName + '\".');
                     }
                 }
             }

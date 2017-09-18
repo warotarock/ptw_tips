@@ -14,12 +14,14 @@ var Input;
             var keydown = function (e) {
                 //console.log('keydown ' + e.key + ' ' + e.keyCode);
                 _this.prepareButtonControlForKey(e.key);
-                _this.buttons[e.key].inputPressed();
+                var button = _this.buttons[e.key];
+                button.inputPress();
             };
             var keyup = function (e) {
                 //console.log('keyup ' + e.key + ' ' + e.keyCode);
                 _this.prepareButtonControlForKey(e.key);
-                _this.buttons[e.key].inputReleased();
+                var button = _this.buttons[e.key];
+                button.inputRelease();
             };
             document.addEventListener('keydown', keydown, false);
             document.addEventListener('keyup', keyup, false);

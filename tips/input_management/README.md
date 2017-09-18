@@ -1,4 +1,4 @@
-# モデルデータの作成 - Basic model drawing
+# 入力管理 - Input management
 
 ## 概要
 
@@ -13,7 +13,6 @@
 - [ゲームパッド](./input_gamepad.ts)
 
 残
-- コンフィグのinterfaceを作っていない
 - ゲームパッドの十字キーを統合していない
 
 ## 関連情報
