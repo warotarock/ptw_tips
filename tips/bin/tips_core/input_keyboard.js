@@ -1,32 +1,60 @@
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 var Input;
 (function (Input) {
-    var KeyboardDevice = (function (_super) {
-        __extends(KeyboardDevice, _super);
+    var KeyboardDevice = (function () {
         function KeyboardDevice() {
-            var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.dummyButton = new Input.ButtonInputControl();
-            return _this;
+            this.buttons = null;
+            this.maxButtonCount = 256;
+            this.doublePressMilliSecond = 200;
         }
+        KeyboardDevice.prototype.initialize = function () {
+            this.buttons = new List(this.maxButtonCount);
+        };
         KeyboardDevice.prototype.setEvents = function (canvas) {
+            var _this = this;
+            var keydown = function (e) {
+                //console.log('keydown ' + e.key + ' ' + e.keyCode);
+                _this.prepareButtonControlForKey(e.key);
+                _this.buttons[e.key].inputPressed();
+            };
+            var keyup = function (e) {
+                //console.log('keyup ' + e.key + ' ' + e.keyCode);
+                _this.prepareButtonControlForKey(e.key);
+                _this.buttons[e.key].inputReleased();
+            };
+            document.addEventListener('keydown', keydown, false);
+            document.addEventListener('keyup', keyup, false);
+        };
+        KeyboardDevice.prototype.prepareButtonControlForKey = function (name) {
+            if (DictionaryContainsKey(this.buttons, name)) {
+                return;
+            }
+            var button = new Input.ButtonInputControl();
+            button.name = name;
+            this.buttons[name] = button;
         };
         KeyboardDevice.prototype.processPolling = function (time) {
+            for (var buttonName in this.buttons) {
+                var button = this.buttons[buttonName];
+                button.processPollingDoublePress(time, this.doublePressMilliSecond);
+            }
         };
-        KeyboardDevice.prototype.updateStates = function (time) {
+        KeyboardDevice.prototype.updateStates = function () {
+            for (var buttonName in this.buttons) {
+                var button = this.buttons[buttonName];
+                button.updateStates();
+            }
         };
-        KeyboardDevice.prototype.getButtonControlByName = function (controlName) {
-            return this.dummyButton;
+        KeyboardDevice.prototype.getButtonControlByName = function (name) {
+            this.prepareButtonControlForKey(name);
+            return this.buttons[name];
+        };
+        KeyboardDevice.prototype.getAxisControlByName = function (name) {
+            return null;
+        };
+        KeyboardDevice.prototype.getPointingControlByName = function (name) {
+            return null;
         };
         return KeyboardDevice;
-    }(Input.InputDeviceBase));
+    }());
     Input.KeyboardDevice = KeyboardDevice;
 })(Input || (Input = {}));

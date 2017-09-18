@@ -23,6 +23,11 @@ var InputMnagement;
         GamePointerInputID[GamePointerInputID["target"] = 0] = "target";
         GamePointerInputID[GamePointerInputID["maxID"] = 0] = "maxID";
     })(GamePointerInputID || (GamePointerInputID = {}));
+    var SampleInputSet = (function () {
+        function SampleInputSet() {
+        }
+        return SampleInputSet;
+    }());
     var Main = (function () {
         function Main() {
             this.logicalScreenWidth = 640.0;
@@ -32,14 +37,15 @@ var InputMnagement;
             this.mouse = new Input.MouseDevice();
             this.keyboard = new Input.KeyboardDevice();
             this.gamepad = new Input.GamepadDevice();
+            this.input = new SampleInputSet();
             this.config = {
                 'keyboard': {
-                    'space': 'start',
-                    'enter': 'start',
-                    'up': 'up',
-                    'right': 'right',
-                    'down': 'down',
-                    'left': 'left',
+                    ' ': 'start',
+                    'Enter': 'start',
+                    'ArrowUp': 'up',
+                    'ArrowRight': 'right',
+                    'ArrowDown': 'down',
+                    'ArrowLeft': 'left',
                     'w': 'up',
                     'd': 'right',
                     's': 'down',
@@ -50,24 +56,24 @@ var InputMnagement;
                     'k': 'shield',
                 },
                 'mouse': {
-                    'left': 'attack',
-                    'right': 'shield',
-                    'middle': 'start',
+                    'button1': 'attack',
+                    'button3': 'shield',
+                    'button2': 'start',
                     'location': 'pointer',
                     'wheel': 'analog3'
                 },
                 'gamepad': {
+                    'button1': 'attack',
+                    'button3': 'shield',
+                    'button4': 'start',
                     'button10': 'start',
-                    'button01': 'up',
-                    'button02': 'right',
-                    'button03': 'down',
-                    'button04': 'left',
-                    'button05': 'attack',
-                    'button06': 'shield',
                     'stick1': 'analog1',
                     'stick2': 'analog2'
                 },
             };
+            this.buttonLetter = ['|---', '-|--', '--|-', '---|'];
+            this.doublePressButtonLetter = ['-', '-', '*', '*'];
+            this.tempVec = [0.0, 0.0, 0.0];
             this.isLoaded = false;
         }
         Main.prototype.initialize = function (canvas, display) {
@@ -81,18 +87,18 @@ var InputMnagement;
             this.inputManager.addDevice('keyboard', this.keyboard);
             this.inputManager.addDevice('mouse', this.mouse);
             this.inputManager.addDevice('gamepad', this.gamepad);
-            this.inputManager.addButtonInputMap('start');
-            this.inputManager.addButtonInputMap('up');
-            this.inputManager.addButtonInputMap('right');
-            this.inputManager.addButtonInputMap('down');
-            this.inputManager.addButtonInputMap('left');
-            this.inputManager.addButtonInputMap('attack');
-            this.inputManager.addButtonInputMap('shield');
-            this.inputManager.addAxisInputMap('analog1');
-            this.inputManager.addAxisInputMap('analog2');
-            this.inputManager.addAxisInputMap('analog3');
-            this.inputManager.addPointingInputMap('pointer');
-            this.inputManager.setInputMappingFromConfig(this.config);
+            this.input.up = this.inputManager.addButton('up');
+            this.input.right = this.inputManager.addButton('right');
+            this.input.down = this.inputManager.addButton('down');
+            this.input.left = this.inputManager.addButton('left');
+            this.input.attack = this.inputManager.addButton('attack');
+            this.input.shield = this.inputManager.addButton('shield');
+            this.input.start = this.inputManager.addButton('start');
+            this.input.analog1 = this.inputManager.addAxis('analog1');
+            this.input.analog2 = this.inputManager.addAxis('analog2');
+            this.input.analog3 = this.inputManager.addAxis('analog3');
+            this.input.pointer = this.inputManager.addPointingInputs('pointer');
+            this.inputManager.setMappingFromConfig(this.config);
             this.inputManager.setEvents(canvas);
         };
         Main.prototype.processLoading = function () {
@@ -102,17 +108,69 @@ var InputMnagement;
         Main.prototype.run = function () {
             var time = DateGetTime();
             this.inputManager.processPolling(time);
-            var texts = [];
-            var tab1 = '  ';
-            texts.push('Mouse: (' + this.mouse.mousePoint.x.toFixed(2) + ', ' + this.mouse.mousePoint.y.toFixed(2) + ')'
-                + ' Left(' + this.mouse.leftButton.singlePressState + ',' + this.mouse.leftButton.doublePressState
-                + ') Middle(' + this.mouse.middleButton.singlePressState + ',' + this.mouse.middleButton.doublePressState
-                + ') Right(' + this.mouse.rightButton.singlePressState + ',' + this.mouse.rightButton.doublePressState
-                + ')');
-            this.display.innerHTML = texts.join('<br />');
-            this.inputManager.updateStates(time);
         };
         Main.prototype.draw = function () {
+            var texts = [];
+            var tab1 = '  ';
+            texts.push('[Integrated]');
+            texts.push('up' + this.getIntegratedButtonStateText(this.input.up)
+                + ' right' + this.getIntegratedButtonStateText(this.input.right)
+                + ' down' + this.getIntegratedButtonStateText(this.input.down)
+                + ' left' + this.getIntegratedButtonStateText(this.input.left));
+            texts.push('attack' + this.getIntegratedButtonStateText(this.input.attack)
+                + ' shield' + this.getIntegratedButtonStateText(this.input.shield)
+                + ' start' + this.getIntegratedButtonStateText(this.input.start));
+            this.input.analog1.getAxis(this.tempVec);
+            texts.push('analog1' + '(' + this.tempVec[0].toFixed(2) + ',' + this.tempVec[1].toFixed(2) + ')');
+            this.input.analog2.getAxis(this.tempVec);
+            texts.push('analog2' + '(' + this.tempVec[0].toFixed(2) + ',' + this.tempVec[1].toFixed(2) + ')');
+            this.input.analog3.getAxis(this.tempVec);
+            texts.push('analog3' + '(' + this.tempVec[0].toFixed(2) + ',' + this.tempVec[1].toFixed(2) + ')');
+            texts.push('');
+            texts.push('[Keyboard]');
+            var buttonTexts = [];
+            for (var key in this.keyboard.buttons) {
+                var button = this.keyboard.buttons[key];
+                if (button == null) {
+                    continue;
+                }
+                buttonTexts.push(button.name + this.getButtonStateText(button));
+            }
+            texts.push(buttonTexts.join(' '));
+            texts.push('');
+            texts.push('[Mouse]: ' + this.mouse.location.x.toFixed(2) + ', ' + this.mouse.location.y.toFixed(2)
+                + ' Left' + this.getButtonStateText(this.mouse.buttons[0])
+                + ' Middle' + this.getButtonStateText(this.mouse.buttons[1])
+                + ' Right' + this.getButtonStateText(this.mouse.buttons[2])
+                + ' Wheel' + this.mouse.wheel.y);
+            texts.push('');
+            texts.push('[Gamepad]');
+            var padButtonTexts = [];
+            for (var _i = 0, _a = this.gamepad.buttons; _i < _a.length; _i++) {
+                var button = _a[_i];
+                if (button == null) {
+                    continue;
+                }
+                padButtonTexts.push(button.name + this.getButtonStateText(button));
+            }
+            texts.push(padButtonTexts.join(' '));
+            var padAxisTexts = [];
+            for (var _b = 0, _c = this.gamepad.sticks; _b < _c.length; _b++) {
+                var stickAxis = _c[_b];
+                if (stickAxis == null) {
+                    continue;
+                }
+                padAxisTexts.push(stickAxis.name + '(' + stickAxis.x.toFixed(2) + ',' + stickAxis.y.toFixed(2) + ')');
+            }
+            texts.push(padAxisTexts.join(' '));
+            this.display.innerHTML = texts.join('<br />');
+            this.inputManager.updateStates();
+        };
+        Main.prototype.getIntegratedButtonStateText = function (button) {
+            return '(' + this.buttonLetter[button.getState()] + ' ' + this.doublePressButtonLetter[button.getDoublePressState()] + ')';
+        };
+        Main.prototype.getButtonStateText = function (button) {
+            return '(' + this.buttonLetter[button.singlePressState] + ' ' + this.doublePressButtonLetter[button.doublePressState] + ')';
         };
         return Main;
     }());

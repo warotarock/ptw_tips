@@ -30,19 +30,34 @@ module Input {
         target: HTMLEventTarget;
     }
 
-    export class MouseDevice extends InputDeviceBase {
+    export class MouseDevice implements IInputDevice {
 
-        leftButton = new ButtonInputControl();
-        middleButton = new ButtonInputControl();
-        rightButton = new ButtonInputControl();
+        maxButtonCount = 16;
+        maxAxisCount = 1;
 
-        mousePoint = new PointingInputControl();
-        wheelAxis = new AxisInputControl();
+        buttons = new List<ButtonInputControl>();
+        wheel = new AxisInputControl();
+        location = new PointingInputControl();
 
         initialWidth = 0.0;
         initialHeight = 0.0;
 
         doublePressMilliSecond = 200;
+
+        initialize() {
+
+            this.buttons = new List<ButtonInputControl>(this.maxButtonCount);
+
+            for (var i = 0; i < this.buttons.length; i++) {
+
+                this.buttons[i] = new ButtonInputControl();
+                this.buttons[i].name = ('button' + (1 + i));
+            }
+
+            this.wheel.name = 'wheel';
+
+            this.location.name = 'location';
+        }
 
         setEvents(canvas: HTMLCanvasElement) {
 
@@ -51,39 +66,23 @@ module Input {
 
             var onMouseMove = (e) => {
 
-                this.inputMouseLocation(this.mousePoint, e);
+                this.inputMouseLocation(this.location, e);
             };
 
             var onMouseDown = (e) => {
 
-                if (e.button == 0) {
-                    this.leftButton.inputPressed();
-                }
-                else if (e.button == 1) {
-                    this.middleButton.inputPressed();
-                }
-                else if (e.button == 2) {
-                    this.rightButton.inputPressed();
-                }
+                this.buttons[e.button].inputPressed();
 
-                this.inputMouseLocation(this.mousePoint, e);
+                this.inputMouseLocation(this.location, e);
 
                 return this.preventDefaultEvent(e);
             };
 
             var onMouseUp = (e) => {
 
-                if (e.button == 0) {
-                    this.leftButton.inputReleased();
-                }
-                else if (e.button == 1) {
-                    this.middleButton.inputReleased();
-                }
-                else if (e.button == 2) {
-                    this.rightButton.inputReleased();
-                }
+                this.buttons[e.button].inputReleased();
 
-                this.inputMouseLocation(this.mousePoint, e);
+                this.inputMouseLocation(this.location, e);
 
                 return this.preventDefaultEvent(e);
             };
@@ -91,41 +90,47 @@ module Input {
             var onMouseWheel = (e) => {
 
                 var delta = 0;
-                if (!e) { e = window.event }; // IE
+
+                if (!e) {
+                    e = window.event // IE
+                };
 
                 if (e.wheelDelta) {
-                    delta = e.wheelDelta / 120;
+                    delta = -e.wheelDelta / 120;
+                }
+                else if (e.deltaY) {
+                    delta = e.deltaY / 3;
                 }
                 else if (e.detail) { // Firefox
-                    delta = -e.detail / 3;
+                    delta = e.detail / 3;
                 }
 
-                this.wheelAxis.inputAxis(0.0, delta);
+                this.wheel.inputAxis(0.0, delta);
 
                 return this.preventDefaultEvent(e);
             };
 
             var onTouchStart = (e) => {
 
-                this.leftButton.inputReleased();
+                this.buttons[0].inputReleased();
 
-                this.inputMouseLocation(this.mousePoint, e);
+                this.inputMouseLocation(this.location, e);
 
                 return this.preventDefaultEvent(e);
             };
 
             var onTouchEnd = (e) => {
 
-                this.leftButton.inputReleased();
+                this.buttons[0].inputReleased();
 
-                this.inputMouseLocation(this.mousePoint, e);
+                this.inputMouseLocation(this.location, e);
 
                 return this.preventDefaultEvent(e);
             };
 
             var ontTouchMove = (e) => {
 
-                this.inputMouseLocation(this.mousePoint, e);
+                this.inputMouseLocation(this.location, e);
 
                 return this.preventDefaultEvent(e);
             };
@@ -133,7 +138,7 @@ module Input {
             canvas.addEventListener("mousemove", onMouseMove);
             canvas.addEventListener("mousedown", onMouseDown);
             canvas.addEventListener("mouseup", onMouseUp);
-            canvas.addEventListener("mousewheel", onMouseWheel);
+            canvas.addEventListener("wheel", onMouseWheel);
             canvas.addEventListener("touchstart", onTouchStart);
             canvas.addEventListener("touchend", onTouchEnd);
             canvas.addEventListener("touchmove", ontTouchMove);
@@ -164,32 +169,32 @@ module Input {
 
         processPolling(time: float) {
 
-            this.leftButton.processPollingDoublePress(time, this.doublePressMilliSecond);
-            this.middleButton.processPollingDoublePress(time, this.doublePressMilliSecond);
-            this.rightButton.processPollingDoublePress(time, this.doublePressMilliSecond);
+            for (var i = 0; i < this.buttons.length; i++) {
+                var button = this.buttons[i];
+
+                button.processPollingDoublePress(time, this.doublePressMilliSecond);
+            }
         }
 
-        updateStates(time: float) {
+        updateStates() {
 
-            this.leftButton.updateStates(time);
-            this.middleButton.updateStates(time);
-            this.rightButton.updateStates(time);
+            for (var i = 0; i < this.buttons.length; i++) {
+                var button = this.buttons[i];
 
-            this.wheelAxis.y = 0.0;
+                button.updateStates();
+            }
+
+            this.wheel.y = 0.0;
         }
 
         getButtonControlByName(name: string): ButtonInputControl {
 
-            if (name == 'left') {
-                return this.leftButton;
-            }
+            for (var i = 0; i < this.buttons.length; i++) {
+                var button = this.buttons[i];
 
-            if (name == 'middle') {
-                return this.middleButton;
-            }
-
-            if (name == 'right') {
-                return this.rightButton;
+                if (button.name == name) {
+                    return button;
+                }
             }
 
             return null;
@@ -197,8 +202,8 @@ module Input {
 
         getAxisControlByName(name: string): AxisInputControl {
 
-            if (name == 'wheel') {
-                return this.wheelAxis;
+            if (name == this.wheel.name) {
+                return this.wheel;
             }
 
             return null;
@@ -206,8 +211,8 @@ module Input {
 
         getPointingControlByName(name: string): PointingInputControl {
 
-            if (name == 'location') {
-                return this.mousePoint;
+            if (name == this.location.name) {
+                return this.location;
             }
 
             return null;

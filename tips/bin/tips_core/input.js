@@ -21,6 +21,7 @@ var Input;
     var InputControl = (function () {
         function InputControl() {
             this.isInputed = false;
+            this.name = null;
         }
         return InputControl;
     }());
@@ -38,7 +39,7 @@ var Input;
         ButtonInputControl.prototype.inputPressed = function () {
             this.isInputed = true;
             this.pressure = 1.0;
-            if (this.singlePressState == ButtonState.justPressed) {
+            if (this.singlePressState == ButtonState.pressed || this.singlePressState == ButtonState.justPressed) {
                 this.singlePressState = ButtonState.pressed;
             }
             else {
@@ -48,7 +49,7 @@ var Input;
         ButtonInputControl.prototype.inputReleased = function () {
             this.isInputed = true;
             this.pressure = 0.0;
-            if (this.singlePressState == ButtonState.justReleased) {
+            if (this.singlePressState == ButtonState.released || this.singlePressState == ButtonState.justReleased) {
                 this.singlePressState = ButtonState.released;
             }
             else {
@@ -73,7 +74,7 @@ var Input;
                 this.lastPressedTime = time;
             }
         };
-        ButtonInputControl.prototype.updateStates = function (time) {
+        ButtonInputControl.prototype.updateStates = function () {
             this.singlePressState = this.getButtonPressNextState(this.singlePressState);
             this.doublePressState = ButtonState.released;
             this.isInputed = false;
@@ -89,6 +90,9 @@ var Input;
         };
         ButtonInputControl.prototype.isJustReleased = function () {
             return (this.singlePressState == ButtonState.justReleased);
+        };
+        ButtonInputControl.prototype.isDoublePressed = function () {
+            return (this.doublePressState == ButtonState.pressed);
         };
         return ButtonInputControl;
     }(InputControl));
@@ -125,34 +129,33 @@ var Input;
         return PointingInputControl;
     }(InputControl));
     Input.PointingInputControl = PointingInputControl;
-    var InputDeviceBase = (function () {
-        function InputDeviceBase() {
-        }
-        InputDeviceBase.prototype.setEvents = function (canvas) {
-            // override method
-        };
-        InputDeviceBase.prototype.processPolling = function (time) {
-            // override method
-        };
-        InputDeviceBase.prototype.updateStates = function (time) {
-            // override method
-        };
-        InputDeviceBase.prototype.getButtonControlByName = function (name) {
-            // override method
-            return null;
-        };
-        InputDeviceBase.prototype.getAxisControlByName = function (name) {
-            // override method
-            return null;
-        };
-        InputDeviceBase.prototype.getPointingControlByName = function (name) {
-            // override method
-            return null;
-        };
-        return InputDeviceBase;
-    }());
-    Input.InputDeviceBase = InputDeviceBase;
-    // Input map for multi-device integration
+    //export class InputDeviceBase implements IInputDevice {
+    //    initialize() {
+    //        // override method
+    //    }
+    //    setEvents(canvas: HTMLCanvasElement) {
+    //        // override method
+    //    }
+    //    processPolling(time: float) {
+    //        // override method
+    //    }
+    //    updateStates(time: float) {
+    //        // override method
+    //    }
+    //    getButtonControlByName(name: string): ButtonInputControl {
+    //        // override method
+    //        return null;
+    //    }
+    //    getAxisControlByName(name: string): AxisInputControl {
+    //        // override method
+    //        return null;
+    //    }
+    //    getPointingControlByName(name: string): PointingInputControl {
+    //        // override method
+    //        return null;
+    //    }
+    //}
+    // Input mapping for multi-device integration
     var InputMapping = (function () {
         function InputMapping() {
             this.controls = new List();
@@ -178,63 +181,110 @@ var Input;
         function ButtonInputMapping() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
-        ButtonInputMapping.prototype.isPressed = function () {
-            if (this.primaryControl == null) {
-                return false;
-            }
-            this.primaryControl.isPressed();
-        };
-        ButtonInputMapping.prototype.isJustPressed = function () {
-            if (this.primaryControl == null) {
-                return false;
-            }
-            this.primaryControl.isJustPressed();
-        };
-        ButtonInputMapping.prototype.isReleased = function () {
-            if (this.primaryControl == null) {
-                return false;
-            }
-            this.primaryControl.isReleased();
-        };
-        ButtonInputMapping.prototype.isJustReleased = function () {
-            if (this.primaryControl == null) {
-                return false;
-            }
-            this.primaryControl.isJustReleased();
-        };
         return ButtonInputMapping;
     }(InputMapping));
     Input.ButtonInputMapping = ButtonInputMapping;
+    var IntegratedButtonControl = (function () {
+        function IntegratedButtonControl(mapping) {
+            this.mapping = mapping;
+        }
+        IntegratedButtonControl.prototype.getState = function () {
+            if (this.mapping.primaryControl == null) {
+                return ButtonState.released;
+            }
+            return this.mapping.primaryControl.singlePressState;
+        };
+        IntegratedButtonControl.prototype.getDoublePressState = function () {
+            if (this.mapping.primaryControl == null) {
+                return ButtonState.released;
+            }
+            return this.mapping.primaryControl.doublePressState;
+        };
+        IntegratedButtonControl.prototype.isPressed = function () {
+            if (this.mapping.primaryControl == null) {
+                return false;
+            }
+            this.mapping.primaryControl.isPressed();
+        };
+        IntegratedButtonControl.prototype.isJustPressed = function () {
+            if (this.mapping.primaryControl == null) {
+                return false;
+            }
+            this.mapping.primaryControl.isJustPressed();
+        };
+        IntegratedButtonControl.prototype.isReleased = function () {
+            if (this.mapping.primaryControl == null) {
+                return false;
+            }
+            this.mapping.primaryControl.isReleased();
+        };
+        IntegratedButtonControl.prototype.isJustReleased = function () {
+            if (this.mapping.primaryControl == null) {
+                return false;
+            }
+            this.mapping.primaryControl.isJustReleased();
+        };
+        IntegratedButtonControl.prototype.isDoublePressed = function () {
+            if (this.mapping.primaryControl == null) {
+                return false;
+            }
+            return this.mapping.primaryControl.isDoublePressed();
+        };
+        return IntegratedButtonControl;
+    }());
+    Input.IntegratedButtonControl = IntegratedButtonControl;
     var AxisInputMapping = (function (_super) {
         __extends(AxisInputMapping, _super);
         function AxisInputMapping() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
-        AxisInputMapping.prototype.getAxis = function (vec) {
-            if (this.primaryControl == null) {
-                vec3.set(vec, 0.0, 0.0, 0.0);
-                return;
-            }
-            vec3.set(vec, this.primaryControl.x, this.primaryControl.y, 0.0);
-        };
         return AxisInputMapping;
     }(InputMapping));
     Input.AxisInputMapping = AxisInputMapping;
+    var IntegratedAxisControl = (function () {
+        function IntegratedAxisControl(mapping) {
+            this.mapping = mapping;
+        }
+        IntegratedAxisControl.prototype.getAxis = function (vec) {
+            if (this.mapping.primaryControl == null) {
+                vec[0] = 0.0;
+                vec[1] = 0.0;
+                vec[2] = 0.0;
+                return;
+            }
+            vec[0] = this.mapping.primaryControl.x;
+            vec[1] = this.mapping.primaryControl.y;
+            vec[2] = 0.0;
+        };
+        return IntegratedAxisControl;
+    }());
+    Input.IntegratedAxisControl = IntegratedAxisControl;
     var PointingInputMapping = (function (_super) {
         __extends(PointingInputMapping, _super);
         function PointingInputMapping() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
-        PointingInputMapping.prototype.getLocation = function (vec) {
-            if (this.primaryControl == null) {
-                vec3.set(vec, 0.0, 0.0, 0.0);
-                return;
-            }
-            vec3.set(vec, this.primaryControl.x, this.primaryControl.y, 0.0);
-        };
         return PointingInputMapping;
     }(InputMapping));
     Input.PointingInputMapping = PointingInputMapping;
+    var IntegratedPointingInputControl = (function () {
+        function IntegratedPointingInputControl(mapping) {
+            this.mapping = mapping;
+        }
+        IntegratedPointingInputControl.prototype.getLocation = function (vec) {
+            if (this.mapping.primaryControl == null) {
+                vec[0] = 0.0;
+                vec[1] = 0.0;
+                vec[2] = 0.0;
+                return;
+            }
+            vec[0] = this.mapping.primaryControl.x;
+            vec[1] = this.mapping.primaryControl.y;
+            vec[2] = 0.0;
+        };
+        return IntegratedPointingInputControl;
+    }());
+    Input.IntegratedPointingInputControl = IntegratedPointingInputControl;
     var InputMappingSet = (function () {
         function InputMappingSet() {
             this.mappings = new List();
@@ -276,27 +326,37 @@ var Input;
         InputManager.prototype.addDevice = function (name, device) {
             this.decives.push(device);
             this.deciveDictionary[name] = device;
+            device.initialize();
         };
         // Mapping
-        InputManager.prototype.clearButtonInputMap = function () {
+        InputManager.prototype.clearButtons = function () {
             this.buttonInputMappingSet.clear();
         };
-        InputManager.prototype.addButtonInputMap = function (name) {
-            this.buttonInputMappingSet.addMapping(name, new ButtonInputMapping());
+        InputManager.prototype.addButton = function (name) {
+            var mapping = new ButtonInputMapping();
+            var integratedButton = new IntegratedButtonControl(mapping);
+            this.buttonInputMappingSet.addMapping(name, mapping);
+            return integratedButton;
         };
-        InputManager.prototype.clearAxisInputMap = function () {
+        InputManager.prototype.clearAxes = function () {
             this.axisInputMapppingSet.clear();
         };
-        InputManager.prototype.addAxisInputMap = function (name) {
-            this.axisInputMapppingSet.addMapping(name, new AxisInputMapping());
+        InputManager.prototype.addAxis = function (name) {
+            var mapping = new AxisInputMapping();
+            var integratedAxis = new IntegratedAxisControl(mapping);
+            this.axisInputMapppingSet.addMapping(name, mapping);
+            return integratedAxis;
         };
-        InputManager.prototype.clearPointingInputMap = function () {
+        InputManager.prototype.clearPointingInput = function () {
             this.pointingInputMappingSet.clear();
         };
-        InputManager.prototype.addPointingInputMap = function (name) {
-            this.pointingInputMappingSet.addMapping(name, new PointingInputMapping());
+        InputManager.prototype.addPointingInputs = function (name) {
+            var mapping = new PointingInputMapping();
+            var integratedPointing = new IntegratedPointingInputControl(mapping);
+            this.pointingInputMappingSet.addMapping(name, mapping);
+            return integratedPointing;
         };
-        InputManager.prototype.setInputMappingFromConfig = function (devieMappingConfigs) {
+        InputManager.prototype.setMappingFromConfig = function (devieMappingConfigs) {
             for (var deviceName in devieMappingConfigs) {
                 var device = this.deciveDictionary[deviceName];
                 var devieMappingConfig = devieMappingConfigs[deviceName];
@@ -348,11 +408,11 @@ var Input;
             this.axisInputMapppingSet.processSwitchingPrimaryControl();
             this.pointingInputMappingSet.processSwitchingPrimaryControl();
         };
-        InputManager.prototype.updateStates = function (time) {
+        InputManager.prototype.updateStates = function () {
             // Update for such as button releasing and double pressing
             for (var _i = 0, _a = this.decives; _i < _a.length; _i++) {
                 var device = _a[_i];
-                device.updateStates(time);
+                device.updateStates();
             }
         };
         return InputManager;

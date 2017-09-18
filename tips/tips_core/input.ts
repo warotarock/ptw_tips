@@ -13,6 +13,7 @@ module Input {
     export class InputControl {
 
         isInputed = false;
+        name: string = null;
     }
 
     export class ButtonInputControl extends InputControl {
@@ -28,7 +29,7 @@ module Input {
             this.isInputed = true;
             this.pressure = 1.0;
 
-            if (this.singlePressState == ButtonState.justPressed) {
+            if (this.singlePressState == ButtonState.pressed || this.singlePressState == ButtonState.justPressed) {
                 this.singlePressState = ButtonState.pressed;
             }
             else {
@@ -41,7 +42,7 @@ module Input {
             this.isInputed = true;
             this.pressure = 0.0;
 
-            if (this.singlePressState == ButtonState.justReleased) {
+            if (this.singlePressState == ButtonState.released || this.singlePressState == ButtonState.justReleased) {
                 this.singlePressState = ButtonState.released;
             }
             else {
@@ -75,7 +76,7 @@ module Input {
             }
         }
 
-        updateStates(time: long) {
+        updateStates() {
 
             this.singlePressState = this.getButtonPressNextState(this.singlePressState);
 
@@ -102,6 +103,11 @@ module Input {
         isJustReleased(): boolean {
 
             return (this.singlePressState == ButtonState.justReleased);
+        }
+
+        isDoublePressed(): boolean {
+
+            return (this.doublePressState == ButtonState.pressed);
         }
     }
 
@@ -135,54 +141,60 @@ module Input {
 
     export interface IInputDevice {
 
+        initialize();
         setEvents(canvas: HTMLCanvasElement);
         processPolling(time: float);
-        updateStates(time: float);
+        updateStates();
         getButtonControlByName(name: string): ButtonInputControl;
         getAxisControlByName(name: string): AxisInputControl;
         getPointingControlByName(name: string): PointingInputControl;
     }
 
-    export class InputDeviceBase implements IInputDevice {
+    //export class InputDeviceBase implements IInputDevice {
 
-        setEvents(canvas: HTMLCanvasElement) {
+    //    initialize() {
 
-            // override method
-        }
+    //        // override method
+    //    }
 
-        processPolling(time: float) {
+    //    setEvents(canvas: HTMLCanvasElement) {
 
-            // override method
-        }
+    //        // override method
+    //    }
 
-        updateStates(time: float) {
+    //    processPolling(time: float) {
 
-            // override method
-        }
+    //        // override method
+    //    }
 
-        getButtonControlByName(name: string): ButtonInputControl {
+    //    updateStates(time: float) {
 
-            // override method
+    //        // override method
+    //    }
 
-            return null;
-        }
+    //    getButtonControlByName(name: string): ButtonInputControl {
 
-        getAxisControlByName(name: string): AxisInputControl {
+    //        // override method
 
-            // override method
+    //        return null;
+    //    }
 
-            return null;
-        }
+    //    getAxisControlByName(name: string): AxisInputControl {
 
-        getPointingControlByName(name: string): PointingInputControl {
+    //        // override method
 
-            // override method
+    //        return null;
+    //    }
 
-            return null;
-        }
-    }
+    //    getPointingControlByName(name: string): PointingInputControl {
 
-    // Input map for multi-device integration
+    //        // override method
+
+    //        return null;
+    //    }
+    //}
+
+    // Input mapping for multi-device integration
 
     class InputMapping<T extends InputControl> {
 
@@ -210,69 +222,135 @@ module Input {
     }
 
     export class ButtonInputMapping extends InputMapping<ButtonInputControl> {
+    }
+
+    export class IntegratedButtonControl {
+
+        private mapping: ButtonInputMapping;
+
+        constructor(mapping: ButtonInputMapping) {
+
+            this.mapping = mapping;
+        }
+
+        getState(): ButtonState {
+
+            if (this.mapping.primaryControl == null) {
+                return ButtonState.released;
+            }
+
+            return this.mapping.primaryControl.singlePressState;
+        }
+
+        getDoublePressState(): ButtonState {
+
+            if (this.mapping.primaryControl == null) {
+                return ButtonState.released;
+            }
+
+            return this.mapping.primaryControl.doublePressState;
+        }
+
 
         isPressed(): boolean {
 
-            if (this.primaryControl == null) {
+            if (this.mapping.primaryControl == null) {
                 return false;
             }
 
-            this.primaryControl.isPressed();
+            this.mapping.primaryControl.isPressed();
         }
 
         isJustPressed(): boolean {
 
-            if (this.primaryControl == null) {
+            if (this.mapping.primaryControl == null) {
                 return false;
             }
 
-            this.primaryControl.isJustPressed();
+            this.mapping.primaryControl.isJustPressed();
         }
 
         isReleased(): boolean {
 
-            if (this.primaryControl == null) {
+            if (this.mapping.primaryControl == null) {
                 return false;
             }
 
-            this.primaryControl.isReleased();
+            this.mapping.primaryControl.isReleased();
         }
 
         isJustReleased(): boolean {
 
-            if (this.primaryControl == null) {
+            if (this.mapping.primaryControl == null) {
                 return false;
             }
 
-            this.primaryControl.isJustReleased();
+            this.mapping.primaryControl.isJustReleased();
+        }
+
+        isDoublePressed(): boolean {
+
+            if (this.mapping.primaryControl == null) {
+                return false;
+            }
+
+            return this.mapping.primaryControl.isDoublePressed();
         }
     }
 
     export class AxisInputMapping extends InputMapping<AxisInputControl> {
+    }
 
-        getAxis(vec: Vec3) {
+    export class IntegratedAxisControl {
 
-            if (this.primaryControl == null) {
+        private mapping: AxisInputMapping;
 
-                vec3.set(vec, 0.0, 0.0, 0.0);
+        constructor(mapping: AxisInputMapping) {
+
+            this.mapping = mapping;
+        }
+
+        getAxis(vec: number[]) {
+
+            if (this.mapping.primaryControl == null) {
+
+                vec[0] = 0.0;
+                vec[1] = 0.0;
+                vec[2] = 0.0;
                 return;
             }
 
-            vec3.set(vec, this.primaryControl.x, this.primaryControl.y, 0.0);
+            vec[0] = this.mapping.primaryControl.x;
+            vec[1] = this.mapping.primaryControl.y;
+            vec[2] = 0.0;
         }
     }
 
     export class PointingInputMapping extends InputMapping<PointingInputControl> {
+    }
 
-        getLocation(vec: Vec3) {
+    export class IntegratedPointingInputControl {
 
-            if (this.primaryControl == null) {
+        private mapping: PointingInputMapping;
 
-                vec3.set(vec, 0.0, 0.0, 0.0);
+        constructor(mapping: PointingInputMapping) {
+
+            this.mapping = mapping;
+        }
+
+        getLocation(vec: number[]) {
+
+            if (this.mapping.primaryControl == null) {
+
+                vec[0] = 0.0;
+                vec[1] = 0.0;
+                vec[2] = 0.0;
                 return;
             }
 
-            vec3.set(vec, this.primaryControl.x, this.primaryControl.y, 0.0);
+            vec[0] = this.mapping.primaryControl.x;
+            vec[1] = this.mapping.primaryControl.y;
+            vec[2] = 0.0;
         }
     }
 
@@ -333,41 +411,58 @@ module Input {
 
             this.decives.push(device);
             this.deciveDictionary[name] = device;
+
+            device.initialize();
         }
 
         // Mapping
 
-        clearButtonInputMap() {
+        clearButtons() {
 
             this.buttonInputMappingSet.clear();
         }
 
-        addButtonInputMap(name: string) {
+        addButton(name: string): IntegratedButtonControl {
 
-            this.buttonInputMappingSet.addMapping(name, new ButtonInputMapping());
+            let mapping = new ButtonInputMapping(); 
+            let integratedButton = new IntegratedButtonControl(mapping); 
+
+            this.buttonInputMappingSet.addMapping(name, mapping);
+
+            return integratedButton;
         }
 
-        clearAxisInputMap() {
+        clearAxes() {
 
             this.axisInputMapppingSet.clear();
         }
 
-        addAxisInputMap(name: string) {
+        addAxis(name: string): IntegratedAxisControl {
 
-            this.axisInputMapppingSet.addMapping(name, new AxisInputMapping());
+            let mapping = new AxisInputMapping();
+            let integratedAxis = new IntegratedAxisControl(mapping);
+
+            this.axisInputMapppingSet.addMapping(name, mapping);
+
+            return integratedAxis;
         }
 
-        clearPointingInputMap() {
+        clearPointingInput() {
 
             this.pointingInputMappingSet.clear();
         }
 
-        addPointingInputMap(name: string) {
+        addPointingInputs(name: string): IntegratedPointingInputControl {
 
-            this.pointingInputMappingSet.addMapping(name, new PointingInputMapping());
+            let mapping = new PointingInputMapping();
+            let integratedPointing = new IntegratedPointingInputControl(mapping);
+
+            this.pointingInputMappingSet.addMapping(name, mapping);
+
+            return integratedPointing;
         }
 
-        setInputMappingFromConfig(devieMappingConfigs: any) {
+        setMappingFromConfig(devieMappingConfigs: any) {
 
             for (let deviceName in devieMappingConfigs) {
 
@@ -445,24 +540,13 @@ module Input {
             this.pointingInputMappingSet.processSwitchingPrimaryControl();
         }
 
-        updateStates(time: float) {
+        updateStates() {
 
             // Update for such as button releasing and double pressing
             for (let device of this.decives) {
 
-                device.updateStates(time);
+                device.updateStates();
             }
         }
-    }
-
-    // HTML object interfaces
-
-    interface HTMLGamepadButton {
-        pressed: boolean;
-    }
-
-    interface HTMLGamepad {
-        buttons: List<HTMLGamepadButton>;
-        axes: List<float>;
     }
 }

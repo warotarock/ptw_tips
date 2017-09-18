@@ -1,95 +1,78 @@
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 var Input;
 (function (Input) {
-    var MouseDevice = (function (_super) {
-        __extends(MouseDevice, _super);
+    var MouseDevice = (function () {
         function MouseDevice() {
-            var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.leftButton = new Input.ButtonInputControl();
-            _this.middleButton = new Input.ButtonInputControl();
-            _this.rightButton = new Input.ButtonInputControl();
-            _this.mousePoint = new Input.PointingInputControl();
-            _this.wheelAxis = new Input.AxisInputControl();
-            _this.initialWidth = 0.0;
-            _this.initialHeight = 0.0;
-            _this.doublePressMilliSecond = 200;
-            return _this;
+            this.maxButtonCount = 16;
+            this.maxAxisCount = 1;
+            this.buttons = new List();
+            this.wheel = new Input.AxisInputControl();
+            this.location = new Input.PointingInputControl();
+            this.initialWidth = 0.0;
+            this.initialHeight = 0.0;
+            this.doublePressMilliSecond = 200;
         }
+        MouseDevice.prototype.initialize = function () {
+            this.buttons = new List(this.maxButtonCount);
+            for (var i = 0; i < this.buttons.length; i++) {
+                this.buttons[i] = new Input.ButtonInputControl();
+                this.buttons[i].name = ('button' + (1 + i));
+            }
+            this.wheel.name = 'wheel';
+            this.location.name = 'location';
+        };
         MouseDevice.prototype.setEvents = function (canvas) {
             var _this = this;
             this.initialWidth = canvas.clientWidth;
             this.initialHeight = canvas.clientHeight;
             var onMouseMove = function (e) {
-                _this.inputMouseLocation(_this.mousePoint, e);
+                _this.inputMouseLocation(_this.location, e);
             };
             var onMouseDown = function (e) {
-                if (e.button == 0) {
-                    _this.leftButton.inputPressed();
-                }
-                else if (e.button == 1) {
-                    _this.middleButton.inputPressed();
-                }
-                else if (e.button == 2) {
-                    _this.rightButton.inputPressed();
-                }
-                _this.inputMouseLocation(_this.mousePoint, e);
+                _this.buttons[e.button].inputPressed();
+                _this.inputMouseLocation(_this.location, e);
                 return _this.preventDefaultEvent(e);
             };
             var onMouseUp = function (e) {
-                if (e.button == 0) {
-                    _this.leftButton.inputReleased();
-                }
-                else if (e.button == 1) {
-                    _this.middleButton.inputReleased();
-                }
-                else if (e.button == 2) {
-                    _this.rightButton.inputReleased();
-                }
-                _this.inputMouseLocation(_this.mousePoint, e);
+                _this.buttons[e.button].inputReleased();
+                _this.inputMouseLocation(_this.location, e);
                 return _this.preventDefaultEvent(e);
             };
             var onMouseWheel = function (e) {
                 var delta = 0;
                 if (!e) {
-                    e = window.event;
+                    e = window.event; // IE
                 }
-                ; // IE
+                ;
                 if (e.wheelDelta) {
-                    delta = e.wheelDelta / 120;
+                    delta = -e.wheelDelta / 120;
+                }
+                else if (e.deltaY) {
+                    delta = e.deltaY / 3;
                 }
                 else if (e.detail) {
-                    delta = -e.detail / 3;
+                    delta = e.detail / 3;
                 }
-                _this.wheelAxis.inputAxis(0.0, delta);
+                _this.wheel.inputAxis(0.0, delta);
                 return _this.preventDefaultEvent(e);
             };
             var onTouchStart = function (e) {
-                _this.leftButton.inputReleased();
-                _this.inputMouseLocation(_this.mousePoint, e);
+                _this.buttons[0].inputReleased();
+                _this.inputMouseLocation(_this.location, e);
                 return _this.preventDefaultEvent(e);
             };
             var onTouchEnd = function (e) {
-                _this.leftButton.inputReleased();
-                _this.inputMouseLocation(_this.mousePoint, e);
+                _this.buttons[0].inputReleased();
+                _this.inputMouseLocation(_this.location, e);
                 return _this.preventDefaultEvent(e);
             };
             var ontTouchMove = function (e) {
-                _this.inputMouseLocation(_this.mousePoint, e);
+                _this.inputMouseLocation(_this.location, e);
                 return _this.preventDefaultEvent(e);
             };
             canvas.addEventListener("mousemove", onMouseMove);
             canvas.addEventListener("mousedown", onMouseDown);
             canvas.addEventListener("mouseup", onMouseUp);
-            canvas.addEventListener("mousewheel", onMouseWheel);
+            canvas.addEventListener("wheel", onMouseWheel);
             canvas.addEventListener("touchstart", onTouchStart);
             canvas.addEventListener("touchend", onTouchEnd);
             canvas.addEventListener("touchmove", ontTouchMove);
@@ -109,41 +92,40 @@ var Input;
             return false;
         };
         MouseDevice.prototype.processPolling = function (time) {
-            this.leftButton.processPollingDoublePress(time, this.doublePressMilliSecond);
-            this.middleButton.processPollingDoublePress(time, this.doublePressMilliSecond);
-            this.rightButton.processPollingDoublePress(time, this.doublePressMilliSecond);
+            for (var i = 0; i < this.buttons.length; i++) {
+                var button = this.buttons[i];
+                button.processPollingDoublePress(time, this.doublePressMilliSecond);
+            }
         };
-        MouseDevice.prototype.updateStates = function (time) {
-            this.leftButton.updateStates(time);
-            this.middleButton.updateStates(time);
-            this.rightButton.updateStates(time);
-            this.wheelAxis.y = 0.0;
+        MouseDevice.prototype.updateStates = function () {
+            for (var i = 0; i < this.buttons.length; i++) {
+                var button = this.buttons[i];
+                button.updateStates();
+            }
+            this.wheel.y = 0.0;
         };
         MouseDevice.prototype.getButtonControlByName = function (name) {
-            if (name == 'left') {
-                return this.leftButton;
-            }
-            if (name == 'middle') {
-                return this.middleButton;
-            }
-            if (name == 'right') {
-                return this.rightButton;
+            for (var i = 0; i < this.buttons.length; i++) {
+                var button = this.buttons[i];
+                if (button.name == name) {
+                    return button;
+                }
             }
             return null;
         };
         MouseDevice.prototype.getAxisControlByName = function (name) {
-            if (name == 'wheel') {
-                return this.wheelAxis;
+            if (name == this.wheel.name) {
+                return this.wheel;
             }
             return null;
         };
         MouseDevice.prototype.getPointingControlByName = function (name) {
-            if (name == 'location') {
-                return this.mousePoint;
+            if (name == this.location.name) {
+                return this.location;
             }
             return null;
         };
         return MouseDevice;
-    }(Input.InputDeviceBase));
+    }());
     Input.MouseDevice = MouseDevice;
 })(Input || (Input = {}));

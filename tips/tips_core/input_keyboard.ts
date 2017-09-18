@@ -1,24 +1,87 @@
 ﻿
 module Input {
 
-    export class KeyboardDevice extends InputDeviceBase {
+    export class KeyboardDevice implements IInputDevice {
 
-        dummyButton = new ButtonInputControl();
+        buttons: Dictionary<ButtonInputControl> = null;
+
+        maxButtonCount = 256;
+        doublePressMilliSecond = 200;
+
+        initialize() {
+
+            this.buttons = new List<ButtonInputControl>(this.maxButtonCount);
+        }
 
         setEvents(canvas: HTMLCanvasElement) {
+            
+            var keydown = (e: KeyboardEvent) => {
+            
+                //console.log('keydown ' + e.key + ' ' + e.keyCode);
+
+                this.prepareButtonControlForKey(e.key);
+
+                this.buttons[e.key].inputPressed();
+            };
+
+            var keyup = (e: KeyboardEvent) => {
+
+                //console.log('keyup ' + e.key + ' ' + e.keyCode);
+
+                this.prepareButtonControlForKey(e.key);
+
+                this.buttons[e.key].inputReleased();
+            };
+
+            document.addEventListener('keydown', keydown, false);
+            document.addEventListener('keyup', keyup, false);
+        }
+
+        prepareButtonControlForKey(name: string) {
+
+            if (DictionaryContainsKey(this.buttons, name)) {
+                return;
+            }
+
+            var button = new ButtonInputControl();
+            button.name = name;
+
+            this.buttons[name] = button;
         }
 
         processPolling(time: float) {
 
+            for (let buttonName in this.buttons) {
+                var button: ButtonInputControl = this.buttons[buttonName];
+
+                button.processPollingDoublePress(time, this.doublePressMilliSecond);
+            }
         }
 
-        updateStates(time: float) {
+        updateStates() {
 
+            for (let buttonName in this.buttons) {
+                var button: ButtonInputControl = this.buttons[buttonName];
+
+                button.updateStates();
+            }
         }
 
-        getButtonControlByName(controlName: string): ButtonInputControl {
+        getButtonControlByName(name: string): ButtonInputControl {
 
-            return this.dummyButton;
+            this.prepareButtonControlForKey(name);
+
+            return this.buttons[name];
+        }
+
+        getAxisControlByName(name: string): AxisInputControl {
+
+            return null;
+        }
+
+        getPointingControlByName(name: string): PointingInputControl {
+
+            return null;
         }
     }
 }
