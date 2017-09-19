@@ -109,6 +109,15 @@ module Input {
 
             return (this.doublePressState == ButtonState.pressed);
         }
+
+        copyTo(target: ButtonInputControl) {
+
+            target.singlePressState = this.singlePressState;
+            target.doublePressState = this.doublePressState;
+            target.pressure = this.pressure;
+            target.lastPressedTime = this.lastPressedTime;
+            target.isInputed = this.isInputed;
+        }
     }
 
     export class AxisInputControl extends InputControl {

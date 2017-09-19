@@ -94,6 +94,13 @@ var Input;
         ButtonInputControl.prototype.isDoublePressed = function () {
             return (this.doublePressState == ButtonState.pressed);
         };
+        ButtonInputControl.prototype.copyTo = function (target) {
+            target.singlePressState = this.singlePressState;
+            target.doublePressState = this.doublePressState;
+            target.pressure = this.pressure;
+            target.lastPressedTime = this.lastPressedTime;
+            target.isInputed = this.isInputed;
+        };
         return ButtonInputControl;
     }(InputControl));
     Input.ButtonInputControl = ButtonInputControl;

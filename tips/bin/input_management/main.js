@@ -68,8 +68,7 @@ var InputMnagement;
                     'crossButton3': 'down',
                     'crossButton4': 'left',
                     'button1': 'attack',
-                    'button3': 'shield',
-                    'button4': 'start',
+                    'button2': 'shield',
                     'button10': 'start',
                     'stick1': 'analog1',
                     'stick2': 'analog2'

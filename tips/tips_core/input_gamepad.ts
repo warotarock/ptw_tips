@@ -8,12 +8,260 @@ module Input {
     interface HTMLGamepad {
         buttons: List<HTMLGamepadButton>;
         axes: List<float>;
+        mapping: string;
     }
 
-    class AxisMapping {
+    class StickIndexMapping {
 
         xIndex = 0;
         yIndex = 0;
+    }
+
+    class GamepadDeviceLayout {
+
+        buttonMappings: List<int> = null;
+
+        axesMappings: List<int> = null;
+
+        StickIndexMappings: List<StickIndexMapping> = null;
+
+        initialize() {
+
+            // override method
+        }
+
+        protected getMappingTypeForEnvironment(): int {
+
+            var userAgent = window.navigator.userAgent.toLowerCase();
+
+            var browerType = 0;
+
+            if (userAgent.indexOf('msie') != -1 || userAgent.indexOf('trident') != -1) {
+
+                browerType = 0;
+            }
+            else if (userAgent.indexOf('edge') != -1) {
+
+                browerType = 0;
+            }
+            else if (userAgent.indexOf('chrome') != -1) {
+
+                browerType = 0;
+            }
+            else if (userAgent.indexOf('safari') != -1) {
+
+                browerType = 0;
+            }
+            else if (userAgent.indexOf('firefox') != -1) {
+
+                browerType = 1;
+            }
+            else if (userAgent.indexOf('opera') != -1) {
+
+                browerType = 0;
+            }
+
+            return browerType;
+        }
+
+        isMatch(mappingName: string): boolean {
+
+            // override method
+
+            return false;
+        }
+
+        processPollingCrossButton(crossButtons: List<ButtonInputControl>, buttons: List<ButtonInputControl>, gamepad: HTMLGamepad, time: float, doublePressMilliSecond: float) {
+
+            // override method
+        }
+    }
+
+    class W3CStandardGamepadLayout extends GamepadDeviceLayout {
+
+        initialize() {
+
+            // Detect gamepad environment
+            let mappingType = this.getMappingTypeForEnvironment();
+
+            // Set mappings
+            this.buttonMappings = [
+                0,  // A
+                1,  // B
+                2,  // X
+                3,  // Y
+                4,  // L1
+                5,  // R1
+                6,  // L2
+                7,  // R2
+                8,  // Select/Back
+                9,  // Start/Forward
+                10, // Left stick button
+                11, // Right stick button
+                12, // POV Up
+                13, // POV Down
+                14, // POV Left
+                15, // POV Right
+                16, // Home
+            ];
+
+            this.axesMappings = [
+                0, // stick1 x
+                1, // stick1 y
+                2, // stick2 x
+                3  // stick2 y
+            ];
+
+            this.StickIndexMappings = [
+                { xIndex: 0, yIndex: 1 },
+                { xIndex: 2, yIndex: 3 }
+            ];
+        }
+
+        isMatch(mappingName: string) {
+
+            return StringContains(mappingName, 'standard');
+        }
+
+        processPollingCrossButton(crossButtons: List<ButtonInputControl>, buttons: List<ButtonInputControl>, gamepad: HTMLGamepad, time: float, doublePressMilliSecond: float) {
+
+            // Up
+            buttons[12].copyTo(crossButtons[0]);
+
+            // Right
+            buttons[15].copyTo(crossButtons[1]);
+
+            // Down
+            buttons[13].copyTo(crossButtons[2]);
+
+            // Left
+            buttons[14].copyTo(crossButtons[3]);
+        }
+    }
+
+    class GenericGamepadLayout extends GamepadDeviceLayout {
+
+        initialize() {
+
+            // Detect gamepad environment
+            let mappingType = this.getMappingTypeForEnvironment();
+
+            // Set mappings
+            this.buttonMappings = [
+                2,  // A
+                3,  // B
+                0,  // X
+                1,  // Y
+                4,  // L1
+                5,  // R1
+                6,  // L2
+                7,  // R2
+                8,  // Select/Back
+                9,  // Start/Forward
+                10, // Left stick button
+                11, // Right stick button
+            ];
+
+            if (mappingType == 0) {
+
+                this.axesMappings = [
+                    0, // stick1 x
+                    1, // stick1 y
+                    2, // stick2 x
+                    5, // stick2 y
+                    9  // pov
+                ];
+            }
+            else {
+
+                this.axesMappings = [
+                    0, // stick1 x
+                    1, // stick1 y
+                    2, // stick2 x
+                    3, // stick2 y
+                    9  // pov
+                ];
+            }
+
+            this.StickIndexMappings = [
+                { xIndex: 0, yIndex: 1 },
+                { xIndex: 2, yIndex: 3 }
+            ];
+        }
+
+        isMatch(mappingName: string) {
+
+            return (StringIsNullOrEmpty(mappingName) || !StringContains(mappingName, 'standard'));
+        }
+
+        processPollingCrossButton(crossButtons: List<ButtonInputControl>, buttons: List<ButtonInputControl>, gamepad: HTMLGamepad, time: float, doublePressMilliSecond: float) {
+
+            var povAxisIndex = this.axesMappings[4];
+
+            if (povAxisIndex >= gamepad.axes.length) {
+                return;
+            }
+
+            // Get direction from pov
+            let verticalPressedIndex = -1;
+            let horizontalPressedIndex = -1;
+
+            var axisValue = gamepad.axes[povAxisIndex];
+
+            if (axisValue >= -1.0 && axisValue <= 1.0) {
+
+                // POV value takes -1.0 when angle is PI * 0.5) , and takes 1.0 when angle is PI * 0.75
+                var angle = (1.625 - (axisValue * 0.875));
+                if (angle >= 2.0) {
+                    angle -= 2.0;
+                }
+
+                var limitAngle = 0.3;
+
+                // Up direction
+                if (angle >= (0.5 - limitAngle) && angle <= (0.5 + limitAngle)) {
+
+                    verticalPressedIndex = 0;
+                }
+
+                // Right direction
+                if (angle <= limitAngle || angle >= (2.0 - limitAngle)) {
+
+                    horizontalPressedIndex = 1;
+                }
+
+                // Down direction
+                if (angle >= (1.5 - limitAngle) && angle <= (1.5 + limitAngle)) {
+
+                    verticalPressedIndex = 2;
+                }
+
+                // Left direction
+                if (angle >= (1.0 - limitAngle) && angle <= (1.0 + limitAngle)) {
+
+                    horizontalPressedIndex = 3;
+                }
+            }
+
+            for (var i = 0; i < crossButtons.length; i++) {
+                var button = crossButtons[i];
+
+                if (i == verticalPressedIndex || i == horizontalPressedIndex) {
+
+                    if (button.isReleased()) {
+                        button.inputPress();
+                    }
+                }
+                else {
+
+                    if (button.isPressed()) {
+                        button.inputRelease();
+                    }
+                }
+
+                button.processPollingDoublePress(time, doublePressMilliSecond);
+            }
+        }
     }
 
     export class GamepadDevice implements IInputDevice {
@@ -24,13 +272,16 @@ module Input {
 
         buttons = new List<ButtonInputControl>();
         sticks = new List<AxisInputControl>();
-
-        crossButtonEmulationEnabled = true;
         crossButtons = new List<ButtonInputControl>();
+
+        crossButtonEmulationEnabled = false;
+
+        private standardGamepadLayout = new W3CStandardGamepadLayout();
+        private genericGamepadLayout = new GenericGamepadLayout();
+        private currentDeviceLayout: GamepadDeviceLayout = null;
 
         private connected = false;
         private gamepad: HTMLGamepad = null;
-        private axisIndexMappings: List<AxisMapping> = null;
 
         initialize() {
 
@@ -57,61 +308,49 @@ module Input {
                 this.crossButtons[i].name = ('crossButton' + (1 + i));
             }
 
-            this.initializeAxesIndexMap();
-        }
-
-        private initializeAxesIndexMap() {
-
-            var userAgent = window.navigator.userAgent.toLowerCase();
-
-            if (userAgent.indexOf('msie') != -1 || userAgent.indexOf('trident') != -1) {
-
-                this.axisIndexMappings = [{ xIndex: 0, yIndex: 1 }, { xIndex: 2, yIndex: 3 }];
-            }
-            else if (userAgent.indexOf('edge') != -1) {
-
-                this.axisIndexMappings = [{ xIndex: 0, yIndex: 1 }, { xIndex: 2, yIndex: 3 }];
-            }
-            else if (userAgent.indexOf('chrome') != -1) {
-
-                this.axisIndexMappings = [{ xIndex: 0, yIndex: 1 }, { xIndex: 2, yIndex: 5 }];
-            }
-            else if (userAgent.indexOf('safari') != -1) {
-
-                this.axisIndexMappings = [{ xIndex: 0, yIndex: 1 }, { xIndex: 2, yIndex: 3 }];
-            }
-            else if (userAgent.indexOf('firefox') != -1) {
-
-                this.axisIndexMappings = [{ xIndex: 0, yIndex: 1 }, { xIndex: 2, yIndex: 3 }];
-            }
-            else if (userAgent.indexOf('opera') != -1) {
-
-                this.axisIndexMappings = [{ xIndex: 0, yIndex: 1 }, { xIndex: 2, yIndex: 5 }];
-            }
-            else {
-
-                this.axisIndexMappings = [{ xIndex: 0, yIndex: 1 }, { xIndex: 2, yIndex: 3 }];
-            }
+            this.standardGamepadLayout.initialize();
+            this.genericGamepadLayout.initialize();
         }
 
         setEvents(canvas: HTMLCanvasElement) {
 
             var gamepadconnected = (e) => {
-                if (this.checkGamepads()) {
-                    this.gamepad = this.getFirstGamepad();
 
-                    if (this.gamepad != null) {
-                        this.connected = true;
-                    }
-                }
+                this.gamepadconnected(e);
             };
 
             var gamepaddisconnected = (e) => {
-                this.gamepad = null;
+
+                this.gamepaddisconnected(e);
             };
 
             window.addEventListener('gamepadconnected', gamepadconnected);
             window.addEventListener('gamepaddisconnected', gamepaddisconnected);
+        }
+
+        private gamepadconnected(e: any) {
+
+            // Gets gamapad
+            if (!this.checkGamepads()) {
+                return;
+            }
+
+            this.gamepad = this.getFirstGamepad();
+
+            // Detect gamepad layout
+            if (this.standardGamepadLayout.isMatch(this.gamepad.mapping)) {
+                this.currentDeviceLayout = this.standardGamepadLayout;
+            }
+            else {
+                this.currentDeviceLayout = this.genericGamepadLayout;
+            }
+
+            this.connected = true;
+        }
+
+        private gamepaddisconnected(e: any) {
+
+            this.gamepad = null;
         }
 
         processPolling(time: float) {
@@ -132,13 +371,18 @@ module Input {
             // Polling for each axes
             this.processPollingAxes();
 
-            // Emulating cross buttons by first stick
-            this.processCrossButtonEmulation();
+            // Polling cross buttons 
+            if (this.crossButtonEmulationEnabled) {
+                this.processCrossButtonEmulation(time);
+            }
+            else {
+                this.processPollingCrossButton(time);
+            }
 
             //var debugbuttonTexts = [];
-            //for (var i = 0; i < gamepad.buttons.length; i++) {
+            //for (var i = 0; i < this.gamepad.buttons.length; i++) {
 
-            //    let button = gamepad.buttons[i];
+            //    let button = this.gamepad.buttons[i];
             //    for (var prop in button) {
             //        debugbuttonTexts.push(button[prop]);
             //    }
@@ -146,9 +390,9 @@ module Input {
             //console.log(debugbuttonTexts.join(', '));
 
             //var debugAxisTexts = [];
-            //for (var i = 0; i < gamepad.axes.length; i++) {
+            //for (var i = 0; i < this.gamepad.axes.length; i++) {
 
-            //    debugAxisTexts.push(gamepad.axes[i].toFixed(2));
+            //    debugAxisTexts.push(this.gamepad.axes[i].toFixed(2));
             //}
             //console.log(debugAxisTexts.join(', '));
         }
@@ -157,10 +401,21 @@ module Input {
 
             let gamepad = this.gamepad;
 
-            for (var i = 0; i < this.buttons.length && i < gamepad.buttons.length; i++) {
+            for (var i = 0; i < this.buttons.length; i++) {
 
                 var button = this.buttons[i];
-                var gamepadButton = gamepad.buttons[i];
+
+                if (i >= this.currentDeviceLayout.buttonMappings.length) {
+                    break;
+                }
+
+                var mappedIndex = this.currentDeviceLayout.buttonMappings[i];
+
+                if (mappedIndex >= gamepad.buttons.length) {
+                    continue;
+                }
+
+                var gamepadButton = gamepad.buttons[mappedIndex];
 
                 if (this.isGamepadButtonPressed(gamepadButton)) {
 
@@ -186,34 +441,58 @@ module Input {
             for (var i = 0; i < this.sticks.length; i++) {
                 var axis = this.sticks[i];
 
-                var axisIndexMap = this.axisIndexMappings[i];
+                if (i >= this.currentDeviceLayout.StickIndexMappings.length) {
+                    break;
+                }
+
+                var mapping = this.currentDeviceLayout.StickIndexMappings[i];
+
+                if (mapping.xIndex >= gamepad.axes.length || mapping.yIndex >= gamepad.axes.length) {
+                    continue;
+                }
+
+                var mappedIndexX = this.currentDeviceLayout.axesMappings[mapping.xIndex];
+                var mappedIndexY = this.currentDeviceLayout.axesMappings[mapping.yIndex];
+
+                if (mappedIndexX >= gamepad.axes.length || mappedIndexY >= gamepad.axes.length) {
+                    continue;
+                }
 
                 var gamepadAxisValueX = 0.0;
                 var gamepadAxisValueY = 0.0;
 
-                if (axisIndexMap.xIndex < gamepad.axes.length) {
+                if (mapping.xIndex < gamepad.axes.length) {
 
-                    gamepadAxisValueX = gamepad.axes[axisIndexMap.xIndex];
+                    gamepadAxisValueX = gamepad.axes[mappedIndexX];
                 }
 
-                if (axisIndexMap.yIndex < gamepad.axes.length) {
+                if (mapping.yIndex < gamepad.axes.length) {
 
-                    gamepadAxisValueY = gamepad.axes[axisIndexMap.yIndex];
+                    gamepadAxisValueY = gamepad.axes[mappedIndexY];
                 }
 
                 axis.inputAxis(gamepadAxisValueX, gamepadAxisValueY);
             }
         }
 
-        private processCrossButtonEmulation() {
+        private processPollingCrossButton(time: float) {
 
-            if (!this.crossButtonEmulationEnabled) {
-                return false;
+            this.currentDeviceLayout.processPollingCrossButton(this.crossButtons, this.buttons, this.gamepad, time, this.doublePressMilliSecond);
+        }
+
+        private processCrossButtonEmulation(time: float) {
+
+            // If any cross button is inputed, cancel emulation
+            for (var i = 0; i < this.crossButtons.length; i++) {
+                var button = this.crossButtons[i];
+
+                if (button.isInputed) {
+                    return;
+                }
             }
 
             let axis = this.sticks[0];
-
-            let axis_threshold = 0.01;
+            let axis_threshold = 0.3
 
             // Up direction
             if (axis.y <= -axis_threshold) {
@@ -270,12 +549,51 @@ module Input {
                     this.crossButtons[1].inputRelease();
                 }
             }
+
+            // No direction
+            if (axis.x > -axis_threshold && axis.x < axis_threshold) {
+
+                // Release right button
+                if (this.crossButtons[1].isPressed()) {
+                    this.crossButtons[1].inputRelease();
+                }
+
+                // Release left button
+                if (this.crossButtons[3].isPressed()) {
+                    this.crossButtons[3].inputRelease();
+                }
+            }
+
+            if (axis.y > -axis_threshold && axis.y < axis_threshold) {
+
+                // Release up button
+                if (this.crossButtons[0].isPressed()) {
+                    this.crossButtons[0].inputRelease();
+                }
+
+                // Release down button
+                if (this.crossButtons[2].isPressed()) {
+                    this.crossButtons[2].inputRelease();
+                }
+            }
+
+            for (var i = 0; i < this.crossButtons.length; i++) {
+                var button = this.crossButtons[i];
+
+                button.processPollingDoublePress(time, this.doublePressMilliSecond);
+            }
         }
 
         updateStates() {
 
             for (var i = 0; i < this.buttons.length; i++) {
                 var button = this.buttons[i];
+
+                button.updateStates();
+            }
+
+            for (var i = 0; i < this.crossButtons.length; i++) {
+                var button = this.crossButtons[i];
 
                 button.updateStates();
             }
