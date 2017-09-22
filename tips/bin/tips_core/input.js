@@ -8,8 +8,8 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var Input;
-(function (Input) {
+var PTWTipsInput;
+(function (PTWTipsInput) {
     // Control class
     var ButtonState;
     (function (ButtonState) {
@@ -17,7 +17,7 @@ var Input;
         ButtonState[ButtonState["justReleased"] = 1] = "justReleased";
         ButtonState[ButtonState["justPressed"] = 2] = "justPressed";
         ButtonState[ButtonState["pressed"] = 3] = "pressed";
-    })(ButtonState = Input.ButtonState || (Input.ButtonState = {}));
+    })(ButtonState = PTWTipsInput.ButtonState || (PTWTipsInput.ButtonState = {}));
     var InputControl = (function () {
         function InputControl() {
             this.isInputed = false;
@@ -25,7 +25,7 @@ var Input;
         }
         return InputControl;
     }());
-    Input.InputControl = InputControl;
+    PTWTipsInput.InputControl = InputControl;
     var ButtonInputControl = (function (_super) {
         __extends(ButtonInputControl, _super);
         function ButtonInputControl() {
@@ -103,7 +103,7 @@ var Input;
         };
         return ButtonInputControl;
     }(InputControl));
-    Input.ButtonInputControl = ButtonInputControl;
+    PTWTipsInput.ButtonInputControl = ButtonInputControl;
     var AxisInputControl = (function (_super) {
         __extends(AxisInputControl, _super);
         function AxisInputControl() {
@@ -128,7 +128,7 @@ var Input;
         };
         return AxisInputControl;
     }(InputControl));
-    Input.AxisInputControl = AxisInputControl;
+    PTWTipsInput.AxisInputControl = AxisInputControl;
     var PointingInputControl = (function (_super) {
         __extends(PointingInputControl, _super);
         function PointingInputControl() {
@@ -144,33 +144,7 @@ var Input;
         };
         return PointingInputControl;
     }(InputControl));
-    Input.PointingInputControl = PointingInputControl;
-    //export class InputDeviceBase implements IInputDevice {
-    //    initialize() {
-    //        // override method
-    //    }
-    //    setEvents(canvas: HTMLCanvasElement) {
-    //        // override method
-    //    }
-    //    processPolling(time: float) {
-    //        // override method
-    //    }
-    //    updateStates(time: float) {
-    //        // override method
-    //    }
-    //    getButtonControlByName(name: string): ButtonInputControl {
-    //        // override method
-    //        return null;
-    //    }
-    //    getAxisControlByName(name: string): AxisInputControl {
-    //        // override method
-    //        return null;
-    //    }
-    //    getPointingControlByName(name: string): PointingInputControl {
-    //        // override method
-    //        return null;
-    //    }
-    //}
+    PTWTipsInput.PointingInputControl = PointingInputControl;
     // Input mapping for multi-device integration
     var InputMapping = (function () {
         function InputMapping() {
@@ -199,7 +173,7 @@ var Input;
         }
         return ButtonInputMapping;
     }(InputMapping));
-    Input.ButtonInputMapping = ButtonInputMapping;
+    PTWTipsInput.ButtonInputMapping = ButtonInputMapping;
     var IntegratedButtonControl = (function () {
         function IntegratedButtonControl(mapping) {
             this.mapping = mapping;
@@ -248,7 +222,7 @@ var Input;
         };
         return IntegratedButtonControl;
     }());
-    Input.IntegratedButtonControl = IntegratedButtonControl;
+    PTWTipsInput.IntegratedButtonControl = IntegratedButtonControl;
     var AxisInputMapping = (function (_super) {
         __extends(AxisInputMapping, _super);
         function AxisInputMapping() {
@@ -256,7 +230,7 @@ var Input;
         }
         return AxisInputMapping;
     }(InputMapping));
-    Input.AxisInputMapping = AxisInputMapping;
+    PTWTipsInput.AxisInputMapping = AxisInputMapping;
     var IntegratedAxisControl = (function () {
         function IntegratedAxisControl(mapping) {
             this.mapping = mapping;
@@ -274,7 +248,7 @@ var Input;
         };
         return IntegratedAxisControl;
     }());
-    Input.IntegratedAxisControl = IntegratedAxisControl;
+    PTWTipsInput.IntegratedAxisControl = IntegratedAxisControl;
     var PointingInputMapping = (function (_super) {
         __extends(PointingInputMapping, _super);
         function PointingInputMapping() {
@@ -282,7 +256,7 @@ var Input;
         }
         return PointingInputMapping;
     }(InputMapping));
-    Input.PointingInputMapping = PointingInputMapping;
+    PTWTipsInput.PointingInputMapping = PointingInputMapping;
     var InputMappingSet = (function () {
         function InputMappingSet() {
             this.mappings = new List();
@@ -328,7 +302,7 @@ var Input;
         };
         return IntegratedPointingInputControl;
     }());
-    Input.IntegratedPointingInputControl = IntegratedPointingInputControl;
+    PTWTipsInput.IntegratedPointingInputControl = IntegratedPointingInputControl;
     // Manager
     var InputManager = (function () {
         function InputManager() {
@@ -372,31 +346,33 @@ var Input;
             this.pointingInputMappingSet.addMapping(name, mapping);
             return integratedPointing;
         };
-        InputManager.prototype.setMappingFromConfig = function (configSet) {
-            for (var deviceName in configSet) {
-                var device = this.deciveDictionary[deviceName];
-                var inputMappingConfigs = configSet[deviceName];
-                for (var inputMappingConfig in inputMappingConfigs) {
-                    var mappingName = inputMappingConfigs[inputMappingConfig];
+        InputManager.prototype.setMappingFromConfig = function (configs) {
+            for (var _i = 0, configs_1 = configs; _i < configs_1.length; _i++) {
+                var config = configs_1[_i];
+                var device = this.deciveDictionary[config.deviceName];
+                for (var _a = 0, _b = config.mappings; _a < _b.length; _a++) {
+                    var mapping = _b[_a];
+                    var inputControlName = mapping[0];
+                    var mappingName = mapping[1];
                     // Add the control to an existing mapping for the control type
                     if (this.buttonInputMappingSet.existsMapping(mappingName)) {
-                        var buttonControl = device.getButtonControlByName(inputMappingConfig);
+                        var buttonControl = device.getButtonControlByName(inputControlName);
                         if (buttonControl == null) {
-                            throw ('setInputMappingFromConfig: cannot find control \"' + inputMappingConfig + '\" in ' + inputMappingConfig + '.');
+                            throw ('setInputMappingFromConfig: cannot find control \"' + inputControlName + '\" in ' + config.deviceName + '.');
                         }
                         this.buttonInputMappingSet.addControl(mappingName, buttonControl);
                     }
                     else if (this.axisInputMapppingSet.existsMapping(mappingName)) {
-                        var axisControl = device.getAxisControlByName(inputMappingConfig);
+                        var axisControl = device.getAxisControlByName(inputControlName);
                         if (axisControl == null) {
-                            throw ('setInputMappingFromConfig: cannot find control \"' + inputMappingConfig + '\" in ' + inputMappingConfig + '.');
+                            throw ('setInputMappingFromConfig: cannot find control \"' + inputControlName + '\" in ' + config.deviceName + '.');
                         }
                         this.axisInputMapppingSet.addControl(mappingName, axisControl);
                     }
                     else if (this.pointingInputMappingSet.existsMapping(mappingName)) {
-                        var pointingControl = device.getPointingControlByName(inputMappingConfig);
+                        var pointingControl = device.getPointingControlByName(inputControlName);
                         if (pointingControl == null) {
-                            throw ('setInputMappingFromConfig: cannot find control \"' + inputMappingConfig + '\" in ' + inputMappingConfig + '.');
+                            throw ('setInputMappingFromConfig: cannot find control \"' + inputControlName + '\" in ' + config.deviceName + '.');
                         }
                         this.pointingInputMappingSet.addControl(mappingName, pointingControl);
                     }
@@ -433,5 +409,5 @@ var Input;
         };
         return InputManager;
     }());
-    Input.InputManager = InputManager;
-})(Input || (Input = {}));
+    PTWTipsInput.InputManager = InputManager;
+})(PTWTipsInput || (PTWTipsInput = {}));

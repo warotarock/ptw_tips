@@ -8,8 +8,8 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var Input;
-(function (Input) {
+var PTWTipsInput;
+(function (PTWTipsInput) {
     var StickIndexMapping = (function () {
         function StickIndexMapping() {
             this.xIndex = 0;
@@ -230,17 +230,17 @@ var Input;
             this.connected = false;
             this.buttons = new List(this.maxButtonCount);
             for (var i = 0; i < this.buttons.length; i++) {
-                this.buttons[i] = new Input.ButtonInputControl();
+                this.buttons[i] = new PTWTipsInput.ButtonInputControl();
                 this.buttons[i].name = ('button' + (1 + i));
             }
             this.sticks = new List(this.maxAxisCount);
             for (var i = 0; i < this.sticks.length; i++) {
-                this.sticks[i] = new Input.AxisInputControl();
+                this.sticks[i] = new PTWTipsInput.AxisInputControl();
                 this.sticks[i].name = ('stick' + (1 + i));
             }
             this.crossButtons = new List(4);
             for (var i = 0; i < this.crossButtons.length; i++) {
-                this.crossButtons[i] = new Input.ButtonInputControl();
+                this.crossButtons[i] = new PTWTipsInput.ButtonInputControl();
                 this.crossButtons[i].name = ('crossButton' + (1 + i));
             }
             this.standardGamepadLayout.initialize();
@@ -510,5 +510,5 @@ var Input;
         };
         return GamepadDevice;
     }());
-    Input.GamepadDevice = GamepadDevice;
-})(Input || (Input = {}));
+    PTWTipsInput.GamepadDevice = GamepadDevice;
+})(PTWTipsInput || (PTWTipsInput = {}));

@@ -1,5 +1,5 @@
 ﻿
-module Input {
+module PTWTipsInput {
 
     interface HTMLGamepadButton {
         pressed: boolean;

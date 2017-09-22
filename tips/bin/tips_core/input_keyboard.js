@@ -1,5 +1,5 @@
-var Input;
-(function (Input) {
+var PTWTipsInput;
+(function (PTWTipsInput) {
     var KeyboardDevice = (function () {
         function KeyboardDevice() {
             this.buttons = null;
@@ -30,7 +30,7 @@ var Input;
             if (DictionaryContainsKey(this.buttons, name)) {
                 return;
             }
-            var button = new Input.ButtonInputControl();
+            var button = new PTWTipsInput.ButtonInputControl();
             button.name = name;
             this.buttons[name] = button;
         };
@@ -58,5 +58,5 @@ var Input;
         };
         return KeyboardDevice;
     }());
-    Input.KeyboardDevice = KeyboardDevice;
-})(Input || (Input = {}));
+    PTWTipsInput.KeyboardDevice = KeyboardDevice;
+})(PTWTipsInput || (PTWTipsInput = {}));

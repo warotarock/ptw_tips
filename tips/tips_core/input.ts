@@ -1,5 +1,5 @@
 ﻿
-module Input {
+module PTWTipsInput {
 
     // Control class
 
@@ -160,7 +160,7 @@ module Input {
         }
     }
 
-    // Device class base
+    // Device interface
 
     export interface IInputDevice {
 
@@ -172,50 +172,6 @@ module Input {
         getAxisControlByName(name: string): AxisInputControl;
         getPointingControlByName(name: string): PointingInputControl;
     }
-
-    //export class InputDeviceBase implements IInputDevice {
-
-    //    initialize() {
-
-    //        // override method
-    //    }
-
-    //    setEvents(canvas: HTMLCanvasElement) {
-
-    //        // override method
-    //    }
-
-    //    processPolling(time: float) {
-
-    //        // override method
-    //    }
-
-    //    updateStates(time: float) {
-
-    //        // override method
-    //    }
-
-    //    getButtonControlByName(name: string): ButtonInputControl {
-
-    //        // override method
-
-    //        return null;
-    //    }
-
-    //    getAxisControlByName(name: string): AxisInputControl {
-
-    //        // override method
-
-    //        return null;
-    //    }
-
-    //    getPointingControlByName(name: string): PointingInputControl {
-
-    //        // override method
-
-    //        return null;
-    //    }
-    //}
 
     // Input mapping for multi-device integration
 
@@ -416,12 +372,9 @@ module Input {
 
     // Config file
 
-    export interface DeviceInputMappingConfigSet {
-        [index: number]: InputMappingConfigs;
-    }
-
-    export interface InputMappingConfigs {
-        [index: string]: string;
+    export interface DeviceInputMappingConfig {
+        deviceName: string;
+        mappings: List<List<string>>;
     }
 
     // Manager
@@ -494,45 +447,44 @@ module Input {
             return integratedPointing;
         }
 
-        setMappingFromConfig(configSet: DeviceInputMappingConfigSet) {
+        setMappingFromConfig(configs: List<DeviceInputMappingConfig>) {
 
-            for (let deviceName in configSet) {
+            for (let config of configs) {
 
-                let device: IInputDevice = this.deciveDictionary[deviceName];
+                let device: IInputDevice = this.deciveDictionary[config.deviceName];
 
-                let inputMappingConfigs: InputMappingConfigs = configSet[deviceName];
+                for (let mapping of config.mappings) {
 
-                for (let inputMappingConfig in inputMappingConfigs) {
-
-                    let mappingName: string = inputMappingConfigs[inputMappingConfig];
+                    let inputControlName = mapping[0];
+                    let mappingName = mapping[1];
 
                     // Add the control to an existing mapping for the control type
                     if (this.buttonInputMappingSet.existsMapping(mappingName)) {
 
-                        let buttonControl = device.getButtonControlByName(inputMappingConfig);
+                        let buttonControl = device.getButtonControlByName(inputControlName);
 
                         if (buttonControl == null) {
-                            throw ('setInputMappingFromConfig: cannot find control \"' + inputMappingConfig + '\" in ' + inputMappingConfig + '.');
+                            throw ('setInputMappingFromConfig: cannot find control \"' + inputControlName + '\" in ' + config.deviceName + '.');
                         }
 
                         this.buttonInputMappingSet.addControl(mappingName, buttonControl);
                     }
                     else if (this.axisInputMapppingSet.existsMapping(mappingName)) {
 
-                        let axisControl = device.getAxisControlByName(inputMappingConfig);
+                        let axisControl = device.getAxisControlByName(inputControlName);
 
                         if (axisControl == null) {
-                            throw ('setInputMappingFromConfig: cannot find control \"' + inputMappingConfig + '\" in ' + inputMappingConfig + '.');
+                            throw ('setInputMappingFromConfig: cannot find control \"' + inputControlName + '\" in ' + config.deviceName + '.');
                         }
 
                         this.axisInputMapppingSet.addControl(mappingName, axisControl);
                     }
                     else if (this.pointingInputMappingSet.existsMapping(mappingName)) {
 
-                        let pointingControl = device.getPointingControlByName(inputMappingConfig);
+                        let pointingControl = device.getPointingControlByName(inputControlName);
 
                         if (pointingControl == null) {
-                            throw ('setInputMappingFromConfig: cannot find control \"' + inputMappingConfig + '\" in ' + inputMappingConfig + '.');
+                            throw ('setInputMappingFromConfig: cannot find control \"' + inputControlName + '\" in ' + config.deviceName + '.');
                         }
 
                         this.pointingInputMappingSet.addControl(mappingName, pointingControl);

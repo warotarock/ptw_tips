@@ -33,47 +33,55 @@ var InputMnagement;
             this.logicalScreenWidth = 640.0;
             this.logicalScreenHeight = 360.0;
             this.display = null;
-            this.inputManager = new Input.InputManager();
-            this.mouse = new Input.MouseDevice();
-            this.keyboard = new Input.KeyboardDevice();
-            this.gamepad = new Input.GamepadDevice();
+            this.inputManager = new PTWTipsInput.InputManager();
+            this.mouse = new PTWTipsInput.MouseDevice();
+            this.keyboard = new PTWTipsInput.KeyboardDevice();
+            this.gamepad = new PTWTipsInput.GamepadDevice();
             this.input = new SampleInputSet();
-            this.config = {
-                'keyboard': {
-                    ' ': 'start',
-                    'Enter': 'start',
-                    'ArrowUp': 'up',
-                    'ArrowRight': 'right',
-                    'ArrowDown': 'down',
-                    'ArrowLeft': 'left',
-                    'w': 'up',
-                    'd': 'right',
-                    's': 'down',
-                    'a': 'left',
-                    'z': 'attack',
-                    'j': 'attack',
-                    'x': 'shield',
-                    'k': 'shield',
+            this.config = [
+                {
+                    deviceName: 'keyboard',
+                    mappings: [
+                        [' ', 'start',],
+                        ['Enter', 'start'],
+                        ['ArrowUp', 'up'],
+                        ['ArrowRight', 'right'],
+                        ['ArrowDown', 'down'],
+                        ['ArrowLeft', 'left'],
+                        ['w', 'up'],
+                        ['d', 'right'],
+                        ['s', 'down'],
+                        ['a', 'left'],
+                        ['z', 'attack'],
+                        ['j', 'attack'],
+                        ['x', 'shield'],
+                        ['k', 'shield'],
+                    ]
                 },
-                'mouse': {
-                    'button1': 'attack',
-                    'button3': 'shield',
-                    'button2': 'start',
-                    'location': 'pointer',
-                    'wheel': 'analog3'
+                {
+                    deviceName: 'mouse',
+                    mappings: [
+                        ['button1', 'attack'],
+                        ['button3', 'shield'],
+                        ['location', 'pointer'],
+                        ['wheel', 'analog3'],
+                    ]
                 },
-                'gamepad': {
-                    'crossButton1': 'up',
-                    'crossButton2': 'right',
-                    'crossButton3': 'down',
-                    'crossButton4': 'left',
-                    'button1': 'attack',
-                    'button2': 'shield',
-                    'button10': 'start',
-                    'stick1': 'analog1',
-                    'stick2': 'analog2'
-                },
-            };
+                {
+                    deviceName: 'gamepad',
+                    mappings: [
+                        ['crossButton1', 'up'],
+                        ['crossButton2', 'right'],
+                        ['crossButton3', 'down'],
+                        ['crossButton4', 'left'],
+                        ['button1', 'attack'],
+                        ['button2', 'shield'],
+                        ['button10', 'start'],
+                        ['stick1', 'analog1'],
+                        ['stick2', 'analog2'],
+                    ]
+                }
+            ];
             this.buttonLetter = ['|---', '-|--', '--|-', '---|'];
             this.doublePressButtonLetter = ['-', '-', '*', '*'];
             this.tempVec = [0.0, 0.0, 0.0];

@@ -29,21 +29,21 @@ namespace InputMnagement {
 
     class SampleInputSet {
 
-        up: Input.IntegratedButtonControl;
-        right: Input.IntegratedButtonControl;
-        down: Input.IntegratedButtonControl;
-        left: Input.IntegratedButtonControl;
+        up: PTWTipsInput.IntegratedButtonControl;
+        right: PTWTipsInput.IntegratedButtonControl;
+        down: PTWTipsInput.IntegratedButtonControl;
+        left: PTWTipsInput.IntegratedButtonControl;
 
-        attack: Input.IntegratedButtonControl;
-        shield: Input.IntegratedButtonControl;
+        attack: PTWTipsInput.IntegratedButtonControl;
+        shield: PTWTipsInput.IntegratedButtonControl;
 
-        start: Input.IntegratedButtonControl;
+        start: PTWTipsInput.IntegratedButtonControl;
 
-        analog1: Input.IntegratedAxisControl;
-        analog2: Input.IntegratedAxisControl;
-        analog3: Input.IntegratedAxisControl;
+        analog1: PTWTipsInput.IntegratedAxisControl;
+        analog2: PTWTipsInput.IntegratedAxisControl;
+        analog3: PTWTipsInput.IntegratedAxisControl;
 
-        pointer: Input.IntegratedPointingInputControl;
+        pointer: PTWTipsInput.IntegratedPointingInputControl;
     }
 
     class Main {
@@ -53,49 +53,57 @@ namespace InputMnagement {
 
         display: HTMLElement = null;
 
-        inputManager = new Input.InputManager();
-        mouse = new Input.MouseDevice();
-        keyboard = new Input.KeyboardDevice();
-        gamepad = new Input.GamepadDevice();
+        inputManager = new PTWTipsInput.InputManager();
+        mouse = new PTWTipsInput.MouseDevice();
+        keyboard = new PTWTipsInput.KeyboardDevice();
+        gamepad = new PTWTipsInput.GamepadDevice();
 
         input = new SampleInputSet();
 
-        config = {
-            'keyboard': {
-                ' ': 'start',
-                'Enter': 'start',
-                'ArrowUp': 'up',
-                'ArrowRight': 'right',
-                'ArrowDown': 'down',
-                'ArrowLeft': 'left',
-                'w': 'up',
-                'd': 'right',
-                's': 'down',
-                'a': 'left',
-                'z': 'attack',
-                'j': 'attack',
-                'x': 'shield',
-                'k': 'shield',
+        config: List<PTWTipsInput.DeviceInputMappingConfig> = [
+            {
+                deviceName: 'keyboard',
+                mappings: [
+                    [' ', 'start',],
+                    ['Enter', 'start'],
+                    ['ArrowUp', 'up'],
+                    ['ArrowRight', 'right'],
+                    ['ArrowDown', 'down'],
+                    ['ArrowLeft', 'left'],
+                    ['w', 'up'],
+                    ['d', 'right'],
+                    ['s', 'down'],
+                    ['a', 'left'],
+                    ['z', 'attack'],
+                    ['j', 'attack'],
+                    ['x', 'shield'],
+                    ['k', 'shield'],
+                ]
             },
-            'mouse': {
-                'button1': 'attack',
-                'button3': 'shield',
-                'button2': 'start',
-                'location': 'pointer',
-                'wheel': 'analog3'
+            {
+                deviceName: 'mouse',
+                mappings: [
+                    ['button1', 'attack'],
+                    ['button3', 'shield'],
+                    ['location', 'pointer'],
+                    ['wheel', 'analog3'],
+                ]
             },
-            'gamepad': {
-                'crossButton1': 'up',
-                'crossButton2': 'right',
-                'crossButton3': 'down',
-                'crossButton4': 'left',
-                'button1': 'attack',
-                'button2': 'shield',
-                'button10': 'start',
-                'stick1': 'analog1',
-                'stick2': 'analog2'
-            },
-        };
+            {
+                deviceName: 'gamepad',
+                mappings: [
+                    ['crossButton1', 'up'],
+                    ['crossButton2', 'right'],
+                    ['crossButton3', 'down'],
+                    ['crossButton4', 'left'],
+                    ['button1', 'attack'],
+                    ['button2', 'shield'],
+                    ['button10', 'start'],
+                    ['stick1', 'analog1'],
+                    ['stick2', 'analog2'],
+                ]
+            }
+        ];
 
         buttonLetter = ['|---', '-|--', '--|-', '---|']
         doublePressButtonLetter = ['-', '-', '*', '*']
@@ -187,7 +195,7 @@ namespace InputMnagement {
             var buttonTexts = [];
             for (var key in this.keyboard.buttons) {
 
-                let button: Input.ButtonInputControl = this.keyboard.buttons[key];
+                let button: PTWTipsInput.ButtonInputControl = this.keyboard.buttons[key];
 
                 if (button == null) {
                     continue;
@@ -235,12 +243,12 @@ namespace InputMnagement {
             this.inputManager.updateStates();
         }
 
-        private getIntegratedButtonStateText(button: Input.IntegratedButtonControl) {
+        private getIntegratedButtonStateText(button: PTWTipsInput.IntegratedButtonControl) {
 
             return '(' + this.buttonLetter[button.getState()] + ' ' + this.doublePressButtonLetter[button.getDoublePressState()] + ')';
         }
 
-        private getButtonStateText(button: Input.ButtonInputControl) {
+        private getButtonStateText(button: PTWTipsInput.ButtonInputControl) {
 
             return '(' + this.buttonLetter[button.singlePressState] + ' ' + this.doublePressButtonLetter[button.doublePressState] + ')';
         }

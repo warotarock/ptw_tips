@@ -38,6 +38,8 @@
     <Content Include="resource_management\index.html" />
     <Content Include="skinning_model_drawing\index.html" />
     <Content Include="skinning_model_converting\index.html" />
+    <Content Include="sound_management\index.html" />
+    <Content Include="sound_management\package_main.js" />
     <Content Include="task_management\index.html" />
     <Content Include="tips_core\app.css" />
     <Content Include="web.config" />
@@ -60,6 +62,8 @@
     <Content Include="object_pooling\README.md" />
     <Content Include="resource_management\README.md" />
     <Content Include="input_management\README.md" />
+    <Content Include="sound_management\package.json" />
+    <Content Include="sound_management\README.md" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -83,6 +87,7 @@
     <TypeScriptCompile Include="object_pooling\main.ts" />
     <TypeScriptCompile Include="render_object_management\main.ts" />
     <TypeScriptCompile Include="resource_management\main.ts" />
+    <TypeScriptCompile Include="sound_management\main.ts" />
     <TypeScriptCompile Include="task_management\main.ts" />
     <TypeScriptCompile Include="tips_core\game_resource_manager.ts" />
     <TypeScriptCompile Include="tips_core\game_task_manager.ts" />
@@ -101,6 +106,9 @@
     <TypeScriptCompile Include="tips_core\model_converters.ts" />
     <TypeScriptCompile Include="tips_core\shaders.ts" />
     <TypeScriptCompile Include="tips_core\render.ts" />
+    <TypeScriptCompile Include="tips_core\sound_html5_webaudio.ts" />
+    <TypeScriptCompile Include="tips_core\sound_html5_audio.ts" />
+    <TypeScriptCompile Include="tips_core\sound.ts" />
     <TypeScriptCompile Include="typings\github-electron\github-electron.d.ts" />
     <TypeScriptCompile Include="typings\glmatrix\gl-matrix.d.ts" />
     <TypeScriptCompile Include="typings\linq\linq.d.ts" />

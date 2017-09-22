@@ -1,5 +1,5 @@
 ﻿
-module Input {
+module PTWTipsInput {
 
     interface HTMLEvent {
         preventDefault();

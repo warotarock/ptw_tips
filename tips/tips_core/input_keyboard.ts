@@ -1,5 +1,5 @@
 ﻿
-module Input {
+module PTWTipsInput {
 
     export class KeyboardDevice implements IInputDevice {
 

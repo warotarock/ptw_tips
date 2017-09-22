@@ -1,12 +1,12 @@
-var Input;
-(function (Input) {
+var PTWTipsInput;
+(function (PTWTipsInput) {
     var MouseDevice = (function () {
         function MouseDevice() {
             this.maxButtonCount = 16;
             this.maxAxisCount = 1;
             this.buttons = new List();
-            this.wheel = new Input.AxisInputControl();
-            this.location = new Input.PointingInputControl();
+            this.wheel = new PTWTipsInput.AxisInputControl();
+            this.location = new PTWTipsInput.PointingInputControl();
             this.initialWidth = 0.0;
             this.initialHeight = 0.0;
             this.doublePressMilliSecond = 200;
@@ -14,7 +14,7 @@ var Input;
         MouseDevice.prototype.initialize = function () {
             this.buttons = new List(this.maxButtonCount);
             for (var i = 0; i < this.buttons.length; i++) {
-                this.buttons[i] = new Input.ButtonInputControl();
+                this.buttons[i] = new PTWTipsInput.ButtonInputControl();
                 this.buttons[i].name = ('button' + (1 + i));
             }
             this.wheel.name = 'wheel';
@@ -127,5 +127,5 @@ var Input;
         };
         return MouseDevice;
     }());
-    Input.MouseDevice = MouseDevice;
-})(Input || (Input = {}));
+    PTWTipsInput.MouseDevice = MouseDevice;
+})(PTWTipsInput || (PTWTipsInput = {}));
