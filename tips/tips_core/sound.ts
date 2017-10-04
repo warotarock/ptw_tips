@@ -1,7 +1,7 @@
 ﻿
 module PTWTipsSound {
 
-    export enum PlayUnitPlayingState {
+    export enum SoundPlayingState {
         none = 0,
         ready = 1,
         playing = 2,
@@ -10,7 +10,7 @@ module PTWTipsSound {
         done = 5,
     }
 
-    export class PlayingUnit {
+    export class SoundPlayingUnit {
 
         isFadeing = false;
         fadeTime = -1.0;
@@ -50,11 +50,11 @@ module PTWTipsSound {
 
         // override methods
 
-        getState(): PlayUnitPlayingState {
+        getState(): SoundPlayingState {
 
             // override method
 
-            return PlayUnitPlayingState.none;
+            return SoundPlayingState.none;
         }
 
         play() {
@@ -97,12 +97,57 @@ module PTWTipsSound {
         }
     }
 
-    export class SoundUnit {
+    export class SoundSourceUnit {
+
+        soundManger: SoundManager = null;
 
         isLoaded = false;
         isPlayedOnce: boolean;
 
+        play(): SoundPlayingUnit {
+
+            if (this.soundManger.isMuted) {
+                return null;
+            }
+
+            if (this.isPlayedOnce) {
+                return null;
+            }
+
+            this.isPlayedOnce = true;
+
+            // Get playing unit
+            let playingUnitCount = this.getPlayingUnitCount();
+            let playingUnit: SoundPlayingUnit = null;
+
+            for (let i = 0; i < playingUnitCount; i++) {
+
+                let pu = this.getPlayingUnit(i);
+                let state = pu.getState();
+
+                if (state == SoundPlayingState.ready || state == SoundPlayingState.stopped || state == SoundPlayingState.done) {
+
+                    playingUnit = pu;
+                }
+            }
+
+            // Play 
+            if (playingUnit == null) {
+                return null;
+            }
+
+            playingUnit.resetEffects();
+            playingUnit.play();
+
+            return playingUnit;
+        }
+
         // override methods
+
+        load(fileName: string) {
+
+            // override method
+        }
 
         release() {
 
@@ -123,7 +168,7 @@ module PTWTipsSound {
             return 0;
         }
 
-        getPlayingUnit(index: int): PlayingUnit {
+        getPlayingUnit(index: int): SoundPlayingUnit {
 
             // override method
 
@@ -131,10 +176,20 @@ module PTWTipsSound {
         }
     }
 
-    export class SoundSystem {
+    export class SoundDevice {
 
         volume = 1.0;
         maxParallelLoadingCount = 1;
+
+        getMasterVolume(): float {
+
+            return this.volume;
+        }
+
+        setMasterVolume(volume: float) {
+
+            this.volume = volume;
+        }
 
         // override methods
 
@@ -152,68 +207,25 @@ module PTWTipsSound {
             return false;
         }
 
-        getMasterVolume(): float {
+        createSoundSource(maxPlayingUnitCount: int): SoundSourceUnit {
 
             // override method
 
-            return this.volume;
-        }
-
-        setMasterVolume(volume: float) {
-
-            // override method
-
-            this.volume = volume;
+            return null;
         }
     }
 
     export class SoundManager {
 
-        private soundUnits = new List<SoundUnit>();
+        private soundSources = new List<SoundSourceUnit>();
 
-        private isMuted = false;
+        isMuted = false;
 
-        addSoundUnit(soundUnit: SoundUnit) {
+        addSoundSource(soundUnit: SoundSourceUnit) {
 
-            this.soundUnits.push(soundUnit);
-        }
+            soundUnit.soundManger = this;
 
-        play(soundUnit: SoundUnit): PlayingUnit {
-
-            if (this.isMuted) {
-                return null;
-            }
-
-            if (soundUnit.isPlayedOnce) {
-                return null;
-            }
-
-            soundUnit.isPlayedOnce = true;
-
-            // Get playing unit
-            let playingUnitCount = soundUnit.getPlayingUnitCount();
-            let playingUnit: PlayingUnit = null;
-
-            for (let i = 0; i < playingUnitCount; i++) {
-
-                let pu = soundUnit.getPlayingUnit(i);
-                let state = pu.getState();
-
-                if (state == PlayUnitPlayingState.ready || state == PlayUnitPlayingState.stopped || state == PlayUnitPlayingState.done) {
-
-                    playingUnit = pu;
-                }
-            }
-
-            // Play 
-            if (playingUnit == null) {
-                return null;
-            }
-
-            playingUnit.resetEffects();
-            playingUnit.play();
-
-            return playingUnit;
+            this.soundSources.push(soundUnit);
         }
 
         setMute(enable: boolean) {
@@ -223,7 +235,7 @@ module PTWTipsSound {
 
         processSounds() {
 
-            for (let soundUnit of this.soundUnits) {
+            for (let soundUnit of this.soundSources) {
 
                 let playingUnitCount = soundUnit.getPlayingUnitCount();
 
@@ -233,7 +245,7 @@ module PTWTipsSound {
 
                     let state = playUnit.getState();
 
-                    if (state == PlayUnitPlayingState.done) {
+                    if (state == SoundPlayingState.done) {
 
                         // Finish playing
                         playUnit.stop();
@@ -246,7 +258,7 @@ module PTWTipsSound {
                             playUnit.setPosition(playUnit.loopStartTime);
                         }
                     }
-                    else if (state == PlayUnitPlayingState.playing) {
+                    else if (state == SoundPlayingState.playing) {
 
                         if (playUnit.isFadeing) {
 

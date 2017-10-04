@@ -1,16 +1,16 @@
 var PTWTipsSound;
 (function (PTWTipsSound) {
-    var PlayUnitPlayingState;
-    (function (PlayUnitPlayingState) {
-        PlayUnitPlayingState[PlayUnitPlayingState["none"] = 0] = "none";
-        PlayUnitPlayingState[PlayUnitPlayingState["ready"] = 1] = "ready";
-        PlayUnitPlayingState[PlayUnitPlayingState["playing"] = 2] = "playing";
-        PlayUnitPlayingState[PlayUnitPlayingState["stopped"] = 3] = "stopped";
-        PlayUnitPlayingState[PlayUnitPlayingState["paused"] = 4] = "paused";
-        PlayUnitPlayingState[PlayUnitPlayingState["done"] = 5] = "done";
-    })(PlayUnitPlayingState = PTWTipsSound.PlayUnitPlayingState || (PTWTipsSound.PlayUnitPlayingState = {}));
-    var PlayingUnit = (function () {
-        function PlayingUnit() {
+    var SoundPlayingState;
+    (function (SoundPlayingState) {
+        SoundPlayingState[SoundPlayingState["none"] = 0] = "none";
+        SoundPlayingState[SoundPlayingState["ready"] = 1] = "ready";
+        SoundPlayingState[SoundPlayingState["playing"] = 2] = "playing";
+        SoundPlayingState[SoundPlayingState["stopped"] = 3] = "stopped";
+        SoundPlayingState[SoundPlayingState["paused"] = 4] = "paused";
+        SoundPlayingState[SoundPlayingState["done"] = 5] = "done";
+    })(SoundPlayingState = PTWTipsSound.SoundPlayingState || (PTWTipsSound.SoundPlayingState = {}));
+    var SoundPlayingUnit = (function () {
+        function SoundPlayingUnit() {
             this.isFadeing = false;
             this.fadeTime = -1.0;
             this.fadeDuration = 0.0;
@@ -19,7 +19,7 @@ var PTWTipsSound;
             this.loopStartTime = -1.0;
             this.loopEndTime = -1.0;
         }
-        PlayingUnit.prototype.resetEffects = function () {
+        SoundPlayingUnit.prototype.resetEffects = function () {
             this.isFadeing = false;
             this.fadeTime = -1.0;
             this.fadeDuration = -1.0;
@@ -28,119 +28,68 @@ var PTWTipsSound;
             this.loopStartTime = -1.0;
             this.loopEndTime = -1.0;
         };
-        PlayingUnit.prototype.setFading = function (fadeDuration, fadeStartVolume, fadeEndVolume) {
+        SoundPlayingUnit.prototype.setFading = function (fadeDuration, fadeStartVolume, fadeEndVolume) {
             this.isFadeing = true;
             this.fadeTime = 0;
             this.fadeDuration = fadeDuration;
             this.fadeStartVolume = fadeStartVolume;
             this.fadeEndVolume = fadeEndVolume;
         };
-        PlayingUnit.prototype.setLooping = function (loopStartTime, loopEndTime) {
+        SoundPlayingUnit.prototype.setLooping = function (loopStartTime, loopEndTime) {
             this.loopStartTime = loopStartTime;
             this.loopEndTime = loopEndTime;
         };
         // override methods
-        PlayingUnit.prototype.getState = function () {
+        SoundPlayingUnit.prototype.getState = function () {
             // override method
-            return PlayUnitPlayingState.none;
+            return SoundPlayingState.none;
         };
-        PlayingUnit.prototype.play = function () {
-            // override method
-        };
-        PlayingUnit.prototype.pause = function () {
+        SoundPlayingUnit.prototype.play = function () {
             // override method
         };
-        PlayingUnit.prototype.stop = function () {
+        SoundPlayingUnit.prototype.pause = function () {
             // override method
         };
-        PlayingUnit.prototype.getPosition = function () {
-            // override method
-            return 0.0;
-        };
-        PlayingUnit.prototype.setPosition = function (time) {
+        SoundPlayingUnit.prototype.stop = function () {
             // override method
         };
-        PlayingUnit.prototype.getVolume = function () {
+        SoundPlayingUnit.prototype.getPosition = function () {
             // override method
             return 0.0;
         };
-        PlayingUnit.prototype.setVolume = function (volume) {
+        SoundPlayingUnit.prototype.setPosition = function (time) {
             // override method
         };
-        return PlayingUnit;
+        SoundPlayingUnit.prototype.getVolume = function () {
+            // override method
+            return 0.0;
+        };
+        SoundPlayingUnit.prototype.setVolume = function (volume) {
+            // override method
+        };
+        return SoundPlayingUnit;
     }());
-    PTWTipsSound.PlayingUnit = PlayingUnit;
-    var SoundUnit = (function () {
-        function SoundUnit() {
+    PTWTipsSound.SoundPlayingUnit = SoundPlayingUnit;
+    var SoundSourceUnit = (function () {
+        function SoundSourceUnit() {
+            this.soundManger = null;
             this.isLoaded = false;
         }
-        // override methods
-        SoundUnit.prototype.release = function () {
-            // override method
-        };
-        SoundUnit.prototype.getDulation = function () {
-            // override method
-            return 0.0;
-        };
-        SoundUnit.prototype.getPlayingUnitCount = function () {
-            // override method
-            return 0;
-        };
-        SoundUnit.prototype.getPlayingUnit = function (index) {
-            // override method
-            return null;
-        };
-        return SoundUnit;
-    }());
-    PTWTipsSound.SoundUnit = SoundUnit;
-    var SoundSystem = (function () {
-        function SoundSystem() {
-            this.volume = 1.0;
-            this.maxParallelLoadingCount = 1;
-        }
-        // override methods
-        SoundSystem.prototype.isAvailable = function () {
-            // override method
-            return false;
-        };
-        SoundSystem.prototype.initialize = function () {
-            // override method
-            return false;
-        };
-        SoundSystem.prototype.getMasterVolume = function () {
-            // override method
-            return this.volume;
-        };
-        SoundSystem.prototype.setMasterVolume = function (volume) {
-            // override method
-            this.volume = volume;
-        };
-        return SoundSystem;
-    }());
-    PTWTipsSound.SoundSystem = SoundSystem;
-    var SoundManager = (function () {
-        function SoundManager() {
-            this.soundUnits = new List();
-            this.isMuted = false;
-        }
-        SoundManager.prototype.addSoundUnit = function (soundUnit) {
-            this.soundUnits.push(soundUnit);
-        };
-        SoundManager.prototype.play = function (soundUnit) {
-            if (this.isMuted) {
+        SoundSourceUnit.prototype.play = function () {
+            if (this.soundManger.isMuted) {
                 return null;
             }
-            if (soundUnit.isPlayedOnce) {
+            if (this.isPlayedOnce) {
                 return null;
             }
-            soundUnit.isPlayedOnce = true;
+            this.isPlayedOnce = true;
             // Get playing unit
-            var playingUnitCount = soundUnit.getPlayingUnitCount();
+            var playingUnitCount = this.getPlayingUnitCount();
             var playingUnit = null;
             for (var i = 0; i < playingUnitCount; i++) {
-                var pu = soundUnit.getPlayingUnit(i);
+                var pu = this.getPlayingUnit(i);
                 var state = pu.getState();
-                if (state == PlayUnitPlayingState.ready || state == PlayUnitPlayingState.stopped || state == PlayUnitPlayingState.done) {
+                if (state == SoundPlayingState.ready || state == SoundPlayingState.stopped || state == SoundPlayingState.done) {
                     playingUnit = pu;
                 }
             }
@@ -152,17 +101,75 @@ var PTWTipsSound;
             playingUnit.play();
             return playingUnit;
         };
+        // override methods
+        SoundSourceUnit.prototype.load = function (fileName) {
+            // override method
+        };
+        SoundSourceUnit.prototype.release = function () {
+            // override method
+        };
+        SoundSourceUnit.prototype.getDulation = function () {
+            // override method
+            return 0.0;
+        };
+        SoundSourceUnit.prototype.getPlayingUnitCount = function () {
+            // override method
+            return 0;
+        };
+        SoundSourceUnit.prototype.getPlayingUnit = function (index) {
+            // override method
+            return null;
+        };
+        return SoundSourceUnit;
+    }());
+    PTWTipsSound.SoundSourceUnit = SoundSourceUnit;
+    var SoundDevice = (function () {
+        function SoundDevice() {
+            this.volume = 1.0;
+            this.maxParallelLoadingCount = 1;
+        }
+        SoundDevice.prototype.getMasterVolume = function () {
+            return this.volume;
+        };
+        SoundDevice.prototype.setMasterVolume = function (volume) {
+            this.volume = volume;
+        };
+        // override methods
+        SoundDevice.prototype.isAvailable = function () {
+            // override method
+            return false;
+        };
+        SoundDevice.prototype.initialize = function () {
+            // override method
+            return false;
+        };
+        SoundDevice.prototype.createSoundSource = function (maxPlayingUnitCount) {
+            // override method
+            return null;
+        };
+        return SoundDevice;
+    }());
+    PTWTipsSound.SoundDevice = SoundDevice;
+    var SoundManager = (function () {
+        function SoundManager() {
+            this.soundSources = new List();
+            this.isMuted = false;
+        }
+        SoundManager.prototype.addSoundSource = function (soundUnit) {
+            soundUnit.soundManger = this;
+            this.soundSources.push(soundUnit);
+        };
         SoundManager.prototype.setMute = function (enable) {
             this.isMuted = enable;
         };
         SoundManager.prototype.processSounds = function () {
-            for (var _i = 0, _a = this.soundUnits; _i < _a.length; _i++) {
+            for (var _i = 0, _a = this.soundSources; _i < _a.length; _i++) {
                 var soundUnit = _a[_i];
                 var playingUnitCount = soundUnit.getPlayingUnitCount();
                 for (var i = 0; i < playingUnitCount; i++) {
                     var playUnit = soundUnit.getPlayingUnit(i);
                     var state = playUnit.getState();
-                    if (state == PlayUnitPlayingState.done) {
+                    if (state == SoundPlayingState.done) {
                         // Finish playing
                         playUnit.stop();
                         playUnit.setPosition(0);
@@ -172,7 +179,7 @@ var PTWTipsSound;
                             playUnit.setPosition(playUnit.loopStartTime);
                         }
                     }
-                    else if (state == PlayUnitPlayingState.playing) {
+                    else if (state == SoundPlayingState.playing) {
                         if (playUnit.isFadeing) {
                             // Process fading
                             playUnit.fadeTime += 1.0;

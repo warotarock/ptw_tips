@@ -33,8 +33,8 @@ function StringIsNullOrEmpty(str: string): boolean {
     return (str == null || str == undefined || str == "");
 }
 
-function StringIndexOf(str: string, searchString): int {
-    return str.indexOf(searchString);
+function StringIndexOf(str: string, searchString, position: int): int {
+    return str.indexOf(searchString, position);
 }
 
 function StringSubstring(text: string, startIndex: int, length: int): string {

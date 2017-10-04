@@ -101,7 +101,7 @@ var CodeConverter;
             return StringStartsWith(this.Text, searchText);
         };
         TextToken.prototype.endsWith = function (searchText) {
-            return (StringIndexOf(this.Text, searchText) == this.Text.length - 1);
+            return (StringIndexOf(this.Text, searchText, 0) == this.Text.length - 1);
         };
         TextToken.prototype.findIndexFrom = function (textList) {
             for (var i = 0; i < textList.length; i++) {

@@ -1,18 +1,18 @@
 
 module PTWTipsSound_HTML5_Audio {
 
-    export class PlayingUnit extends PTWTipsSound.PlayingUnit {
+    export class SoundPlayingUnit extends PTWTipsSound.SoundPlayingUnit {
 
-        soundSystem: SoundSystem = null;
+        device: SoundDevice = null;
         audio: HTMLAudioElement = null;
 
-        private state = PTWTipsSound.PlayUnitPlayingState.ready;
+        private state = PTWTipsSound.SoundPlayingState.ready;
 
-        getState(): PTWTipsSound.PlayUnitPlayingState {
+        getState(): PTWTipsSound.SoundPlayingState {
 
             if (this.audio.ended) {
 
-                return PTWTipsSound.PlayUnitPlayingState.done;
+                return PTWTipsSound.SoundPlayingState.done;
             }
 
             return this.state;
@@ -22,14 +22,14 @@ module PTWTipsSound_HTML5_Audio {
 
             this.audio.pause();
 
-            this.state = PTWTipsSound.PlayUnitPlayingState.paused;
+            this.state = PTWTipsSound.SoundPlayingState.paused;
         }
 
         play() {
 
             this.audio.play();
 
-            this.state = PTWTipsSound.PlayUnitPlayingState.playing;
+            this.state = PTWTipsSound.SoundPlayingState.playing;
         }
 
         stop() {
@@ -37,7 +37,7 @@ module PTWTipsSound_HTML5_Audio {
             this.audio.pause();
             this.audio.currentTime = 0;
 
-            this.state = PTWTipsSound.PlayUnitPlayingState.stopped;
+            this.state = PTWTipsSound.SoundPlayingState.stopped;
         }
 
         getPosition(): float {
@@ -57,30 +57,36 @@ module PTWTipsSound_HTML5_Audio {
 
         setVolume(valume: float) {
 
-            this.audio.volume = valume * this.soundSystem.volume;
+            this.audio.volume = valume * this.device.volume;
         }
 
-        initialize(soundSystem: SoundSystem) {
+        initialize(soundSystem: SoundDevice) {
 
-            this.soundSystem = soundSystem;
+            this.device = soundSystem;
         }
 
         release() {
 
             this.stop();
 
-            this.soundSystem = null;
+            this.device = null;
             this.audio = null;
 
-            this.state = PTWTipsSound.PlayUnitPlayingState.none;
+            this.state = PTWTipsSound.SoundPlayingState.none;
         }
     }
 
-    export class SoundUnit extends PTWTipsSound.SoundUnit {
+    export class SoundSourceUnit extends PTWTipsSound.SoundSourceUnit {
 
+        device: SoundDevice = null;
         masterAudio: HTMLAudioElement = null;
 
-        playingUnits = new List<PlayingUnit>();
+        playingUnits = new List<SoundPlayingUnit>();
+
+        load(fileName: string) {
+
+            this.device.loadSound(this, fileName);
+        }
 
         release() {
 
@@ -104,16 +110,16 @@ module PTWTipsSound_HTML5_Audio {
             return this.playingUnits.length;
         }
 
-        getPlayingUnit(index: int): PTWTipsSound.PlayingUnit {
+        getPlayingUnit(index: int): PTWTipsSound.SoundPlayingUnit {
 
             return this.playingUnits[index];
         }
 
-        initializePlayingUnits(soundSystem: SoundSystem, maxPlayingUnitCount: int) {
+        initializePlayingUnits(soundSystem: SoundDevice, maxPlayingUnitCount: int) {
 
             for (let i = 0; i < maxPlayingUnitCount; i++) {
 
-                let playingUnit = new PlayingUnit();
+                let playingUnit = new SoundPlayingUnit();
                 playingUnit.initialize(soundSystem);
 
                 this.playingUnits.push(playingUnit);
@@ -121,7 +127,7 @@ module PTWTipsSound_HTML5_Audio {
         }
     }
 
-    export class SoundSystem extends PTWTipsSound.SoundSystem {
+    export class SoundDevice extends PTWTipsSound.SoundDevice {
 
         maxParallelLoadingCount = 1;
 
@@ -139,16 +145,18 @@ module PTWTipsSound_HTML5_Audio {
             return true;
         }
 
-        createSoundUnit(maxPlayingUnitCount: int): SoundUnit {
+        createSoundSource(maxPlayingUnitCount: int): PTWTipsSound.SoundSourceUnit {
 
-            var soundUnit = new SoundUnit();
+            var soundUnit = new SoundSourceUnit();
+
+            soundUnit.device = this;
 
             soundUnit.initializePlayingUnits(this, maxPlayingUnitCount);
 
             return soundUnit;
         }
 
-        loadSound(soundUnit: SoundUnit, url: string) {
+        loadSound(soundUnit: SoundSourceUnit, url: string) {
 
             var audio: HTMLAudioElement = new Audio();
             audio.preload = 'auto';

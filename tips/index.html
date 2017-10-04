@@ -1,0 +1,34 @@
+<h1 id="キャンバス描画文字列描画---canvas-drawing-for-text-drawing">キャンバス描画（文字列描画） - Canvas drawing (for text drawing)</h1>
+<h2 id="概要">概要</h2>
+<p>※作成途中です</p>
+<p>文字列の描画など、描画処理の中にはWebGLで実現するよりもキャンバス（HTMLのcanvas要素）で実現したほうが簡単なものがあります。ここでは文字列の描画を主な目的とし、キャンバス描画とWebGLの連携とサンプルプログラムについて説明します。</p>
+<p>ソースコード - <a href="./main.ts">サンプルプログラム（main.ts）</a> - <a href="../tips_core/render2d.ts">２Ｄ描画ラッパークラス（render2d.ts）</a> - <a href="../tips_core/canvas_drawer.ts">キャンバス描画（canvas_drawer.ts）</a></p>
+<p><img src="./canvas_drawing_fig001.png" alt="サンプル画像" /> ## キャンバス描画とWebGL</p>
+<p>キャンバスを使用すると様々な２次元の描画処理が行えます。直線や曲線、円、グラデーションなどの描画が可能です。さらに、文字列の描画はアンチエイリアスの適用された高品質な結果を得られます。</p>
+<p>キャンバスの描画結果は画像データとして取り出すことができます。キャンバスをWebGLの texSubImage2D関数に渡すことでキャンバスの画像データをWebGLのテクスチャにコピーできます。次のコードはテクスチャにキャンバスの内容をコピーする関数の例です。(参考：<a href="../tips_core/render3d.ts">render3d.ts</a>)</p>
+<pre><code>    setTextureImageFromCanvas(image: RenderImage, canvas: HTMLCanvasElement) {
+
+        var gl = this.gl;
+
+        gl.bindTexture(gl.TEXTURE_2D, image.texture);
+
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+
+        gl.bindTexture(gl.TEXTURE_2D, null);
+    }</code></pre>
+<h2 id="再描画の抑制">再描画の抑制</h2>
+<p>キャンバスの大きさにも依存しますが、テクスチャに画像データをコピーする処理は他のWebGLの描画処理と比べ比較的時間のかかる処理です。また、キャンバスによる文字列描画にも時間がかかります。そのためゲームの描画処理ではあらかじめビットマップフォントを用意するなどして高速に文字列を描画する手法が用いられることがあります。</p>
+<p>一方で、文字列の内容に変化が無いかぎりは描画を繰り返す必要が無い場合も多くあります。例えば日本語での説明文や、プレイヤーキャラクターの名前などです。これらは画面の同じ位置に同じ文字が表示され続けるか、位置だけが変化する場合がほとんどでしょう。</p>
+<p>そのような場合には、文字列が表示される最初の１回と変更があったときだけ描画処理を行い、結果をWebGLのテクスチャに保存しておくことで文字列の描画処理の頻度を軽減することができます。このサンプルプログラムではキャンバス描画(CanvasDrawer)にそのための機能が実装されています。</p>
+<h2 id="文字列描画の位置決め">文字列描画の位置決め</h2>
+<ul>
+<li>描画部分の高さの計測とアラインメント</li>
+<li>縦方向の中央寄せ</li>
+<li>横方向の中央寄せ</li>
+<li>日本語の縦書き</li>
+<li>縦書きは英語に対応しない</li>
+</ul>
+<h2 id="関連情報">関連情報</h2>
+<ul>
+<li><a href="./basic_webgl_ts/">TypeScriptによる基本的なWebGLプログラミング</a></li>
+</ul>

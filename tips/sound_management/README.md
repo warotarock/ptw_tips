@@ -1,13 +1,44 @@
-# 入力管理 - Input management
+# サウンド管理 - Sound management
 
 ## 概要
 ※作成途中です
 
 ソースコード
 - [サンプルプログラム（main.ts）](./main.ts)
-- [サウンドマネージャ、基本クラス（sound.ts）](../tips_core/sound.ts)
-- [HTML5 Audioでの音声再生（sound_html5_audio.ts）](../tips_core/sound_html5_audio.ts)
-- [HTML5 WebAudioでの音声再生（sound_html5_webaudio.ts）](../tips_core/sound_html5_webaudio.ts)
+- [基本クラス、サウンドマネージャ（sound.ts）](../tips_core/sound.ts)
+- [HTML5 Audioでの音声再生クラス（sound_html5_audio.ts）](../tips_core/sound_html5_audio.ts)
+- [HTML5 WebAudioでの音声再生クラス（sound_html5_webaudio.ts）](../tips_core/sound_html5_webaudio.ts)
+
+
+## サウンド管理
+
+- デバイスを実装したクラスを登録することでデバイスに依存しないしくみ
+
+## デバイス
+
+- 音源ユニット、再生ユニットを生成する
+- マスタ音量機能
+
+## 音源ユニット
+
+- デバイスに依存する音声データなどの音源オブジェクトを保持する
+- 同時再生可能な数だけ再生ユニットを保持し、同時再生を管理する
+- １フレーム内での複数再生の開始をしないためのフラグを保持
+
+## 再生ユニット
+
+- デバイスに依存する再生単位のオブジェクトを保持する
+- 再生中のサウンドの状態の取得、操作を行う
+  - 音量
+  - ポーズ
+  - ループ再生の設定
+
+## サウンドマネージャ
+
+- 再生終了した再生ユニットの回収処理
+- フェードイン、フェードアウト処理の実行
+- ループ再生処理の実行
+- １フレーム内での複数再生の開始をしないためのフラグを解除する
 
 
 ## 関連情報

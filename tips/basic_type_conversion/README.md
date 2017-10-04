@@ -52,7 +52,7 @@ splice関数を置き換えて意図が伝わりやすくするためのもの�
 
 - StringSubstring  
 部分文字列の取得関数です。  
-substr、substring、sliceの置き換えです。
+substr、substring、sliceのブレが生じやすい記述の置き換えです。
 
 - StringStartsWith  
 前方一致の判定関数です。  

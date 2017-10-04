@@ -1,6 +1,6 @@
 # tips
 
-主にTypeScriptによるプログラミングのtips及びツールのフォルダです。
+ゲームのためのプログラミングのtipsのフォルダです。
 
 ## コンテンツ
 
@@ -23,7 +23,7 @@
 ### ３．汎用サブシステム
 - [入力管理](./input_management/) - Input management（作成中）
 - [サウンド管理](./sound_management/) - Sound management（作成中）
-- キャンバス描画（テキスト描画） - Canvas drawing（予定）
+- [キャンバス描画](./canvas_drawing/) - Canvas drawing (for text drawing)（作成中）
 
 ### ４．ゲーム用サブシステム
 - [描画オブジェクト管理](./render_object_management/) - Render object management

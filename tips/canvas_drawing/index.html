@@ -1,0 +1,37 @@
+﻿<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>キャンバス描画 - Canvas drawing - PTWTips</title>
+    <script src="../external/glmatrix/gl-matrix-min.js"></script>
+    <script src="../bin/tips_core/conversion.js"></script>
+    <script src="../bin/tips_core/render3d.js"></script>
+    <script src="../bin/tips_core/shaders.js"></script>
+    <script src="../bin/tips_core/render2d.js"></script>
+    <script src="../bin/tips_core/canvas_drawer.js"></script>
+    <script src="../bin/canvas_drawing/main.js"></script>
+    <style>
+        div#debug_container canvas {
+            border-style: solid;
+            border-width: 1px;
+            margin: 0 5px 0 0;
+        }
+
+        div#control {
+            margin: 5px 0 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>描画オブジェクト管理 - Render object management</h1>
+    <div id="content">
+        <canvas id="canvas" width="960" height="540"></canvas>
+    </div>
+    <div id="control">
+        <input type="button" value=" Toggle origin visible " id="toggle_origin" />
+    </div>
+    <div id="debug_container">
+    </div>
+</body>
+</html>

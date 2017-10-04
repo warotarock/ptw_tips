@@ -82,7 +82,10 @@ namespace TaskManagement {
 
         onCreateExt(env: Game.TaskEnvironment) {
 
-            vec3.set(this.renderObject.scaling, 0.8, 0.8, 0.8);
+            vec3.set(this.renderObject.scaling, 0.5, 0.5, 0.5);
+
+            this.renderObject.rotation[0] = Math.random() * Math.PI;
+            this.renderObject.rotation[1] = Math.random() * Math.PI;
         }
 
         run(env: Game.TaskEnvironment) {
@@ -94,16 +97,13 @@ namespace TaskManagement {
                 return;
             }
 
-            this.runExt(env);
+            this.processAnimation(env);
         }
 
-        runExt(env: Game.TaskEnvironment) {
+        processAnimation(env: Game.TaskEnvironment) {
 
-            this.renderObject.location[2] += 0.06 * env.globalAnimationTimeElapsed;
-
-            this.renderObject.rotation[0] += 0.05 * env.globalAnimationTimeElapsed;
+            this.renderObject.location[2] += 0.1 * env.globalAnimationTimeElapsed;
         }
-
     }
 
     class SampleTask2 extends SampleTask1 {
@@ -111,7 +111,7 @@ namespace TaskManagement {
         maxAnimationTime = 200.0;
 
         baseLocation = vec3.create();
-        locationAnimationScale = 2.0;
+        locationAnimationScale = 0.5;
 
         onCreateExt(env: Game.TaskEnvironment) {
 
@@ -121,20 +121,18 @@ namespace TaskManagement {
 
             vec3.copy(this.baseLocation, this.renderObject.location);
 
-            this.calcLocation(env);
+            this.processAnimation(env);
         }
 
-        runExt(env: Game.TaskEnvironment) {
+        processAnimation(env: Game.TaskEnvironment) {
 
             this.renderObject.rotation[2] += 0.05 * env.globalAnimationTimeElapsed;
 
-            this.calcLocation(env);
-        }
+            let x = Math.cos(this.animationTime * 0.005 * Math.PI * 2.0) * this.locationAnimationScale;
+            let y = Math.sin(this.animationTime * 0.005 * Math.PI * 2.0) * this.locationAnimationScale;
 
-        calcLocation(env: Game.TaskEnvironment) {
-
-            this.renderObject.location[0] = this.baseLocation[0] + Math.cos(this.animationTime * 0.005 * Math.PI * 2.0) * this.locationAnimationScale;
-            this.renderObject.location[1] = this.baseLocation[1] - Math.sin(this.animationTime * 0.005 * Math.PI * 2.0) * this.locationAnimationScale;
+            this.renderObject.location[0] = this.baseLocation[0] + x;
+            this.renderObject.location[1] = this.baseLocation[1] - y;
         }
     }
 
@@ -247,7 +245,7 @@ namespace TaskManagement {
 
         private generateTasks() {
 
-            if (this.animationTime < 5.0) {
+            if (this.animationTime < 3.0) {
                 return;
             }
 
@@ -263,11 +261,11 @@ namespace TaskManagement {
 
                     task1.main = this;
 
-                    var locationRange = 15.0;
+                    var locationRange = 6.0;
                     task1.initialLocation = vec3.set(this.location
                         , (-0.5 + Math.random()) * locationRange
                         , (-0.5 + Math.random()) * locationRange
-                        , Math.random() * locationRange * 0.5
+                        , -5.0
                     );
 
                     this.taskManager.addTask(task1);
@@ -285,7 +283,7 @@ namespace TaskManagement {
                     task2.initialLocation = vec3.set(this.location
                         , (-0.5 + Math.random()) * locationRange
                         , (-0.5 + Math.random()) * locationRange
-                        , Math.random() * 0.2
+                        , 0.0
                     );
 
                     this.taskManager.addTask(task2);

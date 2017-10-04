@@ -4,7 +4,7 @@ var SoundMnagement;
         function SoundResource() {
             this.fileName = null;
             this.poolCount = null;
-            this.soundUnit = null;
+            this.soundSource = null;
             this.isLoading = false;
         }
         SoundResource.prototype.file = function (fileName) {
@@ -22,13 +22,20 @@ var SoundMnagement;
             this.logicalScreenWidth = 640.0;
             this.logicalScreenHeight = 360.0;
             this.soundResources = new List();
-            this.soundSystem = new PTWTipsSound_HTML5_WebAudio.SoundSystem();
             this.soundManager = new PTWTipsSound.SoundManager();
+            this.soundSystem = null;
             this.loadingSoundResources = new List();
             this.isLoaded = false;
         }
         Main.prototype.initialize = function () {
             var _this = this;
+            var useAudioElement = false;
+            if (useAudioElement) {
+                this.soundSystem = new PTWTipsSound_HTML5_Audio.SoundDevice();
+            }
+            else {
+                this.soundSystem = new PTWTipsSound_HTML5_WebAudio.SoundDevice();
+            }
             //Setup sound resources
             this.soundResources.push((new SoundResource()).file('cursor33.ogg').pool(1));
             this.soundResources.push((new SoundResource()).file('cursor34.ogg').pool(2));
@@ -37,8 +44,8 @@ var SoundMnagement;
             this.soundSystem.initialize();
             for (var _i = 0, _a = this.soundResources; _i < _a.length; _i++) {
                 var soundResource = _a[_i];
-                soundResource.soundUnit = this.soundSystem.createSoundUnit(soundResource.poolCount);
-                this.soundManager.addSoundUnit(soundResource.soundUnit);
+                soundResource.soundSource = this.soundSystem.createSoundSource(soundResource.poolCount);
+                this.soundManager.addSoundSource(soundResource.soundSource);
                 this.loadingSoundResources.push(soundResource);
             }
             // Set events
@@ -57,10 +64,10 @@ var SoundMnagement;
             if (this.loadingSoundResources.length > 0) {
                 var soundResource = this.loadingSoundResources[0];
                 if (!soundResource.isLoading) {
-                    this.soundSystem.loadSound(soundResource.soundUnit, soundResource.fileName);
+                    soundResource.soundSource.load(soundResource.fileName);
                     soundResource.isLoading = true;
                 }
-                else if (soundResource.soundUnit.isLoaded) {
+                else if (soundResource.soundSource.isLoaded) {
                     ListRemoveAt(this.loadingSoundResources, 0);
                 }
                 return;
@@ -73,7 +80,7 @@ var SoundMnagement;
         };
         Main.prototype.playSound = function (soundID) {
             if (this.isLoaded) {
-                this.soundManager.play(this.soundResources[soundID].soundUnit);
+                this.soundResources[soundID].soundSource.play();
             }
         };
         Main.prototype.draw = function () {

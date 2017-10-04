@@ -131,7 +131,7 @@ namespace CodeConverter {
 
         endsWith(searchText: string): boolean {
 
-            return (StringIndexOf(this.Text, searchText) == this.Text.length - 1);
+            return (StringIndexOf(this.Text, searchText, 0) == this.Text.length - 1);
         }
 
         findIndexFrom(textList: List<string>): int {

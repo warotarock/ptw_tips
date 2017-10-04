@@ -6,7 +6,7 @@ namespace SoundMnagement {
         fileName: string = null;
         poolCount: int = null;
 
-        soundUnit: PTWTipsSound_HTML5_WebAudio.SoundUnit = null;
+        soundSource: PTWTipsSound.SoundSourceUnit = null;
 
         isLoading = false;
 
@@ -31,14 +31,26 @@ namespace SoundMnagement {
         logicalScreenHeight = 360.0;
 
         soundResources = new List<SoundResource>();
-        soundSystem = new PTWTipsSound_HTML5_WebAudio.SoundSystem();
         soundManager = new PTWTipsSound.SoundManager();
+
+        soundSystem: PTWTipsSound.SoundDevice = null;
 
         loadingSoundResources = new List<SoundResource>();
 
         isLoaded = false;
 
         initialize() {
+
+            let useAudioElement = false;
+
+            if (useAudioElement) {
+
+                this.soundSystem = new PTWTipsSound_HTML5_Audio.SoundDevice();
+            }
+            else {
+
+                this.soundSystem = new PTWTipsSound_HTML5_WebAudio.SoundDevice();
+            }
 
             //Setup sound resources
             this.soundResources.push((new SoundResource()).file('cursor33.ogg').pool(1));
@@ -50,9 +62,9 @@ namespace SoundMnagement {
 
             for (let soundResource of this.soundResources) {
 
-                soundResource.soundUnit = this.soundSystem.createSoundUnit(soundResource.poolCount)
+                soundResource.soundSource = this.soundSystem.createSoundSource(soundResource.poolCount)
 
-                this.soundManager.addSoundUnit(soundResource.soundUnit);
+                this.soundManager.addSoundSource(soundResource.soundSource);
 
                 this.loadingSoundResources.push(soundResource);
             }
@@ -83,11 +95,11 @@ namespace SoundMnagement {
 
                 if (!soundResource.isLoading) {
 
-                    this.soundSystem.loadSound(soundResource.soundUnit, soundResource.fileName);
+                    soundResource.soundSource.load(soundResource.fileName);
 
                     soundResource.isLoading = true;
                 }
-                else if (soundResource.soundUnit.isLoaded) {
+                else if (soundResource.soundSource.isLoaded) {
 
                     ListRemoveAt(this.loadingSoundResources, 0);
                 }
@@ -107,7 +119,7 @@ namespace SoundMnagement {
         private playSound(soundID: int) {
 
             if (this.isLoaded) {
-                this.soundManager.play(this.soundResources[soundID].soundUnit);
+                this.soundResources[soundID].soundSource.play();
             }
         }
 

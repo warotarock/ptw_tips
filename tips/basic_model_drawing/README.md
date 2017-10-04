@@ -1,4 +1,4 @@
-# モデルデータの作成 - Basic model drawing
+# モデルの描画 - Basic model drawing
 
 ## 概要
 基本的なモデルのロードと描画処理です。

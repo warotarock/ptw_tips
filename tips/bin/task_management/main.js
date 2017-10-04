@@ -71,7 +71,9 @@ var TaskManagement;
             vec3.copy(this.renderObject.location, this.initialLocation);
         };
         SampleTask1.prototype.onCreateExt = function (env) {
-            vec3.set(this.renderObject.scaling, 0.8, 0.8, 0.8);
+            vec3.set(this.renderObject.scaling, 0.5, 0.5, 0.5);
+            this.renderObject.rotation[0] = Math.random() * Math.PI;
+            this.renderObject.rotation[1] = Math.random() * Math.PI;
         };
         SampleTask1.prototype.run = function (env) {
             this.animationTime += env.globalAnimationTimeElapsed;
@@ -79,11 +81,10 @@ var TaskManagement;
                 env.taskManager.destroyTask(this);
                 return;
             }
-            this.runExt(env);
+            this.processAnimation(env);
         };
-        SampleTask1.prototype.runExt = function (env) {
-            this.renderObject.location[2] += 0.06 * env.globalAnimationTimeElapsed;
-            this.renderObject.rotation[0] += 0.05 * env.globalAnimationTimeElapsed;
+        SampleTask1.prototype.processAnimation = function (env) {
+            this.renderObject.location[2] += 0.1 * env.globalAnimationTimeElapsed;
         };
         return SampleTask1;
     }(RenderObjectTask));
@@ -93,22 +94,21 @@ var TaskManagement;
             var _this = _super !== null && _super.apply(this, arguments) || this;
             _this.maxAnimationTime = 200.0;
             _this.baseLocation = vec3.create();
-            _this.locationAnimationScale = 2.0;
+            _this.locationAnimationScale = 0.5;
             return _this;
         }
         SampleTask2.prototype.onCreateExt = function (env) {
             this.renderObject.images = this.main.images2;
             vec3.set(this.renderObject.scaling, 0.3, 0.3, 0.3);
             vec3.copy(this.baseLocation, this.renderObject.location);
-            this.calcLocation(env);
+            this.processAnimation(env);
         };
-        SampleTask2.prototype.runExt = function (env) {
+        SampleTask2.prototype.processAnimation = function (env) {
             this.renderObject.rotation[2] += 0.05 * env.globalAnimationTimeElapsed;
-            this.calcLocation(env);
-        };
-        SampleTask2.prototype.calcLocation = function (env) {
-            this.renderObject.location[0] = this.baseLocation[0] + Math.cos(this.animationTime * 0.005 * Math.PI * 2.0) * this.locationAnimationScale;
-            this.renderObject.location[1] = this.baseLocation[1] - Math.sin(this.animationTime * 0.005 * Math.PI * 2.0) * this.locationAnimationScale;
+            var x = Math.cos(this.animationTime * 0.005 * Math.PI * 2.0) * this.locationAnimationScale;
+            var y = Math.sin(this.animationTime * 0.005 * Math.PI * 2.0) * this.locationAnimationScale;
+            this.renderObject.location[0] = this.baseLocation[0] + x;
+            this.renderObject.location[1] = this.baseLocation[1] - y;
         };
         return SampleTask2;
     }(SampleTask1));
@@ -190,7 +190,7 @@ var TaskManagement;
             this.taskManager.updateTaskState();
         };
         Main.prototype.generateTasks = function () {
-            if (this.animationTime < 5.0) {
+            if (this.animationTime < 3.0) {
                 return;
             }
             this.animationTime = 0.0;
@@ -199,8 +199,8 @@ var TaskManagement;
                 var task1 = this.sampleTask1Pool.get();
                 if (task1 != null) {
                     task1.main = this;
-                    var locationRange = 15.0;
-                    task1.initialLocation = vec3.set(this.location, (-0.5 + Math.random()) * locationRange, (-0.5 + Math.random()) * locationRange, Math.random() * locationRange * 0.5);
+                    var locationRange = 6.0;
+                    task1.initialLocation = vec3.set(this.location, (-0.5 + Math.random()) * locationRange, (-0.5 + Math.random()) * locationRange, -5.0);
                     this.taskManager.addTask(task1);
                 }
             }
@@ -209,7 +209,7 @@ var TaskManagement;
                 if (task2 != null) {
                     task2.main = this;
                     var locationRange = 30.0;
-                    task2.initialLocation = vec3.set(this.location, (-0.5 + Math.random()) * locationRange, (-0.5 + Math.random()) * locationRange, Math.random() * 0.2);
+                    task2.initialLocation = vec3.set(this.location, (-0.5 + Math.random()) * locationRange, (-0.5 + Math.random()) * locationRange, 0.0);
                     this.taskManager.addTask(task2);
                 }
             }

@@ -13,8 +13,8 @@ function DictionaryContainsKey(dic, key) {
 function StringIsNullOrEmpty(str) {
     return (str == null || str == undefined || str == "");
 }
-function StringIndexOf(str, searchString) {
-    return str.indexOf(searchString);
+function StringIndexOf(str, searchString, position) {
+    return str.indexOf(searchString, position);
 }
 function StringSubstring(text, startIndex, length) {
     return text.substr(startIndex, length);

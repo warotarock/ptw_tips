@@ -25,6 +25,7 @@
   <ItemGroup>
     <Content Include="basic_model_converting\index.html" />
     <Content Include="basic_model_converting\README.md" />
+    <Content Include="canvas_drawing\index.html" />
     <Content Include="input_management\index.html" />
     <Content Include="basic_model_drawing\index.html" />
     <Content Include="basic_webgl_ts\index.html" />
@@ -64,6 +65,7 @@
     <Content Include="input_management\README.md" />
     <Content Include="sound_management\package.json" />
     <Content Include="sound_management\README.md" />
+    <Content Include="canvas_drawing\README.md" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -73,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="basic_model_converting\main.ts" />
+    <TypeScriptCompile Include="canvas_drawing\main.ts" />
     <TypeScriptCompile Include="input_management\main.ts" />
     <TypeScriptCompile Include="basic_model_drawing\main.ts" />
     <TypeScriptCompile Include="basic_webgl_ts\main.ts" />
@@ -104,8 +107,10 @@
     <TypeScriptCompile Include="tips_core\blend_file_reader.ts" />
     <TypeScriptCompile Include="tips_core\conversion.ts" />
     <TypeScriptCompile Include="tips_core\model_converters.ts" />
+    <TypeScriptCompile Include="tips_core\canvas_drawer.ts" />
+    <TypeScriptCompile Include="tips_core\render2d.ts" />
     <TypeScriptCompile Include="tips_core\shaders.ts" />
-    <TypeScriptCompile Include="tips_core\render.ts" />
+    <TypeScriptCompile Include="tips_core\render3d.ts" />
     <TypeScriptCompile Include="tips_core\sound_html5_webaudio.ts" />
     <TypeScriptCompile Include="tips_core\sound_html5_audio.ts" />
     <TypeScriptCompile Include="tips_core\sound.ts" />
