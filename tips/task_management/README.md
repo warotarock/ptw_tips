@@ -96,7 +96,7 @@ class RenderTaskEnv {
 
 ### サンプルプログラム
 
-![test](task_management_figure01.png)
+![test](task_management_fig001.png)
 
 サンプルプログラムでは描画オブジェクト制御するタスクを実装しています。
 タスクは次のような継承関係を持ちます。

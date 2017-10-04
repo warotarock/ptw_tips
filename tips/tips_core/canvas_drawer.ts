@@ -1,17 +1,17 @@
 
-enum TextAreaVerticalAlignType {
+enum TextDrawerVerticalAlignType {
     top = 1,
     middle = 2,
     bottom = 3,
 }
 
-enum TextAreaHorizontalAlignType {
+enum TextDrawerHorizontalAlignType {
     left = 1,
     center = 2,
     right = 3,
 }
 
-class TextArea implements IRecyclableObject {
+class TextDrawer implements IRecyclableObject {
 
     recycleIndex: int;
     recycle() {
@@ -25,8 +25,8 @@ class TextArea implements IRecyclableObject {
     mearsureTestLetter = '8';
 
     isVertical = false;
-    verticalTextAlignType = TextAreaVerticalAlignType.bottom;
-    horizontalTextAlignType = TextAreaHorizontalAlignType.left;
+    verticalTextAlignType = TextDrawerVerticalAlignType.bottom;
+    horizontalTextAlignType = TextDrawerHorizontalAlignType.left;
     fontHeight = 24.0;
     lineSpan = 0.0;
 
@@ -98,22 +98,22 @@ class TextArea implements IRecyclableObject {
     }
 }
 
-class VerticalTextArea extends TextArea{
+class VerticalTextDrawer extends TextDrawer{
 
     isVertical= true;
     mearsureTestLetter = '8';
 
-    verticalTextAlignType = TextAreaVerticalAlignType.top;
-    horizontalTextAlignType = TextAreaHorizontalAlignType.right;
+    verticalTextAlignType = TextDrawerVerticalAlignType.top;
+    horizontalTextAlignType = TextDrawerHorizontalAlignType.right;
 }
 
-class HorizontalTextArea extends TextArea {
+class HorizontalTextDrawer extends TextDrawer {
 
     isVertical = false;
     mearsureTestLetter = '8';
 
-    verticalTextAlignType = TextAreaVerticalAlignType.top;
-    horizontalTextAlignType = TextAreaHorizontalAlignType.left;
+    verticalTextAlignType = TextDrawerVerticalAlignType.top;
+    horizontalTextAlignType = TextDrawerHorizontalAlignType.left;
 }
 
 class CanvasDrawer {
@@ -123,7 +123,7 @@ class CanvasDrawer {
 
     private render = new CanvasRender();
 
-    private textAreas = new List<TextArea>();
+    private textDrawers = new List<TextDrawer>();
 
     private needsRedraw = false;
     private redrawCommited = false;
@@ -180,24 +180,24 @@ class CanvasDrawer {
         this.redrawCommited = false;
     }
 
-    addTextArea(textArea: TextArea) {
+    addTextDrawer(textDrawer: TextDrawer) {
 
-        this.measureActualLetterProfile(textArea);
+        this.measureActualLetterProfile(textDrawer);
 
-        textArea.drawer = this;
+        textDrawer.drawer = this;
 
-        this.textAreas.push(textArea);
+        this.textDrawers.push(textDrawer);
 
         this.setRedraw();
     }
 
-    removeTextArea(textArea: TextArea) {
+    removeTextDrawer(textDrawer: TextDrawer) {
 
-        for (let i = 0; i < this.textAreas.length; i++) {
+        for (let i = 0; i < this.textDrawers.length; i++) {
 
-            if (this.textAreas[i] == textArea) {
+            if (this.textDrawers[i] == textDrawer) {
 
-                ListRemoveAt(this.textAreas, i);
+                ListRemoveAt(this.textDrawers, i);
 
                 this.setRedraw();
 
@@ -243,77 +243,77 @@ class CanvasDrawer {
 
     private drawTexts() {
 
-        for (var i = 0; i < this.textAreas.length; i++) {
-            var textArea = this.textAreas[i];
-            if (textArea != null) {
-                if (textArea.isVertical) {
-                    this.drawVerticalText(textArea);
+        for (var i = 0; i < this.textDrawers.length; i++) {
+            var textDrawer = this.textDrawers[i];
+            if (textDrawer != null) {
+                if (textDrawer.isVertical) {
+                    this.drawVerticalText(textDrawer);
                 }
                 else {
-                    this.drawHorizontalText(textArea);
+                    this.drawHorizontalText(textDrawer);
                 }
             }
         }
     }
 
-    private drawVerticalText(textArea: TextArea) {
+    private drawVerticalText(textDrawer: TextDrawer) {
 
-        var letterHeight = textArea.fontHeight * textArea.letterHeightScale;
-        var lineWidth = letterHeight + textArea.lineSpan;
+        var letterHeight = textDrawer.fontHeight * textDrawer.letterHeightScale;
+        var lineWidth = letterHeight + textDrawer.lineSpan;
         var lineEnd = '\n';
 
-        var lineText = textArea.text;
+        var lineText = textDrawer.text;
         var textLength = lineText.length;
 
-        var topPos = textArea.location[1];
-        var x = textArea.location[0];
+        var topPos = textDrawer.location[1];
+        var x = textDrawer.location[0];
 
         let offsetX: float;
-        if (textArea.horizontalTextAlignType == TextAreaHorizontalAlignType.right) {
-            offsetX = textArea.letterOffsetRight;
+        if (textDrawer.horizontalTextAlignType == TextDrawerHorizontalAlignType.right) {
+            offsetX = textDrawer.letterOffsetRight;
         }
-        else if (textArea.horizontalTextAlignType == TextAreaHorizontalAlignType.center) {
-            offsetX = (textArea.letterOffsetRight - textArea.letterOffsetLeft) / 2.0;
+        else if (textDrawer.horizontalTextAlignType == TextDrawerHorizontalAlignType.center) {
+            offsetX = (textDrawer.letterOffsetRight - textDrawer.letterOffsetLeft) / 2.0;
         }
         else {
-            offsetX = textArea.letterOffsetLeft;
+            offsetX = textDrawer.letterOffsetLeft;
         }
 
         var offsetY: float;
-        if (textArea.verticalTextAlignType == TextAreaVerticalAlignType.bottom) {
-            offsetY = textArea.letterOffsetBottom + letterHeight;
+        if (textDrawer.verticalTextAlignType == TextDrawerVerticalAlignType.bottom) {
+            offsetY = textDrawer.letterOffsetBottom + letterHeight;
         }
-        else if (textArea.verticalTextAlignType == TextAreaVerticalAlignType.middle) {
-            offsetY = textArea.letterOffsetBottom + letterHeight / 2.0;
+        else if (textDrawer.verticalTextAlignType == TextDrawerVerticalAlignType.middle) {
+            offsetY = textDrawer.letterOffsetBottom + letterHeight / 2.0;
         }
         else {
-            offsetY = textArea.letterOffsetBottom + letterHeight;
+            offsetY = textDrawer.letterOffsetBottom + letterHeight;
         }
 
-        this.drawReferentialAxis(textArea.location[0], textArea.location[1], letterHeight);
+        this.drawReferentialAxis(textDrawer.location[0], textDrawer.location[1], letterHeight);
 
         this.render.setFontSize(letterHeight);
-        this.render.setFillColor(textArea.color[0], textArea.color[1], textArea.color[2], textArea.color[3]);
+        this.render.setFillColor(textDrawer.color[0], textDrawer.color[1], textDrawer.color[2], textDrawer.color[3]);
 
         var currentIndex = 0;
-        var textLength = textArea.text.length;
+        var textLength = textDrawer.text.length;
         while (currentIndex < textLength) {
 
-            var endIndex = StringIndexOf(textArea.text, lineEnd, currentIndex);
+            var endIndex = StringIndexOf(textDrawer.text, lineEnd, currentIndex);
             if (endIndex == -1) {
-                endIndex = textArea.text.length;
+                endIndex = textDrawer.text.length;
             }
 
-            var lineText = StringSubstring(textArea.text, currentIndex, endIndex - currentIndex);
+            var lineText = StringSubstring(textDrawer.text, currentIndex, endIndex - currentIndex);
             var lineTextLength = lineText.length;
 
             if (lineTextLength > 0) {
 
                 let y: float;
-                if (textArea.verticalTextAlignType == TextAreaVerticalAlignType.bottom) {
+                if (textDrawer.verticalTextAlignType == TextDrawerVerticalAlignType.bottom) {
                     y = topPos - letterHeight * lineTextLength;
                 }
-                else if (textArea.verticalTextAlignType == TextAreaVerticalAlignType.middle) {
+                else if (textDrawer.verticalTextAlignType == TextDrawerVerticalAlignType.middle) {
                     y = topPos - letterHeight * lineTextLength / 2.0;
                 }
                 else {
@@ -337,41 +337,41 @@ class CanvasDrawer {
         }
     }
 
-    private drawHorizontalText(textArea: TextArea) {
+    private drawHorizontalText(textDrawer: TextDrawer) {
 
-        var letterHeight = textArea.fontHeight * textArea.letterHeightScale;
-        var lineHeight = letterHeight + textArea.lineSpan;
+        var letterHeight = textDrawer.fontHeight * textDrawer.letterHeightScale;
+        var lineHeight = letterHeight + textDrawer.lineSpan;
         var lineEnd = '\n';
 
-        var x = textArea.location[0];
-        var y = textArea.location[1];
+        var x = textDrawer.location[0];
+        var y = textDrawer.location[1];
 
         var offsetY: float;
-        if (textArea.verticalTextAlignType == TextAreaVerticalAlignType.bottom) {
-            offsetY = textArea.letterOffsetBottom;
+        if (textDrawer.verticalTextAlignType == TextDrawerVerticalAlignType.bottom) {
+            offsetY = textDrawer.letterOffsetBottom;
         }
-        else if (textArea.verticalTextAlignType == TextAreaVerticalAlignType.middle) {
-            offsetY = textArea.letterOffsetBottom + (textArea.letterOffsetTop - textArea.letterOffsetBottom) / 2.0;
+        else if (textDrawer.verticalTextAlignType == TextDrawerVerticalAlignType.middle) {
+            offsetY = textDrawer.letterOffsetBottom + (textDrawer.letterOffsetTop - textDrawer.letterOffsetBottom) / 2.0;
         }
         else {
-            offsetY = textArea.letterOffsetBottom + letterHeight;
+            offsetY = textDrawer.letterOffsetBottom + letterHeight;
         }
 
-        this.drawReferentialAxis(textArea.location[0], textArea.location[1], letterHeight);
+        this.drawReferentialAxis(textDrawer.location[0], textDrawer.location[1], letterHeight);
 
         this.render.setFontSize(letterHeight);
-        this.render.setFillColor(textArea.color[0], textArea.color[1], textArea.color[2], textArea.color[3]);
+        this.render.setFillColor(textDrawer.color[0], textDrawer.color[1], textDrawer.color[2], textDrawer.color[3]);
 
         var currentIndex = 0;
-        var textLength = textArea.text.length;
+        var textLength = textDrawer.text.length;
         while (currentIndex < textLength) {
 
-            var endIndex = StringIndexOf(textArea.text, lineEnd, currentIndex);
+            var endIndex = StringIndexOf(textDrawer.text, lineEnd, currentIndex);
             if (endIndex == -1) {
-                endIndex = textArea.text.length;
+                endIndex = textDrawer.text.length;
             }
 
-            var lineText = StringSubstring(textArea.text, currentIndex, endIndex - currentIndex);
+            var lineText = StringSubstring(textDrawer.text, currentIndex, endIndex - currentIndex);
             var lineTextLength = lineText.length;
 
             if (lineTextLength > 0) {
@@ -379,14 +379,14 @@ class CanvasDrawer {
                 var textMetrics = this.render.measureText(lineText);
 
                 let offsetX: float;
-                if (textArea.horizontalTextAlignType == TextAreaHorizontalAlignType.right) {
+                if (textDrawer.horizontalTextAlignType == TextDrawerHorizontalAlignType.right) {
                     offsetX = textMetrics.width;
                 }
-                else if (textArea.horizontalTextAlignType == TextAreaHorizontalAlignType.center) {
+                else if (textDrawer.horizontalTextAlignType == TextDrawerHorizontalAlignType.center) {
                     offsetX = -textMetrics.width / 2;
                 }
                 else {
-                    offsetX = textArea.letterOffsetLeft;
+                    offsetX = textDrawer.letterOffsetLeft;
                 }
 
                 this.render.fillText(lineText, x + offsetX, y + offsetY);
@@ -399,7 +399,7 @@ class CanvasDrawer {
         }
     }
 
-    private measureActualLetterProfile(textArea: TextArea) {
+    private measureActualLetterProfile(textDrawer: TextDrawer) {
 
         this.render.setContext(this.measuringCanvasContext);
 
@@ -412,41 +412,41 @@ class CanvasDrawer {
         // measure scaling
 
         this.render.clearRect(0, 0, maxWidth, maxHeight);
-        this.render.setFontSize(textArea.fontHeight);
-        this.render.fillText(textArea.mearsureTestLetter, leftMargin, maxHeight - bottomMargin);
+        this.render.setFontSize(textDrawer.fontHeight);
+        this.render.fillText(textDrawer.mearsureTestLetter, leftMargin, maxHeight - bottomMargin);
 
         var pixels = this.render.getImageData(0, 0, maxWidth, maxHeight);
         var rect1 = [0, 0, 0, 0];
 
-        this.scanRectangle(rect1, pixels, textArea.fontHeight, bottomMargin);
+        this.scanRectangle(rect1, pixels, textDrawer.fontHeight, bottomMargin);
         var left = rect1[0];
         var right = rect1[2];
         var top = rect1[1];
         var bottom = rect1[3];
 
         var actualHeight = (bottom - top) + 1;
-        textArea.letterHeightScale = textArea.fontHeight / actualHeight;
+        textDrawer.letterHeightScale = textDrawer.fontHeight / actualHeight;
 
         // measure offset
 
         this.render.clearRect(0, 0, maxWidth, maxHeight);
-        this.render.setFontSize(textArea.fontHeight * textArea.letterHeightScale);
-        this.render.fillText(textArea.mearsureTestLetter, leftMargin, maxHeight - bottomMargin);
+        this.render.setFontSize(textDrawer.fontHeight * textDrawer.letterHeightScale);
+        this.render.fillText(textDrawer.mearsureTestLetter, leftMargin, maxHeight - bottomMargin);
 
         var pixels2 = this.render.getImageData(0, 0, maxWidth, maxHeight);
         var rect2 = [0, 0, 0, 0];
 
-        this.scanRectangle(rect2, pixels2, textArea.fontHeight, bottomMargin);
+        this.scanRectangle(rect2, pixels2, textDrawer.fontHeight, bottomMargin);
         left = rect2[0];
         top = rect2[1];
         right = rect2[2];
         bottom = rect2[3];
 
-        textArea.letterOffsetLeft = -(left - leftMargin);
-        textArea.letterOffsetRight = -(right - leftMargin);
+        textDrawer.letterOffsetLeft = -(left - leftMargin);
+        textDrawer.letterOffsetRight = -(right - leftMargin);
 
-        textArea.letterOffsetTop = -(top - (maxHeight - bottomMargin));
-        textArea.letterOffsetBottom = -(bottom - (maxHeight - bottomMargin));
+        textDrawer.letterOffsetTop = -(top - (maxHeight - bottomMargin));
+        textDrawer.letterOffsetBottom = -(bottom - (maxHeight - bottomMargin));
 
         this.drawReferentialAxis(leftMargin, maxHeight - bottomMargin, actualHeight);
     }

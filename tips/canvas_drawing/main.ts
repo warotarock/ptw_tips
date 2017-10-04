@@ -14,7 +14,7 @@ namespace CanvsDrawerSample {
         images = new List<RenderImage>();
 
         canvasDrawer = new CanvasDrawer();
-        textArea: TextArea = null;
+        textDrawer: TextDrawer = null;
 
         eyeLocation = vec3.create();
         lookatLocation = vec3.create();
@@ -82,43 +82,43 @@ namespace CanvsDrawerSample {
         private prepareTexts() {
 
             {
-                let textArea = new VerticalTextArea();
-                textArea.text = '明日は\n晴れるかな\nDelight';
-                textArea.isVertical = true;
-                textArea.fontHeight = 25.0;
-                textArea.mearsureTestLetter = '晴';
-                textArea.verticalTextAlignType = TextAreaVerticalAlignType.top;
-                textArea.horizontalTextAlignType = TextAreaHorizontalAlignType.right;
-                textArea.lineSpan = 10.0;
-                vec3.set(textArea.location, 310.0, 40.0, 0.0);
-                vec4.set(textArea.color, 1.0, 0.6, 0.2, 1.0);
-                this.canvasDrawer.addTextArea(textArea);
+                let textDrawer = new VerticalTextDrawer();
+                textDrawer.text = '明日は\n晴れるかな\nDelight';
+                textDrawer.isVertical = true;
+                textDrawer.fontHeight = 25.0;
+                textDrawer.mearsureTestLetter = '晴';
+                textDrawer.verticalTextAlignType = TextDrawerVerticalAlignType.top;
+                textDrawer.horizontalTextAlignType = TextDrawerHorizontalAlignType.right;
+                textDrawer.lineSpan = 10.0;
+                vec3.set(textDrawer.location, 310.0, 40.0, 0.0);
+                vec4.set(textDrawer.color, 1.0, 0.6, 0.2, 1.0);
+                this.canvasDrawer.addTextDrawer(textDrawer);
             }
 
             {
-                let textArea = new HorizontalTextArea();
-                textArea.fontHeight = 45.0;
-                textArea.mearsureTestLetter = '8';
-                textArea.verticalTextAlignType = TextAreaVerticalAlignType.middle;
-                textArea.horizontalTextAlignType = TextAreaHorizontalAlignType.center;
-                vec3.set(textArea.location, 255.0, 320.0, 0.0);
-                vec4.set(textArea.color, 0.7, 1.0, 0.7, 1.0);
-                this.canvasDrawer.addTextArea(textArea);
+                let textDrawer = new HorizontalTextDrawer();
+                textDrawer.fontHeight = 45.0;
+                textDrawer.mearsureTestLetter = '8';
+                textDrawer.verticalTextAlignType = TextDrawerVerticalAlignType.middle;
+                textDrawer.horizontalTextAlignType = TextDrawerHorizontalAlignType.center;
+                vec3.set(textDrawer.location, 255.0, 320.0, 0.0);
+                vec4.set(textDrawer.color, 0.7, 1.0, 0.7, 1.0);
+                this.canvasDrawer.addTextDrawer(textDrawer);
 
-                this.textArea = textArea;
+                this.textDrawer = textDrawer;
             }
 
             {
-                let textArea = new HorizontalTextArea();
-                textArea.text = 'PTW Tips\nsince 2017';
-                textArea.fontHeight = 14.0;
-                textArea.mearsureTestLetter = 'W8';
-                textArea.verticalTextAlignType = TextAreaVerticalAlignType.bottom;
-                textArea.horizontalTextAlignType = TextAreaHorizontalAlignType.center;
-                textArea.lineSpan = 10.0;
-                vec3.set(textArea.location, 255.0, 400.0, 0.0);
-                vec4.set(textArea.color, 1.0, 0.6, 0.2, 1.0);
-                this.canvasDrawer.addTextArea(textArea);
+                let textDrawer = new HorizontalTextDrawer();
+                textDrawer.text = 'PTW Tips\nsince 2017';
+                textDrawer.fontHeight = 14.0;
+                textDrawer.mearsureTestLetter = 'W8';
+                textDrawer.verticalTextAlignType = TextDrawerVerticalAlignType.bottom;
+                textDrawer.horizontalTextAlignType = TextDrawerHorizontalAlignType.center;
+                textDrawer.lineSpan = 10.0;
+                vec3.set(textDrawer.location, 255.0, 400.0, 0.0);
+                vec4.set(textDrawer.color, 1.0, 0.6, 0.2, 1.0);
+                this.canvasDrawer.addTextDrawer(textDrawer);
             }
         }
 
@@ -139,7 +139,7 @@ namespace CanvsDrawerSample {
             // Text animation
             var now = new Date();
             let dateTimeText = '' + (now.getHours()) + ':' + (now.getMinutes()) + ':' + (now.getSeconds());
-            this.textArea.setText(dateTimeText);
+            this.textDrawer.setText(dateTimeText);
 
             this.canvasDrawer.debug = this.debugDraw;
         }
