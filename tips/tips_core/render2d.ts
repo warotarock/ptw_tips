@@ -54,7 +54,7 @@ class CanvasRender {
 
     setFillColor(r: float, g: float, b: float, a: float) {
 
-        this.context.fillStyle = 'rgba(' + (r * 255).toFixed(0) + ',' + (g * 255).toFixed(0) + ',' + (b * 255).toFixed(0) + ',' + (a * 255).toFixed(0) + ')';
+        this.context.fillStyle = 'rgba(' + (r * 255).toFixed(0) + ',' + (g * 255).toFixed(0) + ',' + (b * 255).toFixed(0) + ',' + (a).toFixed(2) + ')';
     }
 
     clearRect(left: int, top: int, width: int, height: int) {
@@ -74,7 +74,7 @@ class CanvasRender {
 
     setStrokeColor(r: float, g: float, b: float, a: float) {
 
-        this.context.strokeStyle = 'rgba(' + (r * 255).toFixed(0) + ',' + (g * 255).toFixed(0) + ',' + (b * 255).toFixed(0) + ',' + (a * 255).toFixed(0) + ')';
+        this.context.strokeStyle = 'rgba(' + (r * 255).toFixed(0) + ',' + (g * 255).toFixed(0) + ',' + (b * 255).toFixed(0) + ',' + (a).toFixed(2) + ')';
     }
 
     setStrokeWidth(lineWidth: float) {
@@ -100,6 +100,11 @@ class CanvasRender {
     lineTo(x: float, y: float) {
 
         this.context.lineTo(x, y);
+    }
+
+    rect(x: float, y: float, width: float, height: float) {
+
+        this.context.rect(x, y, width, height);
     }
 
     fillText(text: string, x: float, y: float) {

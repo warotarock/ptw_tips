@@ -3,8 +3,6 @@ namespace CanvsDrawerSample {
 
     class Main {
 
-        debugDraw = false;
-
         logicalScreenWidth = 640.0;
         logicalScreenHeight = 360.0;
 
@@ -31,6 +29,8 @@ namespace CanvsDrawerSample {
 
         isLoaded = false;
 
+        debugDraw = true;
+
         initialize(canvas: HTMLCanvasElement) {
 
             canvas.width = this.logicalScreenWidth;
@@ -39,6 +39,8 @@ namespace CanvsDrawerSample {
             if (this.render.initializeWebGL(canvas)) {
                 return;
             }
+
+            this.canvasDrawer.debug = this.debugDraw;
 
             this.render.initializeShader(this.shader);
 
@@ -82,20 +84,6 @@ namespace CanvsDrawerSample {
         private prepareTexts() {
 
             {
-                let textDrawer = new VerticalTextDrawer();
-                textDrawer.text = '明日は\n晴れるかな\nDelight';
-                textDrawer.isVertical = true;
-                textDrawer.fontHeight = 25.0;
-                textDrawer.mearsureTestLetter = '晴';
-                textDrawer.verticalTextAlignType = TextDrawerVerticalAlignType.top;
-                textDrawer.horizontalTextAlignType = TextDrawerHorizontalAlignType.right;
-                textDrawer.lineSpan = 10.0;
-                vec3.set(textDrawer.location, 310.0, 40.0, 0.0);
-                vec4.set(textDrawer.color, 1.0, 0.6, 0.2, 1.0);
-                this.canvasDrawer.addTextDrawer(textDrawer);
-            }
-
-            {
                 let textDrawer = new HorizontalTextDrawer();
                 textDrawer.fontHeight = 45.0;
                 textDrawer.mearsureTestLetter = '8';
@@ -117,6 +105,20 @@ namespace CanvsDrawerSample {
                 textDrawer.horizontalTextAlignType = TextDrawerHorizontalAlignType.center;
                 textDrawer.lineSpan = 10.0;
                 vec3.set(textDrawer.location, 255.0, 400.0, 0.0);
+                vec4.set(textDrawer.color, 1.0, 0.6, 0.2, 1.0);
+                this.canvasDrawer.addTextDrawer(textDrawer);
+            }
+
+            {
+                let textDrawer = new VerticalTextDrawer();
+                textDrawer.text = '明日は\n晴れるかな\nDelight';
+                textDrawer.isVertical = true;
+                textDrawer.fontHeight = 25.0;
+                textDrawer.mearsureTestLetter = '晴';
+                textDrawer.verticalTextAlignType = TextDrawerVerticalAlignType.top;
+                textDrawer.horizontalTextAlignType = TextDrawerHorizontalAlignType.right;
+                textDrawer.lineSpan = 10.0;
+                vec3.set(textDrawer.location, 310.0, 40.0, 0.0);
                 vec4.set(textDrawer.color, 1.0, 0.6, 0.2, 1.0);
                 this.canvasDrawer.addTextDrawer(textDrawer);
             }

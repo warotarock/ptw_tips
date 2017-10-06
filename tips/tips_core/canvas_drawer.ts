@@ -270,24 +270,30 @@ class CanvasDrawer {
 
         let offsetX: float;
         if (textDrawer.horizontalTextAlignType == TextDrawerHorizontalAlignType.right) {
-            offsetX = textDrawer.letterOffsetRight;
+
+            offsetX = textDrawer.letterOffsetLeft + textDrawer.letterOffsetRight;
         }
         else if (textDrawer.horizontalTextAlignType == TextDrawerHorizontalAlignType.center) {
-            offsetX = (textDrawer.letterOffsetRight - textDrawer.letterOffsetLeft) / 2.0;
+
+            offsetX = textDrawer.letterOffsetLeft + Math.floor((textDrawer.letterOffsetRight - textDrawer.letterOffsetLeft) / 2.0 - 1.0);
         }
         else {
+
             offsetX = textDrawer.letterOffsetLeft;
         }
 
         var offsetY: float;
         if (textDrawer.verticalTextAlignType == TextDrawerVerticalAlignType.bottom) {
+
             offsetY = textDrawer.letterOffsetBottom + letterHeight;
         }
         else if (textDrawer.verticalTextAlignType == TextDrawerVerticalAlignType.middle) {
+
             offsetY = textDrawer.letterOffsetBottom + letterHeight / 2.0;
         }
         else {
-            offsetY = textDrawer.letterOffsetBottom + letterHeight;
+
+            offsetY = textDrawer.letterOffsetTop;
         }
 
         this.drawReferentialAxis(textDrawer.location[0], textDrawer.location[1], letterHeight);
@@ -311,17 +317,28 @@ class CanvasDrawer {
 
                 let y: float;
                 if (textDrawer.verticalTextAlignType == TextDrawerVerticalAlignType.bottom) {
+
                     y = topPos - letterHeight * lineTextLength;
                 }
                 else if (textDrawer.verticalTextAlignType == TextDrawerVerticalAlignType.middle) {
+
                     y = topPos - letterHeight * lineTextLength / 2.0;
                 }
                 else {
+
                     y = topPos;
                 }
 
                 for (var i = 0; i < lineTextLength; i++) {
                     var letter = StringSubstring(lineText, i, 1);
+
+                    if (this.debug) {
+                        var textMetrics = this.render.measureText(letter);
+                        this.render.setStrokeColor(0.0, 0.0, 0.0, 0.2);
+                        this.render.beginPath();
+                        this.render.rect(x + offsetX, y + offsetY, textMetrics.width, 1);
+                        this.render.stroke();
+                    }
 
                     this.render.fillText(letter, x + offsetX, y + offsetY);
 
@@ -348,12 +365,15 @@ class CanvasDrawer {
 
         var offsetY: float;
         if (textDrawer.verticalTextAlignType == TextDrawerVerticalAlignType.bottom) {
+
             offsetY = textDrawer.letterOffsetBottom;
         }
         else if (textDrawer.verticalTextAlignType == TextDrawerVerticalAlignType.middle) {
+
             offsetY = textDrawer.letterOffsetBottom + (textDrawer.letterOffsetTop - textDrawer.letterOffsetBottom) / 2.0;
         }
         else {
+
             offsetY = textDrawer.letterOffsetBottom + letterHeight;
         }
 
@@ -380,13 +400,23 @@ class CanvasDrawer {
 
                 let offsetX: float;
                 if (textDrawer.horizontalTextAlignType == TextDrawerHorizontalAlignType.right) {
+
                     offsetX = textMetrics.width;
                 }
                 else if (textDrawer.horizontalTextAlignType == TextDrawerHorizontalAlignType.center) {
+
                     offsetX = -textMetrics.width / 2;
                 }
                 else {
+
                     offsetX = textDrawer.letterOffsetLeft;
+                }
+
+                if (this.debug) {
+                    this.render.setStrokeColor(0.0, 0.0, 0.0, 0.2);
+                    this.render.beginPath();
+                    this.render.rect(x + offsetX, y + offsetY, textMetrics.width, 1);
+                    this.render.stroke();
                 }
 
                 this.render.fillText(lineText, x + offsetX, y + offsetY);
@@ -406,24 +436,25 @@ class CanvasDrawer {
         var maxWidth = this.measuringCanvasContext.width;
         var maxHeight = this.measuringCanvasContext.height;
 
-        var leftMargin = 5;
-        var bottomMargin = 10;
+        var sampleLeftMargin = 5;
+        var sampleBottomMargin = 10;
 
         // measure scaling
 
         this.render.clearRect(0, 0, maxWidth, maxHeight);
         this.render.setFontSize(textDrawer.fontHeight);
-        this.render.fillText(textDrawer.mearsureTestLetter, leftMargin, maxHeight - bottomMargin);
+        this.render.fillText(textDrawer.mearsureTestLetter, sampleLeftMargin, maxHeight - sampleBottomMargin);
 
         var pixels = this.render.getImageData(0, 0, maxWidth, maxHeight);
         var rect1 = [0, 0, 0, 0];
 
-        this.scanRectangle(rect1, pixels, textDrawer.fontHeight, bottomMargin);
+        this.scanRectangle(rect1, pixels, textDrawer.fontHeight, sampleBottomMargin);
         var left = rect1[0];
         var right = rect1[2];
         var top = rect1[1];
         var bottom = rect1[3];
 
+        var actualWidth = (right - left) + 1;
         var actualHeight = (bottom - top) + 1;
         textDrawer.letterHeightScale = textDrawer.fontHeight / actualHeight;
 
@@ -431,24 +462,34 @@ class CanvasDrawer {
 
         this.render.clearRect(0, 0, maxWidth, maxHeight);
         this.render.setFontSize(textDrawer.fontHeight * textDrawer.letterHeightScale);
-        this.render.fillText(textDrawer.mearsureTestLetter, leftMargin, maxHeight - bottomMargin);
+        this.render.fillText(textDrawer.mearsureTestLetter, sampleLeftMargin, maxHeight - sampleBottomMargin);
 
         var pixels2 = this.render.getImageData(0, 0, maxWidth, maxHeight);
         var rect2 = [0, 0, 0, 0];
 
-        this.scanRectangle(rect2, pixels2, textDrawer.fontHeight, bottomMargin);
+        this.scanRectangle(rect2, pixels2, textDrawer.fontHeight, sampleBottomMargin);
         left = rect2[0];
         top = rect2[1];
         right = rect2[2];
         bottom = rect2[3];
 
-        textDrawer.letterOffsetLeft = -(left - leftMargin);
-        textDrawer.letterOffsetRight = -(right - leftMargin);
+        var adjustedWidth = (right - left) + 1;
+        var adjustedHeight = (bottom - top) + 1;
 
-        textDrawer.letterOffsetTop = -(top - (maxHeight - bottomMargin));
-        textDrawer.letterOffsetBottom = -(bottom - (maxHeight - bottomMargin));
+        textDrawer.letterOffsetLeft = sampleLeftMargin - left;
+        textDrawer.letterOffsetRight = sampleLeftMargin - right;
 
-        this.drawReferentialAxis(leftMargin, maxHeight - bottomMargin, actualHeight);
+        textDrawer.letterOffsetTop = (maxHeight - sampleBottomMargin) - top;
+        textDrawer.letterOffsetBottom = (maxHeight - sampleBottomMargin) - bottom;
+
+        if (this.debug) {
+            this.render.setStrokeColor(1.0, 0.0, 0.0, 0.2);
+            this.render.beginPath();
+            this.render.rect(left, top, adjustedWidth, adjustedHeight);
+            this.render.stroke();
+        }
+
+        this.drawReferentialAxis(sampleLeftMargin, maxHeight - sampleBottomMargin, actualHeight);
     }
 
     private scanRectangle(out: List<number>, imageData: ImageData, fontHeight: float, bottomMargin: int) {
