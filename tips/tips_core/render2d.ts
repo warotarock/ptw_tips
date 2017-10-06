@@ -52,6 +52,11 @@ class CanvasRender {
         this.context.imageSmoothingEnabled = enable;
     }
 
+    setGlobalAlpha(a: float) {
+
+        this.context.globalAlpha = a;
+    }
+
     setFillColor(r: float, g: float, b: float, a: float) {
 
         this.context.fillStyle = 'rgba(' + (r * 255).toFixed(0) + ',' + (g * 255).toFixed(0) + ',' + (b * 255).toFixed(0) + ',' + (a).toFixed(2) + ')';
@@ -120,6 +125,16 @@ class CanvasRender {
     getImageData(left: int, top: int, width: int, height: int): ImageData {
 
         return this.context.getImageData(left, top, width, height);
+    }
+
+    drawImage(image: HTMLImageElement, sx: float, sy: float, sWidth: float, sHeight: float, dx: float, dy: float, dWidth: float, dHeight: float) {
+
+        this.context.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+    }
+
+    setTransform(matrix: List<float>) {
+
+        this.context.setTransform(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
     }
 
     // Additional functions

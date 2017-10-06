@@ -13,6 +13,7 @@ namespace CanvsDrawerSample {
 
         canvasDrawer = new CanvasDrawer();
         textDrawer: TextDrawer = null;
+        iamgeDrawer: ImageDrawer = null;
 
         eyeLocation = vec3.create();
         lookatLocation = vec3.create();
@@ -44,9 +45,16 @@ namespace CanvsDrawerSample {
 
             this.render.initializeShader(this.shader);
 
-            var image = new RenderImage();
-            this.loadTexture(image, './texture.png');
-            this.images.push(image);
+            {
+                let image = new RenderImage();
+                this.loadTexture(image, './image01.png');
+                this.images.push(image);
+            }
+            {
+                let image = new RenderImage();
+                this.loadTexture(image, './image02.png');
+                this.images.push(image);
+            }
 
             this.loadModel(this.model, '../temp/sample_basic_model.json', 'Cube2');
 
@@ -60,8 +68,11 @@ namespace CanvsDrawerSample {
         processLoading() {
 
             // Waiting for data
-            if (this.images[0].texture == null) {
-                return;
+            for (let image of this.images) {
+
+                if (image.texture == null) {
+                    return;
+                }
             }
 
             if (this.model.vertexBuffer == null) {
@@ -72,7 +83,7 @@ namespace CanvsDrawerSample {
             let textureImage = this.images[0];
             this.canvasDrawer.initialize(textureImage.imageData.width, textureImage.imageData.height);
 
-            this.prepareTexts();
+            this.prepareDrawers();
 
             var div = document.getElementById('debug_container');
             div.appendChild(this.canvasDrawer.getCanvas());
@@ -81,7 +92,19 @@ namespace CanvsDrawerSample {
             this.isLoaded = true;
         }
 
-        private prepareTexts() {
+        private prepareDrawers() {
+
+            {
+                let iamgeDrawer = new ImageDrawer();
+                iamgeDrawer.setImage(this.images[1].imageData)
+                vec3.set(iamgeDrawer.location, 255.0, 225.0, 0.0);
+                vec3.set(iamgeDrawer.scaling, 0.3, 0.3, 1.0);
+                vec3.set(iamgeDrawer.origin, 0.5, 0.5, 0.0);
+                iamgeDrawer.alpha = 0.5;
+                this.canvasDrawer.addImageDrawer(iamgeDrawer);
+
+                this.iamgeDrawer = iamgeDrawer;
+            }
 
             {
                 let textDrawer = new HorizontalTextDrawer();
@@ -142,6 +165,8 @@ namespace CanvsDrawerSample {
             var now = new Date();
             let dateTimeText = '' + (now.getHours()) + ':' + (now.getMinutes()) + ':' + (now.getSeconds());
             this.textDrawer.setText(dateTimeText);
+
+            this.iamgeDrawer.setRotation(-2.0 * Math.PI * now.getSeconds() / 60.0);
 
             this.canvasDrawer.debug = this.debugDraw;
         }

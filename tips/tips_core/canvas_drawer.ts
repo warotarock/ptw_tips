@@ -1,4 +1,33 @@
 
+
+enum DrawerObjectTypeID {
+
+    none = 0,
+    verticalText = 1,
+    horizontalText = 2,
+    image = 3,
+}
+
+class DrawerObject implements IRecyclableObject {
+
+    Type = DrawerObjectTypeID.none;
+
+    recycleIndex: int;
+    recycle() {
+
+        this.drawer = null;
+    }
+
+    drawer: CanvasDrawer = null;
+
+    protected setRedraw() {
+
+        if (this.drawer != null) {
+            this.drawer.setRedraw();
+        }
+    }
+}
+
 enum TextDrawerVerticalAlignType {
     top = 1,
     middle = 2,
@@ -11,15 +40,7 @@ enum TextDrawerHorizontalAlignType {
     right = 3,
 }
 
-class TextDrawer implements IRecyclableObject {
-
-    recycleIndex: int;
-    recycle() {
-
-        this.drawer = null;
-    }
-
-    drawer: CanvasDrawer = null;
+class TextDrawer extends DrawerObject {
 
     text = '';
     mearsureTestLetter = '8';
@@ -38,13 +59,6 @@ class TextDrawer implements IRecyclableObject {
 
     location: List<float> = [0.0, 0.0, 0.0];
     color: List<float> = [0.0, 0.0, 0.0, 1.0];
-
-    private setRedraw() {
-
-        if (this.drawer != null) {
-            this.drawer.setRedraw();
-        }
-    }
 
     setText(text: string) {
 
@@ -100,14 +114,18 @@ class TextDrawer implements IRecyclableObject {
 
 class VerticalTextDrawer extends TextDrawer{
 
+    Type = DrawerObjectTypeID.verticalText;
+
     isVertical= true;
-    mearsureTestLetter = '8';
+    mearsureTestLetter = 'çë';
 
     verticalTextAlignType = TextDrawerVerticalAlignType.top;
     horizontalTextAlignType = TextDrawerHorizontalAlignType.right;
 }
 
 class HorizontalTextDrawer extends TextDrawer {
+
+    Type = DrawerObjectTypeID.horizontalText;
 
     isVertical = false;
     mearsureTestLetter = '8';
@@ -116,14 +134,55 @@ class HorizontalTextDrawer extends TextDrawer {
     horizontalTextAlignType = TextDrawerHorizontalAlignType.left;
 }
 
+class ImageDrawer extends DrawerObject {
+
+    Type = DrawerObjectTypeID.image;
+
+    imageData: HTMLImageElement = null;
+
+    sourceRect: List<float> = [0.0, 0.0, 0.0, 0.0];
+
+    origin: List<float> = [0.0, 0.0, 0.0];
+
+    location: List<float> = [0.0, 0.0, 0.0];
+    scaling: List<float> = [1.0, 1.0, 1.0];
+    rotation = 0.0;
+    alpha = 1.0;
+
+    setImage(imageData: HTMLImageElement) {
+
+        this.imageData = imageData;
+        this.sourceRect[0] = 0.0;
+        this.sourceRect[1] = 0.0;
+        this.sourceRect[2] = imageData.width;
+        this.sourceRect[3] = imageData.height;
+
+        this.setRedraw();
+    }
+
+    setRotation(rotation: float) {
+
+        if (rotation == this.rotation) {
+
+            return;
+        }
+
+        this.rotation = rotation;
+
+        this.setRedraw();
+    }
+}
+
 class CanvasDrawer {
 
     private mainCanvasContext: CanvasContext = null;
     private measuringCanvasContext: CanvasContext = null;
 
     private render = new CanvasRender();
+    private transformMatrix = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]; // x1, y1, x2, y2, tx, ty
+    private transformIdentity = [1.0, 0.0, 0.0, 1.0, 0.0, 0.0];
 
-    private textDrawers = new List<TextDrawer>();
+    private drawerObjects = new List<DrawerObject>();
 
     private needsRedraw = false;
     private redrawCommited = false;
@@ -186,18 +245,27 @@ class CanvasDrawer {
 
         textDrawer.drawer = this;
 
-        this.textDrawers.push(textDrawer);
+        this.drawerObjects.push(textDrawer);
 
         this.setRedraw();
     }
 
-    removeTextDrawer(textDrawer: TextDrawer) {
+    addImageDrawer(imageDrawer: ImageDrawer) {
 
-        for (let i = 0; i < this.textDrawers.length; i++) {
+        imageDrawer.drawer = this;
 
-            if (this.textDrawers[i] == textDrawer) {
+        this.drawerObjects.push(imageDrawer);
 
-                ListRemoveAt(this.textDrawers, i);
+        this.setRedraw();
+    }
+
+    removeObject(drawerObject: DrawerObject) {
+
+        for (let i = 0; i < this.drawerObjects.length; i++) {
+
+            if (this.drawerObjects[i] == drawerObject) {
+
+                ListRemoveAt(this.drawerObjects, i);
 
                 this.setRedraw();
 
@@ -238,25 +306,32 @@ class CanvasDrawer {
 
     private drawObjects(canvasContext: CanvasContext) {
 
-        this.drawTexts();
-    }
+        for (var i = 0; i < this.drawerObjects.length; i++) {
+            var drawerObject = this.drawerObjects[i];
 
-    private drawTexts() {
+            if (drawerObject.Type == DrawerObjectTypeID.verticalText || drawerObject.Type == DrawerObjectTypeID.horizontalText) {
 
-        for (var i = 0; i < this.textDrawers.length; i++) {
-            var textDrawer = this.textDrawers[i];
-            if (textDrawer != null) {
+                let textDrawer = <TextDrawer>drawerObject;
+
                 if (textDrawer.isVertical) {
-                    this.drawVerticalText(textDrawer);
+
+                    this.drawVerticalTextDrawer(textDrawer);
                 }
                 else {
-                    this.drawHorizontalText(textDrawer);
+
+                    this.drawHorizontalTextDrawer(textDrawer);
                 }
+            }
+            else if (drawerObject.Type == DrawerObjectTypeID.image) {
+
+                let imageDrawer = <ImageDrawer>drawerObject;
+
+                this.drawImageDrawer(imageDrawer);
             }
         }
     }
 
-    private drawVerticalText(textDrawer: TextDrawer) {
+    private drawVerticalTextDrawer(textDrawer: TextDrawer) {
 
         var letterHeight = textDrawer.fontHeight * textDrawer.letterHeightScale;
         var lineWidth = letterHeight + textDrawer.lineSpan;
@@ -296,7 +371,7 @@ class CanvasDrawer {
             offsetY = textDrawer.letterOffsetTop;
         }
 
-        this.drawReferentialAxis(textDrawer.location[0], textDrawer.location[1], letterHeight);
+        this.drawAxis(textDrawer.location[0], textDrawer.location[1], letterHeight);
 
         this.render.setFontSize(letterHeight);
         this.render.setFillColor(textDrawer.color[0], textDrawer.color[1], textDrawer.color[2], textDrawer.color[3]);
@@ -342,7 +417,7 @@ class CanvasDrawer {
 
                     this.render.fillText(letter, x + offsetX, y + offsetY);
 
-                    this.drawReferentialAxis(x, y, letterHeight);
+                    this.drawAxis(x, y, letterHeight);
 
                     // ï∂éöÇëóÇÈ
                     y += letterHeight;
@@ -354,7 +429,7 @@ class CanvasDrawer {
         }
     }
 
-    private drawHorizontalText(textDrawer: TextDrawer) {
+    private drawHorizontalTextDrawer(textDrawer: TextDrawer) {
 
         var letterHeight = textDrawer.fontHeight * textDrawer.letterHeightScale;
         var lineHeight = letterHeight + textDrawer.lineSpan;
@@ -377,7 +452,7 @@ class CanvasDrawer {
             offsetY = textDrawer.letterOffsetBottom + letterHeight;
         }
 
-        this.drawReferentialAxis(textDrawer.location[0], textDrawer.location[1], letterHeight);
+        this.drawAxis(textDrawer.location[0], textDrawer.location[1], letterHeight);
 
         this.render.setFontSize(letterHeight);
         this.render.setFillColor(textDrawer.color[0], textDrawer.color[1], textDrawer.color[2], textDrawer.color[3]);
@@ -421,7 +496,7 @@ class CanvasDrawer {
 
                 this.render.fillText(lineText, x + offsetX, y + offsetY);
 
-                this.drawReferentialAxis(x, y, letterHeight);
+                this.drawAxis(x, y, letterHeight);
             }
 
             currentIndex = endIndex + 1;
@@ -448,7 +523,7 @@ class CanvasDrawer {
         var pixels = this.render.getImageData(0, 0, maxWidth, maxHeight);
         var rect1 = [0, 0, 0, 0];
 
-        this.scanRectangle(rect1, pixels, textDrawer.fontHeight, sampleBottomMargin);
+        this.scanImageArea(rect1, pixels, textDrawer.fontHeight, sampleBottomMargin);
         var left = rect1[0];
         var right = rect1[2];
         var top = rect1[1];
@@ -467,7 +542,7 @@ class CanvasDrawer {
         var pixels2 = this.render.getImageData(0, 0, maxWidth, maxHeight);
         var rect2 = [0, 0, 0, 0];
 
-        this.scanRectangle(rect2, pixels2, textDrawer.fontHeight, sampleBottomMargin);
+        this.scanImageArea(rect2, pixels2, textDrawer.fontHeight, sampleBottomMargin);
         left = rect2[0];
         top = rect2[1];
         right = rect2[2];
@@ -489,10 +564,10 @@ class CanvasDrawer {
             this.render.stroke();
         }
 
-        this.drawReferentialAxis(sampleLeftMargin, maxHeight - sampleBottomMargin, actualHeight);
+        this.drawAxis(sampleLeftMargin, maxHeight - sampleBottomMargin, actualHeight);
     }
 
-    private scanRectangle(out: List<number>, imageData: ImageData, fontHeight: float, bottomMargin: int) {
+    private scanImageArea(out: List<number>, imageData: ImageData, fontHeight: float, bottomMargin: int) {
 
         var data = imageData.data;
 
@@ -544,7 +619,7 @@ class CanvasDrawer {
         out[3] = bottom;
     }
 
-    private drawReferentialAxis(x: float, y: float, size: float) {
+    private drawAxis(x: float, y: float, size: float) {
 
         if (!this.debug) {
             return;
@@ -555,16 +630,51 @@ class CanvasDrawer {
 
         this.render.setStrokeWidth(0);
 
-        this.render.setStrokeColor(1.0, 0.0, 0.0, 1.0);
+        this.render.setStrokeColor(1.0, 0.0, 0.0, 0.5);
         this.render.beginPath();
         this.render.moveTo(x - size, y);
         this.render.lineTo(x, y);
         this.render.stroke();
 
-        this.render.setStrokeColor(0.0, 0.8, 0.0, 1.0);
+        this.render.setStrokeColor(0.0, 0.8, 0.0, 0.5);
         this.render.beginPath();
         this.render.moveTo(x, y);
         this.render.lineTo(x, y + size);
         this.render.stroke();
+    }
+
+    private drawImageDrawer(imageDrawer: ImageDrawer) {
+
+        var srcLeft = imageDrawer.sourceRect[0];
+        var srcTop = imageDrawer.sourceRect[1];
+        var srcWidth = imageDrawer.sourceRect[2] - imageDrawer.sourceRect[0];
+        var srcHeight = imageDrawer.sourceRect[3] - imageDrawer.sourceRect[1];
+
+        var destLeft = imageDrawer.location[0];
+        var destTop = imageDrawer.location[1];
+        var destWidth = srcWidth * imageDrawer.scaling[0];
+        var destHeight = srcHeight * imageDrawer.scaling[1];
+
+        var rotation = imageDrawer.rotation;
+
+        var originX = destWidth * imageDrawer.origin[0] * Math.cos(rotation) - destHeight * (-imageDrawer.origin[1]) * Math.sin(rotation);
+        var originY = destWidth * imageDrawer.origin[0] * Math.sin(rotation) + destHeight * (-imageDrawer.origin[1]) * Math.cos(rotation);
+
+        var destX = destLeft - originX;
+        var destY = destTop + originY;
+
+        this.transformMatrix[0] = Math.cos(rotation) * imageDrawer.scaling[0];
+        this.transformMatrix[1] = -Math.sin(rotation) * imageDrawer.scaling[0];
+        this.transformMatrix[2] = Math.sin(rotation) * imageDrawer.scaling[1];
+        this.transformMatrix[3] = Math.cos(rotation) * imageDrawer.scaling[1];
+        this.transformMatrix[4] = destX;
+        this.transformMatrix[5] = destY;
+        this.render.setTransform(this.transformMatrix);
+
+        this.render.setGlobalAlpha(imageDrawer.alpha);
+        this.render.drawImage(imageDrawer.imageData, srcLeft, srcTop, srcWidth, srcHeight, 0.0, 0.0, srcWidth, srcHeight);
+        this.render.setGlobalAlpha(1.0);
+
+        this.render.setTransform(this.transformIdentity);
     }
 }
