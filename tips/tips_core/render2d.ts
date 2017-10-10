@@ -47,21 +47,6 @@ class CanvasRender {
 
     // Canvas wrapper functions
 
-    setImageAntialaing(enable: boolean) {
-
-        this.context.imageSmoothingEnabled = enable;
-    }
-
-    setGlobalAlpha(a: float) {
-
-        this.context.globalAlpha = a;
-    }
-
-    setFillColor(r: float, g: float, b: float, a: float) {
-
-        this.context.fillStyle = 'rgba(' + (r * 255).toFixed(0) + ',' + (g * 255).toFixed(0) + ',' + (b * 255).toFixed(0) + ',' + (a).toFixed(2) + ')';
-    }
-
     clearRect(left: int, top: int, width: int, height: int) {
 
         this.context.clearRect(left, top, width, height);
@@ -75,16 +60,6 @@ class CanvasRender {
     fill() {
 
         this.context.fill();
-    }
-
-    setStrokeColor(r: float, g: float, b: float, a: float) {
-
-        this.context.strokeStyle = 'rgba(' + (r * 255).toFixed(0) + ',' + (g * 255).toFixed(0) + ',' + (b * 255).toFixed(0) + ',' + (a).toFixed(2) + ')';
-    }
-
-    setStrokeWidth(lineWidth: float) {
-
-        this.context.lineWidth = lineWidth;
     }
 
     beginPath() {
@@ -139,9 +114,44 @@ class CanvasRender {
 
     // Additional functions
 
+    setStrokeColor(rgba: List<float>) {
+
+        let r = rgba[0];
+        let g = rgba[1];
+        let b = rgba[2];
+        let a = rgba[3];
+
+        this.context.strokeStyle = 'rgba(' + (r * 255).toFixed(0) + ',' + (g * 255).toFixed(0) + ',' + (b * 255).toFixed(0) + ',' + (a).toFixed(2) + ')';
+    }
+
+    setFillColor(rgba: List<float>) {
+
+        let r = rgba[0];
+        let g = rgba[1];
+        let b = rgba[2];
+        let a = rgba[3];
+
+        this.context.fillStyle = 'rgba(' + (r * 255).toFixed(0) + ',' + (g * 255).toFixed(0) + ',' + (b * 255).toFixed(0) + ',' + (a).toFixed(2) + ')';
+    }
+
+    setGlobalAlpha(a: float) {
+
+        this.context.globalAlpha = a;
+    }
+
     setFontSize(height: float) {
 
         this.context.font = height.toFixed(0) + 'px ' + this.canvasContext.font;
+    }
+
+    setStrokeWidth(lineWidth: float) {
+
+        this.context.lineWidth = lineWidth;
+    }
+
+    setImageAntialiasing(enable: boolean) {
+
+        this.context.imageSmoothingEnabled = enable;
     }
 
     circle(x: float, y: float, radius: float) {

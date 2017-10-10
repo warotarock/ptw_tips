@@ -109,7 +109,7 @@ namespace CanvsDrawerSample {
             {
                 let textDrawer = new HorizontalTextDrawer();
                 textDrawer.fontHeight = 45.0;
-                textDrawer.mearsureTestLetter = '8';
+                textDrawer.mearsureSampleLetter = '8';
                 textDrawer.verticalTextAlignType = TextDrawerVerticalAlignType.middle;
                 textDrawer.horizontalTextAlignType = TextDrawerHorizontalAlignType.center;
                 vec3.set(textDrawer.location, 255.0, 320.0, 0.0);
@@ -123,7 +123,7 @@ namespace CanvsDrawerSample {
                 let textDrawer = new HorizontalTextDrawer();
                 textDrawer.text = 'PTW Tips\nsince 2017';
                 textDrawer.fontHeight = 14.0;
-                textDrawer.mearsureTestLetter = 'W8';
+                textDrawer.mearsureSampleLetter = 'W8';
                 textDrawer.verticalTextAlignType = TextDrawerVerticalAlignType.bottom;
                 textDrawer.horizontalTextAlignType = TextDrawerHorizontalAlignType.center;
                 textDrawer.lineSpan = 10.0;
@@ -137,7 +137,7 @@ namespace CanvsDrawerSample {
                 textDrawer.text = '明日は\n晴れるかな\nDelight';
                 textDrawer.isVertical = true;
                 textDrawer.fontHeight = 25.0;
-                textDrawer.mearsureTestLetter = '晴';
+                textDrawer.mearsureSampleLetter = '晴';
                 textDrawer.verticalTextAlignType = TextDrawerVerticalAlignType.top;
                 textDrawer.horizontalTextAlignType = TextDrawerHorizontalAlignType.right;
                 textDrawer.lineSpan = 10.0;
@@ -174,9 +174,8 @@ namespace CanvsDrawerSample {
         draw() {
 
             // Redraw canvas drawer
-            this.canvasDrawer.commitRedraw();
 
-            if (this.canvasDrawer.isRedrawCommited()) {
+            if (this.canvasDrawer.isNeededRedraw()) {
 
                 this.canvasDrawer.draw();
 

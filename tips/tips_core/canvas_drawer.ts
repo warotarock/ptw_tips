@@ -1,5 +1,4 @@
 
-
 enum DrawerObjectTypeID {
 
     none = 0,
@@ -43,7 +42,7 @@ enum TextDrawerHorizontalAlignType {
 class TextDrawer extends DrawerObject {
 
     text = '';
-    mearsureTestLetter = '8';
+    mearsureSampleLetter = '8';
 
     isVertical = false;
     verticalTextAlignType = TextDrawerVerticalAlignType.bottom;
@@ -99,7 +98,7 @@ class TextDrawer extends DrawerObject {
         this.setRedraw();
     }
 
-    setAlpha(alpha: float) {
+    setTransparency(alpha: float) {
 
         if (alpha == this.color[3]) {
 
@@ -117,7 +116,7 @@ class VerticalTextDrawer extends TextDrawer{
     Type = DrawerObjectTypeID.verticalText;
 
     isVertical= true;
-    mearsureTestLetter = 'çë';
+    mearsureSampleLetter = 'çë';
 
     verticalTextAlignType = TextDrawerVerticalAlignType.top;
     horizontalTextAlignType = TextDrawerHorizontalAlignType.right;
@@ -128,7 +127,7 @@ class HorizontalTextDrawer extends TextDrawer {
     Type = DrawerObjectTypeID.horizontalText;
 
     isVertical = false;
-    mearsureTestLetter = '8';
+    mearsureSampleLetter = '8';
 
     verticalTextAlignType = TextDrawerVerticalAlignType.top;
     horizontalTextAlignType = TextDrawerHorizontalAlignType.left;
@@ -139,7 +138,6 @@ class ImageDrawer extends DrawerObject {
     Type = DrawerObjectTypeID.image;
 
     imageData: HTMLImageElement = null;
-
     sourceRect: List<float> = [0.0, 0.0, 0.0, 0.0];
 
     origin: List<float> = [0.0, 0.0, 0.0];
@@ -160,6 +158,48 @@ class ImageDrawer extends DrawerObject {
         this.setRedraw();
     }
 
+    setSourceRect(left: float, right: float, width: float, height: float) {
+
+        if (left == this.sourceRect[0] && right == this.sourceRect[1] && width == this.sourceRect[2] && height == this.sourceRect[3]) {
+
+            return;
+        }
+
+        this.sourceRect[0] = left;
+        this.sourceRect[1] = right;
+
+        this.sourceRect[2] = width;
+        this.sourceRect[3] = height;
+
+        this.setRedraw();
+    }
+
+    setLocation(x: float, y: float) {
+
+        if (x == this.location[0] && y == this.location[1]) {
+
+            return;
+        }
+
+        this.location[0] = x;
+        this.location[1] = y;
+
+        this.setRedraw();
+    }
+
+    setOrigin(x: float, y: float) {
+
+        if (x == this.origin[0] && y == this.origin[1]) {
+
+            return;
+        }
+
+        this.origin[0] = x;
+        this.origin[1] = y;
+
+        this.setRedraw();
+    }
+
     setRotation(rotation: float) {
 
         if (rotation == this.rotation) {
@@ -168,6 +208,18 @@ class ImageDrawer extends DrawerObject {
         }
 
         this.rotation = rotation;
+
+        this.setRedraw();
+    }
+
+    setTransparency(alpha: float) {
+
+        if (alpha == this.alpha) {
+
+            return;
+        }
+
+        this.alpha = alpha;
 
         this.setRedraw();
     }
@@ -185,15 +237,18 @@ class CanvasDrawer {
     private drawerObjects = new List<DrawerObject>();
 
     private needsRedraw = false;
-    private redrawCommited = false;
+
+    private color1 = [0.0, 0.0, 0.0, 0.2];
+    private color2 = [1.0, 0.0, 0.0, 0.3];
+    private color3 = [0.0, 0.8, 0.0, 0.3];
 
     debug = false;
 
-    initialize(screenWidth: int, screenHeight: int): boolean {
+    initialize(canvasWidth: int, canvasHeight: int): boolean {
 
         try {
 
-            this.initializeMainContext(screenWidth, screenHeight);
+            this.initializeMainContext(canvasWidth, canvasHeight);
             this.initializeContextForMeasuring();
         }
         catch (e) {
@@ -201,7 +256,6 @@ class CanvasDrawer {
         }
 
         this.needsRedraw = false;
-        this.redrawCommited = false;
 
         return true;
     }
@@ -211,21 +265,14 @@ class CanvasDrawer {
         this.needsRedraw = true;
     }
 
-    commitRedraw() {
+    isNeededRedraw(): boolean {
 
-        if (this.needsRedraw) {
-            this.redrawCommited = true;
-        }
-    }
-
-    isRedrawCommited(): boolean {
-
-        return this.redrawCommited;
+        return this.needsRedraw;
     }
 
     draw() {
 
-        if (!this.redrawCommited) {
+        if (!this.needsRedraw) {
             return;
         }
 
@@ -236,7 +283,6 @@ class CanvasDrawer {
         this.drawObjects(this.mainCanvasContext);
 
         this.needsRedraw = false;
-        this.redrawCommited = false;
     }
 
     addTextDrawer(textDrawer: TextDrawer) {
@@ -374,7 +420,7 @@ class CanvasDrawer {
         this.drawAxis(textDrawer.location[0], textDrawer.location[1], letterHeight);
 
         this.render.setFontSize(letterHeight);
-        this.render.setFillColor(textDrawer.color[0], textDrawer.color[1], textDrawer.color[2], textDrawer.color[3]);
+        this.render.setFillColor(textDrawer.color);
 
         var currentIndex = 0;
         var textLength = textDrawer.text.length;
@@ -409,7 +455,7 @@ class CanvasDrawer {
 
                     if (this.debug) {
                         var textMetrics = this.render.measureText(letter);
-                        this.render.setStrokeColor(0.0, 0.0, 0.0, 0.2);
+                        this.render.setStrokeColor(this.color1);
                         this.render.beginPath();
                         this.render.rect(x + offsetX, y + offsetY, textMetrics.width, 1);
                         this.render.stroke();
@@ -455,7 +501,7 @@ class CanvasDrawer {
         this.drawAxis(textDrawer.location[0], textDrawer.location[1], letterHeight);
 
         this.render.setFontSize(letterHeight);
-        this.render.setFillColor(textDrawer.color[0], textDrawer.color[1], textDrawer.color[2], textDrawer.color[3]);
+        this.render.setFillColor(textDrawer.color);
 
         var currentIndex = 0;
         var textLength = textDrawer.text.length;
@@ -488,7 +534,7 @@ class CanvasDrawer {
                 }
 
                 if (this.debug) {
-                    this.render.setStrokeColor(0.0, 0.0, 0.0, 0.2);
+                    this.render.setStrokeColor(this.color1);
                     this.render.beginPath();
                     this.render.rect(x + offsetX, y + offsetY, textMetrics.width, 1);
                     this.render.stroke();
@@ -518,7 +564,7 @@ class CanvasDrawer {
 
         this.render.clearRect(0, 0, maxWidth, maxHeight);
         this.render.setFontSize(textDrawer.fontHeight);
-        this.render.fillText(textDrawer.mearsureTestLetter, sampleLeftMargin, maxHeight - sampleBottomMargin);
+        this.render.fillText(textDrawer.mearsureSampleLetter, sampleLeftMargin, maxHeight - sampleBottomMargin);
 
         var pixels = this.render.getImageData(0, 0, maxWidth, maxHeight);
         var rect1 = [0, 0, 0, 0];
@@ -537,7 +583,7 @@ class CanvasDrawer {
 
         this.render.clearRect(0, 0, maxWidth, maxHeight);
         this.render.setFontSize(textDrawer.fontHeight * textDrawer.letterHeightScale);
-        this.render.fillText(textDrawer.mearsureTestLetter, sampleLeftMargin, maxHeight - sampleBottomMargin);
+        this.render.fillText(textDrawer.mearsureSampleLetter, sampleLeftMargin, maxHeight - sampleBottomMargin);
 
         var pixels2 = this.render.getImageData(0, 0, maxWidth, maxHeight);
         var rect2 = [0, 0, 0, 0];
@@ -558,7 +604,7 @@ class CanvasDrawer {
         textDrawer.letterOffsetBottom = (maxHeight - sampleBottomMargin) - bottom;
 
         if (this.debug) {
-            this.render.setStrokeColor(1.0, 0.0, 0.0, 0.2);
+            this.render.setStrokeColor(this.color2);
             this.render.beginPath();
             this.render.rect(left, top, adjustedWidth, adjustedHeight);
             this.render.stroke();
@@ -630,13 +676,13 @@ class CanvasDrawer {
 
         this.render.setStrokeWidth(0);
 
-        this.render.setStrokeColor(1.0, 0.0, 0.0, 0.5);
+        this.render.setStrokeColor(this.color2);
         this.render.beginPath();
         this.render.moveTo(x - size, y);
         this.render.lineTo(x, y);
         this.render.stroke();
 
-        this.render.setStrokeColor(0.0, 0.8, 0.0, 0.5);
+        this.render.setStrokeColor(this.color3);
         this.render.beginPath();
         this.render.moveTo(x, y);
         this.render.lineTo(x, y + size);
