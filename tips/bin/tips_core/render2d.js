@@ -96,14 +96,11 @@ var CanvasRender = (function () {
     CanvasRender.prototype.setFontSize = function (height) {
         this.context.font = height.toFixed(0) + 'px ' + this.canvasContext.font;
     };
-    CanvasRender.prototype.setStrokeWidth = function (lineWidth) {
-        this.context.lineWidth = lineWidth;
+    CanvasRender.prototype.setStrokeWidth = function (width) {
+        this.context.lineWidth = width;
     };
     CanvasRender.prototype.setImageAntialiasing = function (enable) {
         this.context.imageSmoothingEnabled = enable;
-    };
-    CanvasRender.prototype.circle = function (x, y, radius) {
-        this.context.arc(x, y, radius, 0.0, Math.PI * 2.0);
     };
     return CanvasRender;
 }());

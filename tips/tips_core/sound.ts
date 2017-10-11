@@ -1,5 +1,5 @@
 ﻿
-module PTWTipsSound {
+namespace PTWTipsSound {
 
     export enum SoundPlayingState {
         none = 0,
@@ -97,7 +97,7 @@ module PTWTipsSound {
         }
     }
 
-    export class SoundSourceUnit {
+    export class SoundSource {
 
         soundManger: SoundManager = null;
 
@@ -207,7 +207,7 @@ module PTWTipsSound {
             return false;
         }
 
-        createSoundSource(maxPlayingUnitCount: int): SoundSourceUnit {
+        createSoundSource(maxPlayingUnitCount: int): SoundSource {
 
             // override method
 
@@ -217,11 +217,11 @@ module PTWTipsSound {
 
     export class SoundManager {
 
-        private soundSources = new List<SoundSourceUnit>();
+        private soundSources = new List<SoundSource>();
 
         isMuted = false;
 
-        addSoundSource(soundUnit: SoundSourceUnit) {
+        addSoundSource(soundUnit: SoundSource) {
 
             soundUnit.soundManger = this;
 

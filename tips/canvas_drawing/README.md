@@ -60,15 +60,17 @@ setTextureImageFromCanvas(image: RenderImage, canvas: HTMLCanvasElement) {
 
 上は計測用のキャンバスの例です。
 
+
 ## サンプルプログラム
 
 ### プログラム構成
 
-下の図は文字列と画像(HTMLのImage要素)を最初の入力、WebGLのテクスチャを最後の出力としてクラス間の関係を示しています。矢印はデータ的な流れの方向を表したものです。処理のほとんどはキャンバスを利用した描画処理を行うキャンバス描画クラス（CanvasDrawer）にあり、その他は補助的なクラスとなっています。
+下の図は文字列と画像(HTMLのImage要素)を最初の入力、WebGLのテクスチャを最後の出力としてクラス間の関係を示しています。実践の四角はクラスの実体、矢印はデータ的な流れの方向を表したものです。処理のほとんどはキャンバスを利用した描画処理を行うキャンバス描画クラス（CanvasDrawer）にあり、その他は補助的なクラスとなっています。
 
 ![](./canvas_drawing_fig002.png)
 
-全体としての処理は以下の流れで行われます。
+
+### 処理の流れ
 
 1. CanvasDrawerの初期化
 2. 各種ドロワー(TextDrawer、ImageDrawer)をCanvasDrawerに追加
@@ -95,7 +97,7 @@ setTextureImageFromCanvas(image: RenderImage, canvas: HTMLCanvasElement) {
 - テキストドロワー(VerticalTextDrawer、HorizontalTextDrawer)
 - 画像ドロワー(ImageDrawer)
 
-キャンバス描画クラスにはテキストと画像の描画機能があり、それぞれ対応するオブジェクトを表現した事実上の内部クラスがあります。これらをドロワーと呼ぶこととします。ドロワーはaddTextDrawer関数、addImageDrawer関数でキャンバス描画に登録すると、登録順に描画されます。
+キャンバス描画クラスにはテキストと画像の描画機能があり、それぞれ対応するオブジェクトを表現した(事実上の)内部クラスがあります。これらをドロワーと呼ぶこととします。ドロワーはaddTextDrawer関数、addImageDrawer関数でキャンバス描画に登録すると、登録順に描画されます。
 
 テキストドロワーは文字列を描画するオブジェクトです。縦書き用と横書き用のクラスがそれぞれあります。キャンバス描画に登録する際、文字サイズ計測用の適当な文字列をmearsureSampleLetterプロパティにあらかじめ設定しておくと、より正確な文字のサイズで描画することができます。
 
@@ -104,12 +106,12 @@ setTextureImageFromCanvas(image: RenderImage, canvas: HTMLCanvasElement) {
 
 ### キャンバスレンダークラス(CanvasRender)
 
-HTMLのCanvas要素から取得されるコンテキスト（CanvasRenderingContext2D）のラッパークラスです。ラップする主な目的は保守性を向上に加え、WebGLとの連携をしやすくすることです。
+HTMLのCanvas要素から取得されるコンテキスト（CanvasRenderingContext2D）のラッパークラスです。また、WebGLとの連携をしやすくするため、フォントのサイズのみを指定して変更する機能や色を数値型の配列で指定する機能などを用意してあります。
 
 
-### キャンバスウィンドウクラス(CanvasContext)
+### キャンバスコンテキストクラス(CanvasContext)
 
-HTMLのCanvas要素から取得される2次元描画コンテキスト（CanvasRenderingContext2D）とHTMLのCanvas要素をセットで保持するためのクラスです。
+HTMLのCanvas要素と2次元描画コンテキスト（CanvasRenderingContext2D）をセットで保持するためのクラスです。
 
 
 ## 関連情報

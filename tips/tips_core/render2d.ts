@@ -144,18 +144,13 @@ class CanvasRender {
         this.context.font = height.toFixed(0) + 'px ' + this.canvasContext.font;
     }
 
-    setStrokeWidth(lineWidth: float) {
+    setStrokeWidth(width: float) {
 
-        this.context.lineWidth = lineWidth;
+        this.context.lineWidth = width;
     }
 
     setImageAntialiasing(enable: boolean) {
 
         this.context.imageSmoothingEnabled = enable;
-    }
-
-    circle(x: float, y: float, radius: float) {
-
-        this.context.arc(x, y, radius, 0.0, Math.PI * 2.0);
     }
 }

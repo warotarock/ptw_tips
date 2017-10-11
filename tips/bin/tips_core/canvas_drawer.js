@@ -101,7 +101,7 @@ var VerticalTextDrawer = (function (_super) {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.Type = DrawerObjectTypeID.verticalText;
         _this.isVertical = true;
-        _this.mearsureSampleLetter = '国';
+        _this.mearsureSampleLetter = '��';
         _this.verticalTextAlignType = TextDrawerVerticalAlignType.top;
         _this.horizontalTextAlignType = TextDrawerHorizontalAlignType.right;
         return _this;
@@ -345,7 +345,7 @@ var CanvasDrawer = (function () {
                     }
                     this.render.fillText(letter, x + offsetX, y + offsetY);
                     this.drawAxis(x, y, letterHeight);
-                    // 文字を送る
+                    // �����𑗂�
                     y += letterHeight;
                 }
                 currentIndex = endIndex + 1;

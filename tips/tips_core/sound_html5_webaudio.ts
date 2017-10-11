@@ -1,5 +1,5 @@
 
-module PTWTipsSound_HTML5_WebAudio {
+namespace PTWTipsSound_HTML5_WebAudio {
 
     export class SoundPlayingUnit extends PTWTipsSound.SoundPlayingUnit {
 
@@ -12,6 +12,8 @@ module PTWTipsSound_HTML5_WebAudio {
         private state = PTWTipsSound.SoundPlayingState.ready;
         private startTime: long = 0;
         private restartTime: long = 0;
+
+        // override methods
 
         getState(): PTWTipsSound.SoundPlayingState {
 
@@ -90,9 +92,11 @@ module PTWTipsSound_HTML5_WebAudio {
             this.gainNode.gain.value = valume * this.device.volume;
         }
 
-        initialize(soundSystem: SoundDevice) {
+        // own methods
 
-            this.device = soundSystem;
+        initialize(device: SoundDevice) {
+
+            this.device = device;
             this.gainNode = this.device.audioContext.createGain();
             this.gainNode.connect(this.device.audioContext.destination);
         }
@@ -110,7 +114,7 @@ module PTWTipsSound_HTML5_WebAudio {
         }
     }
 
-    export class SoundSourceUnit extends PTWTipsSound.SoundSourceUnit {
+    export class SoundSource extends PTWTipsSound.SoundSource {
 
         device: SoundDevice = null;
         masterAudioBuffer: AudioBuffer = null;
@@ -119,6 +123,8 @@ module PTWTipsSound_HTML5_WebAudio {
 
         loadingDataTotal: long = 0;
         loadingDataLoaded: long = 0;
+
+        // override methods
 
         load(fileName: string) {
 
@@ -152,12 +158,13 @@ module PTWTipsSound_HTML5_WebAudio {
             return this.playingUnits[index];
         }
 
-        initializePlayingUnits(soundSystem: SoundDevice, maxPlayingUnitCount: int) {
+        // own methods
+
+        initializePlayingUnits(maxPlayingUnitCount: int) {
 
             for (let i = 0; i < maxPlayingUnitCount; i++) {
 
-                let playingUnit = new SoundPlayingUnit();
-                playingUnit.initialize(soundSystem);
+                let playingUnit = this.device.createSoundPlayingUnit();
 
                 this.playingUnits.push(playingUnit);
             }
@@ -177,13 +184,15 @@ module PTWTipsSound_HTML5_WebAudio {
 
     export class SoundDevice extends PTWTipsSound.SoundDevice {
 
-        maxParallelLoadingCount = 3;
-
         audioContext: AudioContext = null;
 
         audioBufferChache = new Dictionary<AudioBuffer>();
 
         isReady = false;
+
+        // override methods
+
+        maxParallelLoadingCount = 3;
 
         isAvailable(): boolean {
 
@@ -218,22 +227,24 @@ module PTWTipsSound_HTML5_WebAudio {
             }
         }
 
-        createSoundSource(maxPlayingUnitCount: int): PTWTipsSound.SoundSourceUnit {
+        createSoundSource(maxPlayingUnitCount: int): PTWTipsSound.SoundSource {
 
-            var soundUnit = new SoundSourceUnit();
+            var soundSource = new soundSource();
 
-            soundUnit.device = this;
+            soundSource.device = this;
 
-            soundUnit.initializePlayingUnits(this, maxPlayingUnitCount)
+            soundSource.initializePlayingUnits(this, maxPlayingUnitCount)
 
-            return soundUnit;
+            return soundSource;
         }
 
-        loadSound(soundUnit: SoundSourceUnit, url: string) {
+        // own methods
+
+        loadSound(soundSource: SoundSource, url: string) {
 
             if (DictionaryContainsKey(this.audioBufferChache, url)) {
 
-                soundUnit.setAudioBuffer(this.audioBufferChache[url]);
+                soundSource.setAudioBuffer(this.audioBufferChache[url]);
                 return;
             }
 
@@ -243,13 +254,13 @@ module PTWTipsSound_HTML5_WebAudio {
 
             var on_progress = (e) => {
 
-                soundUnit.loadingDataTotal = e.total;
-                soundUnit.loadingDataLoaded = e.loaded;
+                soundSource.loadingDataTotal = e.total;
+                soundSource.loadingDataLoaded = e.loaded;
 
-                if (soundUnit.loadingDataLoaded == soundUnit.loadingDataTotal) {
+                if (soundSource.loadingDataLoaded == soundSource.loadingDataTotal) {
 
                     // デコードの時間が必要であるためロード完了だけでは完了扱いにならないようにしている
-                    soundUnit.loadingDataLoaded = soundUnit.loadingDataTotal - 1;
+                    soundSource.loadingDataLoaded = soundSource.loadingDataTotal - 1;
                 }
             };
 
@@ -263,7 +274,7 @@ module PTWTipsSound_HTML5_WebAudio {
 
             var on_load = (e) => {
 
-                if (soundUnit.isLoaded) {
+                if (soundSource.isLoaded) {
                     return;
                 }
 
@@ -280,9 +291,9 @@ module PTWTipsSound_HTML5_WebAudio {
 
                         this.audioBufferChache[url] = buffer;
 
-                        soundUnit.setAudioBuffer(buffer);
+                        soundSource.setAudioBuffer(buffer);
 
-                        soundUnit.isLoaded = true;
+                        soundSource.isLoaded = true;
 
                         //console.log('sound data decoded.');
                     }
@@ -299,6 +310,14 @@ module PTWTipsSound_HTML5_WebAudio {
 
             //console.log('sound data loading started.');
             request.send();
+        }
+
+        createSoundPlayingUnit(): SoundPlayingUnit {
+
+            let playingUnit = new SoundPlayingUnit();
+            playingUnit.initialize(this);
+
+            return playingUnit;
         }
     }
 }

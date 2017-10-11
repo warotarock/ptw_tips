@@ -70,12 +70,12 @@ var PTWTipsSound;
         return SoundPlayingUnit;
     }());
     PTWTipsSound.SoundPlayingUnit = SoundPlayingUnit;
-    var SoundSourceUnit = (function () {
-        function SoundSourceUnit() {
+    var SoundSource = (function () {
+        function SoundSource() {
             this.soundManger = null;
             this.isLoaded = false;
         }
-        SoundSourceUnit.prototype.play = function () {
+        SoundSource.prototype.play = function () {
             if (this.soundManger.isMuted) {
                 return null;
             }
@@ -102,27 +102,27 @@ var PTWTipsSound;
             return playingUnit;
         };
         // override methods
-        SoundSourceUnit.prototype.load = function (fileName) {
+        SoundSource.prototype.load = function (fileName) {
             // override method
         };
-        SoundSourceUnit.prototype.release = function () {
+        SoundSource.prototype.release = function () {
             // override method
         };
-        SoundSourceUnit.prototype.getDulation = function () {
+        SoundSource.prototype.getDulation = function () {
             // override method
             return 0.0;
         };
-        SoundSourceUnit.prototype.getPlayingUnitCount = function () {
+        SoundSource.prototype.getPlayingUnitCount = function () {
             // override method
             return 0;
         };
-        SoundSourceUnit.prototype.getPlayingUnit = function (index) {
+        SoundSource.prototype.getPlayingUnit = function (index) {
             // override method
             return null;
         };
-        return SoundSourceUnit;
+        return SoundSource;
     }());
-    PTWTipsSound.SoundSourceUnit = SoundSourceUnit;
+    PTWTipsSound.SoundSource = SoundSource;
     var SoundDevice = (function () {
         function SoundDevice() {
             this.volume = 1.0;

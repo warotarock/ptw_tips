@@ -1,5 +1,5 @@
 
-module PTWTipsSound_HTML5_Audio {
+namespace PTWTipsSound_HTML5_Audio {
 
     export class SoundPlayingUnit extends PTWTipsSound.SoundPlayingUnit {
 
@@ -7,6 +7,8 @@ module PTWTipsSound_HTML5_Audio {
         audio: HTMLAudioElement = null;
 
         private state = PTWTipsSound.SoundPlayingState.ready;
+
+        // override methods
 
         getState(): PTWTipsSound.SoundPlayingState {
 
@@ -60,9 +62,11 @@ module PTWTipsSound_HTML5_Audio {
             this.audio.volume = valume * this.device.volume;
         }
 
-        initialize(soundSystem: SoundDevice) {
+        // own methods
 
-            this.device = soundSystem;
+        initialize(device: SoundDevice) {
+
+            this.device = device;
         }
 
         release() {
@@ -76,12 +80,14 @@ module PTWTipsSound_HTML5_Audio {
         }
     }
 
-    export class SoundSourceUnit extends PTWTipsSound.SoundSourceUnit {
+    export class SoundSource extends PTWTipsSound.SoundSource {
 
         device: SoundDevice = null;
         masterAudio: HTMLAudioElement = null;
 
         playingUnits = new List<SoundPlayingUnit>();
+
+        // override methods
 
         load(fileName: string) {
 
@@ -115,12 +121,13 @@ module PTWTipsSound_HTML5_Audio {
             return this.playingUnits[index];
         }
 
-        initializePlayingUnits(soundSystem: SoundDevice, maxPlayingUnitCount: int) {
+        // own methods
+
+        initializePlayingUnits(maxPlayingUnitCount: int) {
 
             for (let i = 0; i < maxPlayingUnitCount; i++) {
 
-                let playingUnit = new SoundPlayingUnit();
-                playingUnit.initialize(soundSystem);
+                let playingUnit = this.device.createSoundPlayingUnit();
 
                 this.playingUnits.push(playingUnit);
             }
@@ -128,6 +135,8 @@ module PTWTipsSound_HTML5_Audio {
     }
 
     export class SoundDevice extends PTWTipsSound.SoundDevice {
+
+        // override methods
 
         maxParallelLoadingCount = 1;
 
@@ -145,34 +154,34 @@ module PTWTipsSound_HTML5_Audio {
             return true;
         }
 
-        createSoundSource(maxPlayingUnitCount: int): PTWTipsSound.SoundSourceUnit {
+        createSoundSource(maxPlayingUnitCount: int): PTWTipsSound.SoundSource {
 
-            var soundUnit = new SoundSourceUnit();
+            var soundSource = new SoundSource();
 
-            soundUnit.device = this;
+            soundSource.device = this;
 
-            soundUnit.initializePlayingUnits(this, maxPlayingUnitCount);
+            soundSource.initializePlayingUnits(maxPlayingUnitCount);
 
-            return soundUnit;
+            return soundSource;
         }
 
-        loadSound(soundUnit: SoundSourceUnit, url: string) {
+        // own methods
+
+        loadSound(soundSource: SoundSource, url: string) {
 
             var audio: HTMLAudioElement = new Audio();
             audio.preload = 'auto';
             audio.src = url;
 
-            soundUnit.masterAudio = audio;
+            soundSource.masterAudio = audio;
 
             var loadedCount = 0;
-
-            var soundSystem = this;
 
             // Function for recursive loading
             var canplaythrough = (ev) => {
 
                 // Gurding for over called event
-                if (soundUnit.isLoaded) {
+                if (soundSource.isLoaded) {
                     return;
                 }
 
@@ -180,13 +189,13 @@ module PTWTipsSound_HTML5_Audio {
                 audio.removeEventListener('canplaythrough', canplaythrough);
 
                 // Setup playing unit
-                var playingUnit = soundUnit.playingUnits[loadedCount];
+                var playingUnit = soundSource.playingUnits[loadedCount];
                 playingUnit.audio = audio;
 
                 loadedCount++;
 
-                // Load next audio
-                if (loadedCount < soundUnit.playingUnits.length) {
+                // Load next audio or exit
+                if (loadedCount < soundSource.playingUnits.length) {
 
                     audio = new Audio();
                     audio.preload = 'auto';
@@ -197,13 +206,21 @@ module PTWTipsSound_HTML5_Audio {
                     audio.load();
                 }
                 else {
-                    soundUnit.isLoaded = true;
+                    soundSource.isLoaded = true;
                 }
             };
 
             // Start loading
             audio.addEventListener('canplaythrough', canplaythrough);
             audio.load();
+        }
+
+        createSoundPlayingUnit(): SoundPlayingUnit {
+
+            let playingUnit = new SoundPlayingUnit();
+            playingUnit.initialize(this);
+
+            return playingUnit;
         }
     }
 }

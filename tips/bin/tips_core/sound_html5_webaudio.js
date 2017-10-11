@@ -23,6 +23,7 @@ var PTWTipsSound_HTML5_WebAudio;
             _this.restartTime = 0;
             return _this;
         }
+        // override methods
         SoundPlayingUnit.prototype.getState = function () {
             return this.state;
         };
@@ -72,8 +73,9 @@ var PTWTipsSound_HTML5_WebAudio;
         SoundPlayingUnit.prototype.setVolume = function (valume) {
             this.gainNode.gain.value = valume * this.device.volume;
         };
-        SoundPlayingUnit.prototype.initialize = function (soundSystem) {
-            this.device = soundSystem;
+        // own methods
+        SoundPlayingUnit.prototype.initialize = function (device) {
+            this.device = device;
             this.gainNode = this.device.audioContext.createGain();
             this.gainNode.connect(this.device.audioContext.destination);
         };
@@ -87,9 +89,9 @@ var PTWTipsSound_HTML5_WebAudio;
         return SoundPlayingUnit;
     }(PTWTipsSound.SoundPlayingUnit));
     PTWTipsSound_HTML5_WebAudio.SoundPlayingUnit = SoundPlayingUnit;
-    var SoundSourceUnit = (function (_super) {
-        __extends(SoundSourceUnit, _super);
-        function SoundSourceUnit() {
+    var SoundSource = (function (_super) {
+        __extends(SoundSource, _super);
+        function SoundSource() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
             _this.device = null;
             _this.masterAudioBuffer = null;
@@ -98,10 +100,11 @@ var PTWTipsSound_HTML5_WebAudio;
             _this.loadingDataLoaded = 0;
             return _this;
         }
-        SoundSourceUnit.prototype.load = function (fileName) {
+        // override methods
+        SoundSource.prototype.load = function (fileName) {
             this.device.loadSound(this, fileName);
         };
-        SoundSourceUnit.prototype.release = function () {
+        SoundSource.prototype.release = function () {
             for (var _i = 0, _a = this.playingUnits; _i < _a.length; _i++) {
                 var playingUnit = _a[_i];
                 playingUnit.release();
@@ -110,40 +113,41 @@ var PTWTipsSound_HTML5_WebAudio;
             this.playingUnits = null;
             this.isLoaded = false;
         };
-        SoundSourceUnit.prototype.getDulation = function () {
+        SoundSource.prototype.getDulation = function () {
             return this.masterAudioBuffer.duration;
         };
-        SoundSourceUnit.prototype.getPlayingUnitCount = function () {
+        SoundSource.prototype.getPlayingUnitCount = function () {
             return this.playingUnits.length;
         };
-        SoundSourceUnit.prototype.getPlayingUnit = function (index) {
+        SoundSource.prototype.getPlayingUnit = function (index) {
             return this.playingUnits[index];
         };
-        SoundSourceUnit.prototype.initializePlayingUnits = function (soundSystem, maxPlayingUnitCount) {
+        // own methods
+        SoundSource.prototype.initializePlayingUnits = function (maxPlayingUnitCount) {
             for (var i = 0; i < maxPlayingUnitCount; i++) {
-                var playingUnit = new SoundPlayingUnit();
-                playingUnit.initialize(soundSystem);
+                var playingUnit = this.device.createSoundPlayingUnit();
                 this.playingUnits.push(playingUnit);
             }
         };
-        SoundSourceUnit.prototype.setAudioBuffer = function (audioBuffer) {
+        SoundSource.prototype.setAudioBuffer = function (audioBuffer) {
             this.masterAudioBuffer = audioBuffer;
             for (var i = 0; i < this.playingUnits.length; i++) {
                 var playingUnit = this.playingUnits[i];
                 playingUnit.audioBuffer = audioBuffer;
             }
         };
-        return SoundSourceUnit;
-    }(PTWTipsSound.SoundSourceUnit));
-    PTWTipsSound_HTML5_WebAudio.SoundSourceUnit = SoundSourceUnit;
+        return SoundSource;
+    }(PTWTipsSound.SoundSource));
+    PTWTipsSound_HTML5_WebAudio.SoundSource = SoundSource;
     var SoundDevice = (function (_super) {
         __extends(SoundDevice, _super);
         function SoundDevice() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.maxParallelLoadingCount = 3;
             _this.audioContext = null;
             _this.audioBufferChache = new Dictionary();
             _this.isReady = false;
+            // override methods
+            _this.maxParallelLoadingCount = 3;
             return _this;
         }
         SoundDevice.prototype.isAvailable = function () {
@@ -169,26 +173,27 @@ var PTWTipsSound_HTML5_WebAudio;
             }
         };
         SoundDevice.prototype.createSoundSource = function (maxPlayingUnitCount) {
-            var soundUnit = new SoundSourceUnit();
-            soundUnit.device = this;
-            soundUnit.initializePlayingUnits(this, maxPlayingUnitCount);
-            return soundUnit;
+            var soundSource = new soundSource();
+            soundSource.device = this;
+            soundSource.initializePlayingUnits(this, maxPlayingUnitCount);
+            return soundSource;
         };
-        SoundDevice.prototype.loadSound = function (soundUnit, url) {
+        // own methods
+        SoundDevice.prototype.loadSound = function (soundSource, url) {
             var _this = this;
             if (DictionaryContainsKey(this.audioBufferChache, url)) {
-                soundUnit.setAudioBuffer(this.audioBufferChache[url]);
+                soundSource.setAudioBuffer(this.audioBufferChache[url]);
                 return;
             }
             var request = new XMLHttpRequest();
             request.open('GET', url, true);
             request.responseType = 'arraybuffer';
             var on_progress = function (e) {
-                soundUnit.loadingDataTotal = e.total;
-                soundUnit.loadingDataLoaded = e.loaded;
-                if (soundUnit.loadingDataLoaded == soundUnit.loadingDataTotal) {
+                soundSource.loadingDataTotal = e.total;
+                soundSource.loadingDataLoaded = e.loaded;
+                if (soundSource.loadingDataLoaded == soundSource.loadingDataTotal) {
                     // デコードの時間が必要であるためロード完了だけでは完了扱いにならないようにしている
-                    soundUnit.loadingDataLoaded = soundUnit.loadingDataTotal - 1;
+                    soundSource.loadingDataLoaded = soundSource.loadingDataTotal - 1;
                 }
             };
             var on_error = function (e) {
@@ -198,7 +203,7 @@ var PTWTipsSound_HTML5_WebAudio;
                 console.log('Sound ' + url + ' loading aborted.');
             };
             var on_load = function (e) {
-                if (soundUnit.isLoaded) {
+                if (soundSource.isLoaded) {
                     return;
                 }
                 request.removeEventListener('progress', on_load);
@@ -209,8 +214,8 @@ var PTWTipsSound_HTML5_WebAudio;
                 // Decoding
                 _this.audioContext.decodeAudioData(request.response, function (buffer) {
                     _this.audioBufferChache[url] = buffer;
-                    soundUnit.setAudioBuffer(buffer);
-                    soundUnit.isLoaded = true;
+                    soundSource.setAudioBuffer(buffer);
+                    soundSource.isLoaded = true;
                     //console.log('sound data decoded.');
                 }, function () {
                     //console.log('decodeAudioData error');
@@ -222,6 +227,11 @@ var PTWTipsSound_HTML5_WebAudio;
             request.addEventListener('load', on_load);
             //console.log('sound data loading started.');
             request.send();
+        };
+        SoundDevice.prototype.createSoundPlayingUnit = function () {
+            var playingUnit = new SoundPlayingUnit();
+            playingUnit.initialize(this);
+            return playingUnit;
         };
         return SoundDevice;
     }(PTWTipsSound.SoundDevice));

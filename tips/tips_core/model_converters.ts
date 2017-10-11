@@ -2,6 +2,7 @@
 namespace Converters {
 
     export class MeshVertex {
+
         position: Vec3 = vec3.create();
         normal: Vec3 = vec3.create();
         texcoords: List<Vec2> = null;
@@ -9,11 +10,13 @@ namespace Converters {
     }
 
     export class BoneIndexWeight {
+
         index: int = 0;
         weight: float = 0.0;
     }
 
     export class MeshFace {
+
         vertexIndeces: List<int> = null;
         vertexNormals: List<Vec3> = null;
         texcoords: List<List<Vec2>> = null;
@@ -25,23 +28,27 @@ namespace Converters {
     }
 
     export class Mesh {
+
         name: string = null;
         vertices: List<MeshVertex> = null;
         faces: List<MeshFace> = null;
     }
 
     export class SkinVertexPosition {
+
         boneWeight: float;
         position: Vec3 = vec3.create();
         normal: Vec3 = vec3.create();
     }
 
     export class SkinVertex {
+
         positions: List<SkinVertexPosition> = null;
         texcoords: List<Vec2> = null;
     }
 
     export class SkinModelPart {
+
         materialIndex: int = -1;
         boneIndices: List<int> = null;
         vertices: List<SkinVertex> = null;
@@ -49,6 +56,7 @@ namespace Converters {
     }
 
     export class SkinningBone {
+
         name: string = null;
         parent: SkinningBone = null;
         originalBoneIndex: int = -1;
@@ -60,6 +68,7 @@ namespace Converters {
     }
 
     export class PartedSkinModel {
+
         name: string = null;
         bones: List<SkinningBone> = null;
         parts: List<SkinModelPart> = null;
@@ -75,6 +84,7 @@ namespace Converters {
     }
 
     class SkinningFaceGroup {
+
         key: string;
         materialIndex: int;
         boneCount: int;
@@ -84,6 +94,7 @@ namespace Converters {
     }
 
     function padding(index: int): string {
+
         if (index == -1) {
             return '___';
         }
@@ -93,6 +104,7 @@ namespace Converters {
     }
 
     function getFaceGroupKey(materialIndex: int, indeces: List<int>): string {
+
         return (
             padding(materialIndex)
             + padding(indeces.length > 0 ? indeces[0] : -1)
@@ -114,6 +126,7 @@ namespace Converters {
         }
 
         private isSkinGeometry(geometry: any) {
+
             if (geometry.mesh
                 && geometry.mesh.geometry3js
                 && geometry.mesh.geometry3js.bones !== undefined) { // due to SkinnedMesh.js of three.js
@@ -186,6 +199,7 @@ namespace Converters {
         private parseFaces(geometry3js: any): List<MeshFace> {
 
             var faces = new List<MeshFace>();
+
             for (var i = 0; i < geometry3js.faces.length; i++) {
                 var faceData = geometry3js.faces[i];
 
@@ -209,6 +223,7 @@ namespace Converters {
             }
 
             if (geometry3js.faceVertexUvs.length > 0) {
+
                 for (var i = 0; i < geometry3js.faces.length; i++) {
                     var face = faces[i];
 
@@ -258,6 +273,7 @@ namespace Converters {
             var geometries = this.collada.dae.geometries;
 
             var result = new List<PartedSkinModel>();
+
             for (var geometryName in geometries) {
                 var geometry = geometries[geometryName];
 
@@ -298,6 +314,7 @@ namespace Converters {
             var tempVec3 = vec3.create();
 
             var result = new List<SkinningBone>();
+
             for (var i = 0; i < geometry3js.bones.length; i++) {
                 var bone = geometry3js.bones[i];
 

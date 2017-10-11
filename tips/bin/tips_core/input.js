@@ -346,6 +346,7 @@ var PTWTipsInput;
             this.pointingInputMappingSet.addMapping(name, mapping);
             return integratedPointing;
         };
+        // Config JSON file support
         InputManager.prototype.setMappingFromConfig = function (configs) {
             for (var _i = 0, configs_1 = configs; _i < configs_1.length; _i++) {
                 var config = configs_1[_i];

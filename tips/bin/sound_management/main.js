@@ -23,28 +23,29 @@ var SoundMnagement;
             this.logicalScreenHeight = 360.0;
             this.soundResources = new List();
             this.soundManager = new PTWTipsSound.SoundManager();
-            this.soundSystem = null;
+            this.soundDevice = null;
             this.loadingSoundResources = new List();
             this.isLoaded = false;
         }
         Main.prototype.initialize = function () {
             var _this = this;
+            // Initialize sound system and start loading
             var useAudioElement = false;
             if (useAudioElement) {
-                this.soundSystem = new PTWTipsSound_HTML5_Audio.SoundDevice();
+                this.soundDevice = new PTWTipsSound_HTML5_Audio.SoundDevice();
             }
             else {
-                this.soundSystem = new PTWTipsSound_HTML5_WebAudio.SoundDevice();
+                this.soundDevice = new PTWTipsSound_HTML5_WebAudio.SoundDevice();
             }
+            this.soundDevice.initialize();
             //Setup sound resources
             this.soundResources.push((new SoundResource()).file('cursor33.ogg').pool(1));
             this.soundResources.push((new SoundResource()).file('cursor34.ogg').pool(2));
             this.soundResources.push((new SoundResource()).file('cursor35.ogg').pool(3));
-            // Initialize sound system and start loading
-            this.soundSystem.initialize();
+            // Start loading
             for (var _i = 0, _a = this.soundResources; _i < _a.length; _i++) {
                 var soundResource = _a[_i];
-                soundResource.soundSource = this.soundSystem.createSoundSource(soundResource.poolCount);
+                soundResource.soundSource = this.soundDevice.createSoundSource(soundResource.poolCount);
                 this.soundManager.addSoundSource(soundResource.soundSource);
                 this.loadingSoundResources.push(soundResource);
             }

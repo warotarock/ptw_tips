@@ -6,7 +6,7 @@ namespace SoundMnagement {
         fileName: string = null;
         poolCount: int = null;
 
-        soundSource: PTWTipsSound.SoundSourceUnit = null;
+        soundSource: PTWTipsSound.SoundSource = null;
 
         isLoading = false;
 
@@ -33,7 +33,7 @@ namespace SoundMnagement {
         soundResources = new List<SoundResource>();
         soundManager = new PTWTipsSound.SoundManager();
 
-        soundSystem: PTWTipsSound.SoundDevice = null;
+        soundDevice: PTWTipsSound.SoundDevice = null;
 
         loadingSoundResources = new List<SoundResource>();
 
@@ -41,28 +41,29 @@ namespace SoundMnagement {
 
         initialize() {
 
+            // Initialize sound system and start loading
             let useAudioElement = false;
 
             if (useAudioElement) {
 
-                this.soundSystem = new PTWTipsSound_HTML5_Audio.SoundDevice();
+                this.soundDevice = new PTWTipsSound_HTML5_Audio.SoundDevice();
             }
             else {
 
-                this.soundSystem = new PTWTipsSound_HTML5_WebAudio.SoundDevice();
+                this.soundDevice = new PTWTipsSound_HTML5_WebAudio.SoundDevice();
             }
+
+            this.soundDevice.initialize();
 
             //Setup sound resources
             this.soundResources.push((new SoundResource()).file('cursor33.ogg').pool(1));
             this.soundResources.push((new SoundResource()).file('cursor34.ogg').pool(2));
             this.soundResources.push((new SoundResource()).file('cursor35.ogg').pool(3));
 
-            // Initialize sound system and start loading
-            this.soundSystem.initialize();
-
+            // Start loading
             for (let soundResource of this.soundResources) {
 
-                soundResource.soundSource = this.soundSystem.createSoundSource(soundResource.poolCount)
+                soundResource.soundSource = this.soundDevice.createSoundSource(soundResource.poolCount)
 
                 this.soundManager.addSoundSource(soundResource.soundSource);
 

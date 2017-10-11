@@ -4,6 +4,7 @@ module PTWTipsInput {
     // Control class
 
     export enum ButtonState {
+
         released = 0,
         justReleased = 1,
         justPressed = 2,
@@ -370,9 +371,10 @@ module PTWTipsInput {
         }
     }
 
-    // Config file
+    // Config JSON file support
 
     export interface DeviceInputMappingConfig {
+
         deviceName: string;
         mappings: List<List<string>>;
     }
@@ -446,6 +448,8 @@ module PTWTipsInput {
 
             return integratedPointing;
         }
+
+        // Config JSON file support
 
         setMappingFromConfig(configs: List<DeviceInputMappingConfig>) {
 
