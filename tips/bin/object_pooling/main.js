@@ -2,10 +2,11 @@ var ObjectPooling;
 (function (ObjectPooling) {
     var SampleObject = (function () {
         function SampleObject() {
-            this.count = 0;
+            this.countA = 0;
+            this.countB = 0;
         }
         SampleObject.prototype.recycle = function () {
-            this.count = 0;
+            this.countA = 0;
         };
         return SampleObject;
     }());
@@ -15,13 +16,14 @@ var ObjectPooling;
         Main.prototype.run = function () {
             var sampleObjectPool = new RecyclePool(SampleObject, 50);
             for (var i = 0; i < 1000; i++) {
-                var sampleObject1 = sampleObjectPool.get();
-                if (sampleObject1 == null) {
+                var sampleObject = sampleObjectPool.get();
+                if (sampleObject == null) {
                     return;
                 }
-                console.log(i + " sampleObject1.count = " + sampleObject1.count);
-                sampleObject1.count++;
-                sampleObjectPool.recycle(sampleObject1);
+                console.log(sampleObject.recycleIndex + ' sampleObject1.countA: ' + sampleObject.countA + ', countB: ' + sampleObject.countB);
+                sampleObject.countA++;
+                sampleObject.countB++;
+                sampleObjectPool.recycle(sampleObject);
             }
             sampleObjectPool.free();
         };

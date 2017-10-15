@@ -6,10 +6,11 @@ namespace ObjectPooling {
         recycleIndex: int;
         recycle() {
 
-            this.count = 0;
+            this.countA = 0;
         }
 
-        count = 0;
+        countA = 0;
+        countB = 0;
     }
 
     class Main {
@@ -20,17 +21,18 @@ namespace ObjectPooling {
 
             for (var i = 0; i < 1000; i++) {
 
-                var sampleObject1 = sampleObjectPool.get();
+                var sampleObject = sampleObjectPool.get();
 
-                if (sampleObject1 == null) {
+                if (sampleObject == null) {
                     return;
                 }
 
-                console.log(i + " sampleObject1.count = " + sampleObject1.count);
+                console.log(sampleObject.recycleIndex + ' sampleObject1.countA: ' + sampleObject.countA + ', countB: ' + sampleObject.countB);
 
-                sampleObject1.count++;
+                sampleObject.countA++;
+                sampleObject.countB++;
 
-                sampleObjectPool.recycle(sampleObject1);
+                sampleObjectPool.recycle(sampleObject);
             }
 
             sampleObjectPool.free();
