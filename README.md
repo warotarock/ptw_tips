@@ -25,7 +25,6 @@
 - Arrayの使用目的を明確にするためにList<T>、Dictionary<T>を定義しています。
 - 上記はtips/conversion.tsに記述してあります。
 <br />
-<br />
 
 ## ライブデモ
 
