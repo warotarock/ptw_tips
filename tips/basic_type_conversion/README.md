@@ -1,9 +1,12 @@
 # 基本的な型の扱いについて - Basic type conversion
 
 ## 概要
-TypeScriptによるWebGLプログラミングを補助するための型の扱いについて説明します。
+TypeScriptによるWebGLプログラミングを補助するための型の扱いについて説明します。関連するコードは tips_core フォルダの conversion.ts です。サンプルプログラムはありません。
 
-関連するコードは tips_core フォルダの conversion.ts です。サンプルプログラムはありません。
+関連コード
+
+- [conversion.ts](../tips_core/conversion.ts)
+
 
 ## リスト型、ディクショナリ型、詳細な数値型の追加
 JavaSciprtでは一般的なプログラミング言語における固定配列、リスト、ディクショナリ（辞書）を全てArray型で扱うことができます。しかしゲーム「トリノワールド」の開発では、これらをTypeScriptの機能を利用して区別して扱いました。それには主に以下の理由がありました。
