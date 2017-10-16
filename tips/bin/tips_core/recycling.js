@@ -1,23 +1,19 @@
 var RecyclePool = (function () {
     function RecyclePool(objectType, poolSize) {
-        this.objectType = objectType;
         this.objectList = null;
+        this.objectType = objectType;
         this.allocate(poolSize);
-        this.reset();
         return this;
     }
     RecyclePool.prototype.allocate = function (poolSize) {
         this.objectList = new List(poolSize);
         for (var i = 0; i < poolSize; i++) {
-            this.objectList[i] = this.createObject(i);
+            var obj = (new this.objectType());
+            obj.recycleIndex = i;
+            obj.recycle();
+            this.objectList[i] = obj;
         }
         this.reset();
-    };
-    RecyclePool.prototype.createObject = function (recycleIndex) {
-        var obj = (new this.objectType());
-        obj.recycleIndex = recycleIndex;
-        obj.recycle();
-        return obj;
     };
     RecyclePool.prototype.free = function () {
         this.objectList = null;
