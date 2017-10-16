@@ -6,13 +6,15 @@ interface IRecyclableObject {
 
 class RecyclePool<T extends IRecyclableObject> {
 
+    protected objectType: any;
     protected objectList: List<T> = null;
     protected objectCount: int;
 
-    constructor(protected objectType, poolSize: int) {
+    constructor(objectType: any, poolSize: int) {
+
+        this.objectType = objectType;
 
         this.allocate(poolSize);
-        this.reset();
 
         return this;
     }
@@ -22,18 +24,15 @@ class RecyclePool<T extends IRecyclableObject> {
         this.objectList = new List<T>(poolSize);
 
         for (var i = 0; i < poolSize; i++) {
-            this.objectList[i] = this.createObject(i);
+
+            var obj = <T>(new this.objectType());
+            obj.recycleIndex = i;
+            obj.recycle();
+
+            this.objectList[i] = obj;
         }
 
         this.reset();
-    }
-
-    protected createObject(recycleIndex: int): T {
-
-        var obj = <T>(new this.objectType());
-        obj.recycleIndex = recycleIndex;
-        obj.recycle();
-        return obj;
     }
 
     free() {

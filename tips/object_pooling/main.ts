@@ -27,7 +27,7 @@ namespace ObjectPooling {
                     return;
                 }
 
-                console.log(sampleObject.recycleIndex + ' sampleObject1.countA: ' + sampleObject.countA + ', countB: ' + sampleObject.countB);
+                console.log(sampleObject.recycleIndex + ' sampleObject countA: ' + sampleObject.countA + ', countB: ' + sampleObject.countB);
 
                 sampleObject.countA++;
                 sampleObject.countB++;
