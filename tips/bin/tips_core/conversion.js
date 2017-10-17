@@ -4,6 +4,9 @@ var Dictionary = Array;
 function ListAddRange(destList, addList) {
     Array.prototype.push.apply(destList, addList);
 }
+function ListGetRange(srcList, index, length) {
+    return srcList.slice(index, index + length);
+}
 function ListRemoveAt(destList, index) {
     destList.splice(index, 1);
 }
