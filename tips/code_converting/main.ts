@@ -57,7 +57,7 @@ namespace CodeConverter {
 
     function convertTokensToHTML(result: List<string>, tokens: TextTokenCollection, topLetter: string) {
 
-        var lineTexts: List<string> = [];
+        let lineTexts: List<string> = [];
 
         if (!StringIsNullOrEmpty(topLetter)) {
             lineTexts.push(topLetter);
@@ -101,9 +101,14 @@ namespace CodeConverter {
     function convertStatementToHTMLRecursive(result: List<string>, statement: CodeStatement) {
 
         let isFirstLine = true;
-        for (let tokens of statement.TokensList) {
+        for (let line of statement.StatementLines) {
+
+            let tokens = TextTokenCollection.create();
+            ListAddRange(tokens, line.indentTokens);
+            ListAddRange(tokens, line.tokens);
 
             convertTokensToHTML(result, tokens, isFirstLine ? '#' : ' ');
+
             isFirstLine = false;
         }
 

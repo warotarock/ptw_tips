@@ -32,17 +32,38 @@ namespace CodeConverter {
         ConverterAnotation,
     }
 
+    export class CodeStatementLine {
+
+        indentTokens = TextTokenCollection.create();
+        tokens = TextTokenCollection.create();
+
+        get lineNumber(): int {
+
+            if (this.indentTokens.length > 0) {
+
+                return this.tokens[0].LineNumber;
+            }
+            else {
+
+                return 0;
+            }
+        }
+    }
+
     export class CodeStatement {
 
         Type = StatementType.None;
-        TokensList: List<TextTokenCollection> = null;
+        StatementLines: List<CodeStatementLine> = null;
         InnerStatements: List<CodeStatement> = null;
 
         get LineNumber(): int {
-            if (this.TokensList != null && this.TokensList.length > 0) {
-                return this.TokensList[0][0].LineNumber;
+
+            if (this.StatementLines != null && this.StatementLines.length > 0) {
+
+                return this.StatementLines[0].lineNumber;
             }
             else {
+
                 return 0;
             }
         }
@@ -99,17 +120,40 @@ namespace CodeConverter.StatementAnalyzer {
 
         AppendToCurrentStatement(token: TextToken) {
 
+            this.processNewLine();
+
+            let line = this.getCurrentStatementLastLine();
+
+            line.tokens.push(token);
+        }
+
+        AppendIndentToCurrentStatement(token: TextToken) {
+
+            this.processNewLine();
+
+            let line = this.getCurrentStatementLastLine();
+
+            line.indentTokens.push(token);
+        }
+
+        private getCurrentStatementLastLine() {
+
+            let line = this.CurrentStatement.StatementLines[this.CurrentStatement.StatementLines.length - 1];
+
+            return line;
+        }
+
+        private processNewLine() {
+
             if (this.NeedsNewTokensBeforeAppendToken) {
 
-                if (this.CurrentStatement.TokensList == null) {
-                    this.CurrentStatement.TokensList = new List<TextTokenCollection>();
+                if (this.CurrentStatement.StatementLines == null) {
+                    this.CurrentStatement.StatementLines = new List<CodeStatementLine>();
                 }
 
                 this.NeedsNewTokensBeforeAppendToken = false;
-                this.CurrentStatement.TokensList.push(TextTokenCollection.create());
+                this.CurrentStatement.StatementLines.push(new CodeStatementLine());
             }
-
-            this.CurrentStatement.TokensList[this.CurrentStatement.TokensList.length - 1].push(token);
         }
 
         SetInnerStatementToCurrentStatement(statements: List<CodeStatement>) {
@@ -118,6 +162,7 @@ namespace CodeConverter.StatementAnalyzer {
         }
 
         FlushCurrentStatementTokens() {
+
             this.NeedsNewTokensBeforeAppendToken = true;
         }
 
@@ -134,6 +179,61 @@ namespace CodeConverter.StatementAnalyzer {
 
             this.CurrentStatement = new CodeStatement();
             this.NeedsNewTokensBeforeAppendToken = true;
+        }
+
+        FlushCurrentStatementToSeperateIndentTokens() {
+
+            let line = this.getCurrentStatementLastLine();
+
+            let existsWhiteSpace = false;
+            let existsLineEnd = false;
+            let lastLineEndIndex = -1;
+            for (let i = line.tokens.length - 1; i >= 0; i--) {
+
+                let token = line.tokens[i];
+
+                if (token.isWhitesSpace()) {
+
+                    existsWhiteSpace = true;
+
+                    continue;
+                }
+
+                if (token.isLineEnd()) {
+
+                    if (existsWhiteSpace) {
+                        existsLineEnd = true;
+                        lastLineEndIndex = i;
+                    }
+
+                    break;
+                }
+
+                if (!token.isBlank()) {
+                    break;
+                }
+            }
+
+            let needsSeperate = (existsWhiteSpace && existsLineEnd);
+
+            if (needsSeperate) {
+
+                let remainingTokens = ListGetRange(line.tokens, 0, lastLineEndIndex + 1);
+                let indentTokens = ListGetRange(line.tokens, lastLineEndIndex + 1, line.tokens.length - (lastLineEndIndex + 1));
+
+                line.tokens = TextTokenCollection.initialize(remainingTokens);
+
+                this.FlushStatement();
+
+                for (let token of indentTokens) {
+
+                    this.AppendIndentToCurrentStatement(token);
+                }
+            }
+            else {
+
+                this.FlushStatement();
+            }
         }
     }
 
@@ -304,7 +404,9 @@ namespace CodeConverter.StatementAnalyzer {
                 }
                 // Start of a syntax
                 else if (!token.isBlank()) {
-                    result.FlushStatement();
+
+                    result.FlushCurrentStatementToSeperateIndentTokens();
+
                     switch (scopeLevel) {
                         case ScopeLevel.Global:
                             this.processGlobalLevelSyntax(result, tokens, state);
@@ -1237,18 +1339,21 @@ namespace CodeConverter.StatementAnalyzer {
 
         private processStatementBlock(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
 
+            // Now current index is before "{" of a block or first token of single statement.
+            // And this function sets result to current statement.
+
             let currentIndex = state.CurrentIndex;
 
             state.LastIndex = state.CurrentIndex;
 
             // Searching block start or single statement
-            let existsBrace = false;
+            let existsLeftBrace = false;
             while (state.CurrentIndex < tokens.length) {
 
                 let token = tokens[state.CurrentIndex];
 
                 if (token.isSeperatorOf('{')) {
-                    existsBrace = true;
+                    existsLeftBrace = true;
                     break;
                 }
                 else if (!token.isBlank()) {
@@ -1263,14 +1368,14 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            let isImplicitBlock = !existsBrace;
+            let isImplicitBlock = !existsLeftBrace;
 
-            if (existsBrace) {
+            if (existsLeftBrace) {
                 result.AppendToCurrentStatement(tokens[state.CurrentIndex]);
                 state.CurrentIndex++;
             }
 
-            // Process inner statements
+            // Process bolock-inner statements till block end. It will process multiple statement.
             var innerState = state.cloneForInnerState();
             var innerResult = new AnalyzerResult();
 
@@ -1297,7 +1402,7 @@ namespace CodeConverter.StatementAnalyzer {
                 } 
                 // Start of a syntax
                 else if (!token.isBlank()) {
-                    innerResult.FlushStatement();
+                    innerResult.FlushCurrentStatementToSeperateIndentTokens();
                     this.processStatementLevelSyntax(innerResult, tokens, innerState);
                 }
                 // Continue searching
@@ -1311,7 +1416,7 @@ namespace CodeConverter.StatementAnalyzer {
                 }
             }
 
-            // Set inner statement result
+            // Set bolock-inner statement result
             result.SetInnerStatementToCurrentStatement(innerResult.Statements);
 
             state.CurrentIndex = innerState.CurrentIndex;
@@ -1718,7 +1823,9 @@ namespace CodeConverter.StatementAnalyzer {
 
             for (let tokenIndex = state.LastIndex; tokenIndex < state.CurrentIndex; tokenIndex++) {
 
-                result.AppendToCurrentStatement(tokens[tokenIndex]);
+                let token = tokens[tokenIndex];
+
+                result.AppendToCurrentStatement(token);
             }
 
             state.LastIndex = state.CurrentIndex;

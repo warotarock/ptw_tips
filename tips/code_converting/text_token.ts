@@ -81,8 +81,7 @@ namespace CodeConverter {
 
         isWhitesSpace(): boolean {
 
-            return (this.Type == TextTokenType.WhiteSpaces
-                || this.Type == TextTokenType.LineEnd);
+            return (this.Type == TextTokenType.WhiteSpaces);
         }
 
         isLineEnd(): boolean {
@@ -490,12 +489,10 @@ namespace CodeConverter {
 
             let target: any = tokens.slice(0);
 
-            TextTokenCollection.initialize(target);
-
-            return <TextTokenCollection>target;
+            return TextTokenCollection.initialize(target);
         }
 
-        static initialize(tokens: List<TextToken>) {
+        static initialize(tokens: List<TextToken>): TextTokenCollection {
 
             let target: any = tokens;
             target.ParenthesisCounter = null;
