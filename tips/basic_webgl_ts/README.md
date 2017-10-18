@@ -10,7 +10,7 @@ TypeScriptによる基本的なWebGL(1.0系)プログラム実装のサンプル
 
 ライブデモ
 
-- [Live Demo](https://warotarock.github.io/ptw_tips/basic_webgl_ts/)
+- [Live Demo](https://warotarock.github.io/ptw_tips/tips/basic_webgl_ts/)
 
 ![](./basic_webgl_ts_fig001.png)
 

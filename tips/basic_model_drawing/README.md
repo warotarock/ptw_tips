@@ -14,7 +14,7 @@
 
 ライブデモ
 
-- [Live Demo](https://warotarock.github.io/ptw_tips/basic_model_drawing/)  
+- [Live Demo](https://warotarock.github.io/ptw_tips/tips/basic_model_drawing/)  
 
 ![](./basic_model_drawing_fig001.png)
 
