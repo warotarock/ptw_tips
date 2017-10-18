@@ -23,7 +23,7 @@ var Game;
             this.state = TaskState.created;
         }
         TaskClass.prototype.recycle = function () {
-            // override method
+            // Override method
         };
         TaskClass.prototype.onCreate = function (env) {
             // Override method

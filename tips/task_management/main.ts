@@ -147,14 +147,6 @@ namespace TaskManagement {
         images1 = new List<RenderImage>();
         images2 = new List<RenderImage>();
 
-        renderObjectManager = new Game.RenderObjectManager();
-        MAX_RENDER_OBJECT = 100;
-
-        sampleTask1Pool = new Game.TaskRecyclePool<SampleTask1>(SampleTask1, 50, "SampleTask1");
-        sampleTask2Pool = new Game.TaskRecyclePool<SampleTask2>(SampleTask2, 50, "SampleTask2");
-
-        taskManager = new Game.TaskManager();
-
         eyeLocation = vec3.create();
         lookatLocation = vec3.create();
         upVector = vec3.create();
@@ -163,8 +155,16 @@ namespace TaskManagement {
 
         modelMatrix = mat4.create();
         viewMatrix = mat4.create();
-        pMatrix = mat4.create();
-        mvMatrix = mat4.create();
+        modelViewMatrix = mat4.create();
+        projectionMatrix = mat4.create();
+
+        renderObjectManager = new Game.RenderObjectManager();
+        MAX_RENDER_OBJECT = 100;
+
+        sampleTask1Pool = new Game.TaskRecyclePool<SampleTask1>(SampleTask1, 50, "SampleTask1");
+        sampleTask2Pool = new Game.TaskRecyclePool<SampleTask2>(SampleTask2, 50, "SampleTask2");
+
+        taskManager = new Game.TaskManager();
 
         animationTime = 0.0;
 
@@ -295,7 +295,7 @@ namespace TaskManagement {
         draw() {
 
             var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
-            mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 100.0);
+            mat4.perspective(this.projectionMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 100.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
 
             this.render.setDepthTest(true)
@@ -346,11 +346,11 @@ namespace TaskManagement {
 
         private drawRenderObject(renderObject: Game.RenderObject) {
 
-            mat4.multiply(this.mvMatrix, this.viewMatrix, renderObject.locationMatrix);
+            mat4.multiply(this.modelViewMatrix, this.viewMatrix, renderObject.locationMatrix);
 
             this.render.setShader(this.shader);
-            this.render.setProjectionMatrix(this.pMatrix);
-            this.render.setModelViewMatrix(this.mvMatrix);
+            this.render.setProjectionMatrix(this.projectionMatrix);
+            this.render.setModelViewMatrix(this.modelViewMatrix);
 
             this.render.setBuffers(renderObject.model, renderObject.images);
 
@@ -361,20 +361,20 @@ namespace TaskManagement {
             this.render.drawElements(renderObject.model);
         }
 
-        private loadTexture(result: RenderImage, url: string) {
+        private loadTexture(resultImage: RenderImage, url: string) {
 
-            result.imageData = new Image();
+            resultImage.imageData = new Image();
 
-            result.imageData.addEventListener('load',
+            resultImage.imageData.addEventListener('load',
                 () => {
-                    this.render.initializeImageTexture(result);
+                    this.render.initializeImageTexture(resultImage);
                 }
             );
 
-            result.imageData.src = url;
+            resultImage.imageData.src = url;
         }
 
-        private loadModel(result: RenderModel, url: string, modelName: string) {
+        private loadModel(resultModel: RenderModel, url: string, modelName: string) {
 
             var xhr = new XMLHttpRequest();
             xhr.open('GET', url);
@@ -398,7 +398,6 @@ namespace TaskManagement {
 
             xhr.send();
         }
-
     }
 
     var _Main: Main;

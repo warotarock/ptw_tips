@@ -27,15 +27,15 @@ var SkinningModelDrawing;
             this.bone4Shader = new Bone4Shader();
             this.modelResource = new SkinningModel();
             this.imageResources = new List();
-            this.boneMatrixList = new List();
             this.eyeLocation = vec3.create();
             this.lookatLocation = vec3.create();
             this.upVector = vec3.create();
             this.modelMatrix = mat4.create();
             this.viewMatrix = mat4.create();
-            this.pMatrix = mat4.create();
-            this.mvMatrix = mat4.create();
+            this.modelViewMatrix = mat4.create();
+            this.projectionMatrix = mat4.create();
             this.boneMatrix = mat4.create();
+            this.boneMatrixList = new List();
             this.animationTime = 0.0;
             this.isLoaded = false;
         }
@@ -81,7 +81,7 @@ var SkinningModelDrawing;
         };
         Main.prototype.draw = function () {
             var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
-            mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 50.0);
+            mat4.perspective(this.projectionMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 50.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
             this.render.setDepthTest(true);
             this.render.setCulling(false);
@@ -105,14 +105,14 @@ var SkinningModelDrawing;
         };
         Main.prototype.drawSkinningModel = function (modelMatrix, skinningModel) {
             // calc base matrix (model-view matrix)
-            mat4.multiply(this.mvMatrix, this.viewMatrix, this.modelMatrix);
+            mat4.multiply(this.modelViewMatrix, this.viewMatrix, this.modelMatrix);
             // set parameter not dependent on parts
             this.render.setShader(this.bone2Shader);
-            this.render.setModelViewMatrix(this.mvMatrix);
-            this.render.setProjectionMatrix(this.pMatrix);
+            this.render.setModelViewMatrix(this.modelViewMatrix);
+            this.render.setProjectionMatrix(this.projectionMatrix);
             this.render.setShader(this.bone4Shader);
-            this.render.setModelViewMatrix(this.mvMatrix);
-            this.render.setProjectionMatrix(this.pMatrix);
+            this.render.setModelViewMatrix(this.modelViewMatrix);
+            this.render.setProjectionMatrix(this.projectionMatrix);
             // drawing for each part
             var bones = skinningModel.data.bones;
             var parts = skinningModel.data.parts;
@@ -139,7 +139,15 @@ var SkinningModelDrawing;
                 this.render.drawElements(part.renderModel);
             }
         };
-        Main.prototype.loadModel = function (model, url) {
+        Main.prototype.loadTexture = function (resultImage, url) {
+            var _this = this;
+            resultImage.imageData = new Image();
+            resultImage.imageData.addEventListener('load', function () {
+                _this.render.initializeImageTexture(resultImage);
+            });
+            resultImage.imageData.src = url;
+        };
+        Main.prototype.loadModel = function (resultModel, url) {
             var xhr = new XMLHttpRequest();
             xhr.open('GET', url);
             xhr.responseType = 'json';
@@ -151,8 +159,8 @@ var SkinningModelDrawing;
                 else {
                     data = JSON.parse(xhr.response);
                 }
-                model.data = data['models']['Cube'];
-                model.loaded = true;
+                resultModel.data = data['models']['Cube'];
+                resultModel.loaded = true;
             });
             xhr.send();
         };
@@ -169,14 +177,6 @@ var SkinningModelDrawing;
             for (var i = 0; i < skinningModel.data.bones.length; i++) {
                 this.boneMatrixList.push(mat4.create());
             }
-        };
-        Main.prototype.loadTexture = function (image, url) {
-            var _this = this;
-            image.imageData = new Image();
-            image.imageData.addEventListener('load', function () {
-                _this.render.initializeImageTexture(image);
-            });
-            image.imageData.src = url;
         };
         return Main;
     }());

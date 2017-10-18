@@ -15,7 +15,7 @@ module Game {
         recycleIndex: int;
         recycle() {
 
-            // override method
+            // Override method
         }
 
         recyclePool: ITaskRecyclePool = null;

@@ -18,6 +18,13 @@ var BasicWebGL;
             this.shader = new BasicShader();
             this.model = new RenderModel();
             this.images = new List();
+            this.eyeLocation = vec3.create();
+            this.lookatLocation = vec3.create();
+            this.upVector = vec3.create();
+            this.modelMatrix = mat4.create();
+            this.viewMatrix = mat4.create();
+            this.modelViewMatrix = mat4.create();
+            this.projectionMatrix = mat4.create();
             // x, y, z, u, v
             this.vertexData = [
                 0.0, -0.2, 0.20, 0.00, 1.00,
@@ -29,13 +36,6 @@ var BasicWebGL;
                 0, 1, 2,
                 3, 2, 1
             ];
-            this.eyeLocation = vec3.create();
-            this.lookatLocation = vec3.create();
-            this.upVector = vec3.create();
-            this.modelMatrix = mat4.create();
-            this.viewMatrix = mat4.create();
-            this.pMatrix = mat4.create();
-            this.mvMatrix = mat4.create();
             this.animationTime = 0.0;
             this.isLoaded = false;
         }
@@ -71,29 +71,30 @@ var BasicWebGL;
         };
         Main.prototype.draw = function () {
             var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
-            mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 2.0);
+            mat4.perspective(this.projectionMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 2.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
-            this.render.setDepthTest(false).setCulling(false);
+            this.render.setDepthTest(false);
+            this.render.setCulling(false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
-            this.drawModel(this.modelMatrix, this.model);
+            this.drawModel(this.modelMatrix, this.model, this.images);
         };
-        Main.prototype.drawModel = function (modelMatrix, modelResource) {
-            mat4.multiply(this.mvMatrix, this.viewMatrix, modelMatrix);
+        Main.prototype.drawModel = function (modelMatrix, model, images) {
+            mat4.multiply(this.modelViewMatrix, this.viewMatrix, modelMatrix);
             this.render.setShader(this.shader);
-            this.render.setProjectionMatrix(this.pMatrix);
-            this.render.setModelViewMatrix(this.mvMatrix);
-            this.render.setBuffers(this.model, this.images);
+            this.render.setProjectionMatrix(this.projectionMatrix);
+            this.render.setModelViewMatrix(this.modelViewMatrix);
+            this.render.setBuffers(model, images);
             this.render.setDepthTest(true);
             this.render.setCulling(false);
-            this.render.drawElements(modelResource);
+            this.render.drawElements(model);
         };
-        Main.prototype.loadTexture = function (image, url) {
+        Main.prototype.loadTexture = function (resultImage, url) {
             var _this = this;
-            image.imageData = new Image();
-            image.imageData.addEventListener('load', function () {
-                _this.render.initializeImageTexture(image);
+            resultImage.imageData = new Image();
+            resultImage.imageData.addEventListener('load', function () {
+                _this.render.initializeImageTexture(resultImage);
             });
-            image.imageData.src = url;
+            resultImage.imageData.src = url;
         };
         return Main;
     }());

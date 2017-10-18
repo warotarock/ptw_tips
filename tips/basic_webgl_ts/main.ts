@@ -11,6 +11,15 @@ namespace BasicWebGL {
         model = new RenderModel();
         images = new List<RenderImage>();
 
+        eyeLocation = vec3.create();
+        lookatLocation = vec3.create();
+        upVector = vec3.create();
+
+        modelMatrix = mat4.create();
+        viewMatrix = mat4.create();
+        modelViewMatrix = mat4.create();
+        projectionMatrix = mat4.create();
+
         // x, y, z, u, v
         vertexData = [
             0.0, -0.2, 0.20, 0.00, 1.00,
@@ -23,15 +32,6 @@ namespace BasicWebGL {
             0, 1, 2,
             3, 2, 1
         ];
-
-        eyeLocation = vec3.create();
-        lookatLocation = vec3.create();
-        upVector = vec3.create();
-
-        modelMatrix = mat4.create();
-        viewMatrix = mat4.create();
-        pMatrix = mat4.create();
-        mvMatrix = mat4.create();
 
         animationTime = 0.0;
 
@@ -83,41 +83,42 @@ namespace BasicWebGL {
         draw() {
 
             var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
-            mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 2.0);
+            mat4.perspective(this.projectionMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 2.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
 
-            this.render.setDepthTest(false).setCulling(false);
+            this.render.setDepthTest(false)
+            this.render.setCulling(false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
 
-            this.drawModel(this.modelMatrix, this.model);
+            this.drawModel(this.modelMatrix, this.model, this.images);
         }
 
-        private drawModel(modelMatrix: Mat4, modelResource: RenderModel) {
+        private drawModel(modelMatrix: Mat4, model: RenderModel, images: List<RenderImage>) {
 
-            mat4.multiply(this.mvMatrix, this.viewMatrix, modelMatrix);
+            mat4.multiply(this.modelViewMatrix, this.viewMatrix, modelMatrix);
 
             this.render.setShader(this.shader);
-            this.render.setProjectionMatrix(this.pMatrix);
-            this.render.setModelViewMatrix(this.mvMatrix);
+            this.render.setProjectionMatrix(this.projectionMatrix);
+            this.render.setModelViewMatrix(this.modelViewMatrix);
 
-            this.render.setBuffers(this.model, this.images);
+            this.render.setBuffers(model, images);
 
             this.render.setDepthTest(true)
             this.render.setCulling(false);
-            this.render.drawElements(modelResource);
+            this.render.drawElements(model);
         }
 
-        private loadTexture(image: RenderImage, url: string) {
+        private loadTexture(resultImage: RenderImage, url: string) {
 
-            image.imageData = new Image();
+            resultImage.imageData = new Image();
 
-            image.imageData.addEventListener('load',
+            resultImage.imageData.addEventListener('load',
                 () => {
-                    this.render.initializeImageTexture(image);
+                    this.render.initializeImageTexture(resultImage);
                 }
             );
 
-            image.imageData.src = url;
+            resultImage.imageData.src = url;
         }
     }
 

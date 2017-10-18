@@ -48,52 +48,52 @@ namespace PTWTipsSound {
             this.loopEndTime = loopEndTime;
         }
 
-        // override methods
+        // Override methods
 
         getState(): SoundPlayingState {
 
-            // override method
+            // Override method
 
             return SoundPlayingState.none;
         }
 
         play() {
 
-            // override method
+            // Override method
         }
 
         pause() {
 
-            // override method
+            // Override method
         }
 
         stop() {
 
-            // override method
+            // Override method
         }
 
         getPosition(): float {
 
-            // override method
+            // Override method
 
             return 0.0;
         }
 
         setPosition(time: float) {
 
-            // override method
+            // Override method
         }
 
         getVolume(): float {
 
-            // override method
+            // Override method
 
             return 0.0;
         }
 
         setVolume(volume: float) {
 
-            // override method
+            // Override method
         }
     }
 
@@ -142,35 +142,35 @@ namespace PTWTipsSound {
             return playingUnit;
         }
 
-        // override methods
+        // Override methods
 
         load(fileName: string) {
 
-            // override method
+            // Override method
         }
 
         release() {
 
-            // override method
+            // Override method
         }
 
         getDulation(): float {
 
-            // override method
+            // Override method
 
             return 0.0;
         }
 
         getPlayingUnitCount(): int {
 
-            // override method
+            // Override method
 
             return 0;
         }
 
         getPlayingUnit(index: int): SoundPlayingUnit {
 
-            // override method
+            // Override method
 
             return null;
         }
@@ -191,25 +191,25 @@ namespace PTWTipsSound {
             this.volume = volume;
         }
 
-        // override methods
+        // Override methods
 
         isAvailable(): boolean {
 
-            // override method
+            // Override method
 
             return false;
         }
 
         initialize(): boolean {
 
-            // override method
+            // Override method
 
             return false;
         }
 
         createSoundSource(maxPlayingUnitCount: int): SoundSource {
 
-            // override method
+            // Override method
 
             return null;
         }

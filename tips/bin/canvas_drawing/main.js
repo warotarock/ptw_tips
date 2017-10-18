@@ -1,5 +1,5 @@
-var CanvsDrawerSample;
-(function (CanvsDrawerSample) {
+var CanvasDrawing;
+(function (CanvasDrawing) {
     var Main = (function () {
         function Main() {
             this.logicalScreenWidth = 640.0;
@@ -8,20 +8,19 @@ var CanvsDrawerSample;
             this.shader = new SampleShaders.PlainShader();
             this.model = new RenderModel();
             this.images = new List();
-            this.canvasDrawer = new CanvasDrawer();
-            this.textDrawer = null;
-            this.iamgeDrawer = null;
             this.eyeLocation = vec3.create();
             this.lookatLocation = vec3.create();
             this.upVector = vec3.create();
-            this.modelScaling = vec3.create();
             this.modelMatrix = mat4.create();
             this.viewMatrix = mat4.create();
-            this.pMatrix = mat4.create();
-            this.mvMatrix = mat4.create();
+            this.modelViewMatrix = mat4.create();
+            this.projectionMatrix = mat4.create();
+            this.canvasDrawer = new CanvasDrawer();
+            this.textDrawer = null;
+            this.iamgeDrawer = null;
             this.animationTime = 0.0;
-            this.isLoaded = false;
             this.debugDraw = true;
+            this.isLoaded = false;
         }
         Main.prototype.initialize = function (canvas) {
             var _this = this;
@@ -119,13 +118,12 @@ var CanvsDrawerSample;
         Main.prototype.run = function () {
             this.animationTime += 1.0;
             // Camera position
-            vec3.set(this.eyeLocation, 6.0, -4.4, 3.0);
+            vec3.set(this.eyeLocation, 3.0, -2.5, 1.8);
             vec3.set(this.lookatLocation, 0.0, 0.0, 0.0);
             vec3.set(this.upVector, 0.0, 0.0, 1.0);
             // Object animation
             mat4.identity(this.modelMatrix);
             mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.animationTime * 0.02);
-            mat4.scale(this.modelMatrix, this.modelMatrix, vec3.set(this.modelScaling, 2.0, 2.0, 2.0));
             // Text animation
             var now = new Date();
             var dateTimeText = '' + (now.getHours()) + ':' + (now.getMinutes()) + ':' + (now.getSeconds());
@@ -141,7 +139,7 @@ var CanvsDrawerSample;
             }
             // Draw a cube
             var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
-            mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 100.0);
+            mat4.perspective(this.projectionMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 100.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
             this.render.setDepthTest(true);
             this.render.setCulling(false);
@@ -149,24 +147,24 @@ var CanvsDrawerSample;
             this.drawModel(this.modelMatrix, this.model, this.images);
         };
         Main.prototype.drawModel = function (modelMatrix, model, images) {
-            mat4.multiply(this.mvMatrix, this.viewMatrix, modelMatrix);
+            mat4.multiply(this.modelViewMatrix, this.viewMatrix, modelMatrix);
             this.render.setShader(this.shader);
-            this.render.setProjectionMatrix(this.pMatrix);
-            this.render.setModelViewMatrix(this.mvMatrix);
+            this.render.setProjectionMatrix(this.projectionMatrix);
+            this.render.setModelViewMatrix(this.modelViewMatrix);
             this.render.setBuffers(model, images);
-            this.render.setDepthTest(false);
+            this.render.setDepthTest(true);
             this.render.setCulling(false);
             this.render.drawElements(model);
         };
-        Main.prototype.loadTexture = function (result, url) {
+        Main.prototype.loadTexture = function (resultImage, url) {
             var _this = this;
-            result.imageData = new Image();
-            result.imageData.addEventListener('load', function () {
-                _this.render.initializeImageTexture(result);
+            resultImage.imageData = new Image();
+            resultImage.imageData.addEventListener('load', function () {
+                _this.render.initializeImageTexture(resultImage);
             });
-            result.imageData.src = url;
+            resultImage.imageData.src = url;
         };
-        Main.prototype.loadModel = function (result, url, modelName) {
+        Main.prototype.loadModel = function (resultModel, url, modelName) {
             var _this = this;
             var xhr = new XMLHttpRequest();
             xhr.open('GET', url);
@@ -180,7 +178,7 @@ var CanvsDrawerSample;
                     data = JSON.parse(xhr.response);
                 }
                 var modelData = data['models'][modelName];
-                _this.render.initializeModelBuffer(_this.model, modelData.vertex, modelData.index, 4 * modelData.vertexStride); // 4 = size of float
+                _this.render.initializeModelBuffer(resultModel, modelData.vertex, modelData.index, 4 * modelData.vertexStride); // 4 = size of float
             });
             xhr.send();
         };
@@ -203,4 +201,4 @@ var CanvsDrawerSample;
         }
         setTimeout(run, 1000 / 30);
     }
-})(CanvsDrawerSample || (CanvsDrawerSample = {}));
+})(CanvasDrawing || (CanvasDrawing = {}));

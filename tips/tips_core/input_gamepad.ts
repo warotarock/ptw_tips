@@ -27,7 +27,7 @@ module PTWTipsInput {
 
         initialize() {
 
-            // override method
+            // Override method
         }
 
         protected getMappingTypeForEnvironment(): int {
@@ -66,14 +66,14 @@ module PTWTipsInput {
 
         isMatch(mappingName: string): boolean {
 
-            // override method
+            // Override method
 
             return false;
         }
 
         processPollingCrossButton(crossButtons: List<ButtonInputControl>, buttons: List<ButtonInputControl>, gamepad: HTMLGamepad, time: float, doublePressMilliSecond: float) {
 
-            // override method
+            // Override method
         }
     }
 

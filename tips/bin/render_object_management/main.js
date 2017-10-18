@@ -9,15 +9,15 @@ var RenderObjectManagement;
             this.model = new RenderModel();
             this.images1 = new List();
             this.images2 = new List();
-            this.renderObjectManager = new Game.RenderObjectManager();
-            this.MAX_RENDER_OBJECT = 100;
             this.eyeLocation = vec3.create();
             this.lookatLocation = vec3.create();
             this.upVector = vec3.create();
             this.modelMatrix = mat4.create();
             this.viewMatrix = mat4.create();
-            this.pMatrix = mat4.create();
-            this.mvMatrix = mat4.create();
+            this.modelViewMatrix = mat4.create();
+            this.projectionMatrix = mat4.create();
+            this.renderObjectManager = new Game.RenderObjectManager();
+            this.MAX_RENDER_OBJECT = 100;
             this.animationTime = 0.0;
             this.isLoaded = false;
         }
@@ -122,7 +122,7 @@ var RenderObjectManagement;
         };
         Main.prototype.draw = function () {
             var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
-            mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 100.0);
+            mat4.perspective(this.projectionMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 100.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
             this.render.setDepthTest(true);
             this.render.setCulling(false);
@@ -152,25 +152,25 @@ var RenderObjectManagement;
             }
         };
         Main.prototype.drawRenderObject = function (renderObject) {
-            mat4.multiply(this.mvMatrix, this.viewMatrix, renderObject.locationMatrix);
+            mat4.multiply(this.modelViewMatrix, this.viewMatrix, renderObject.locationMatrix);
             this.render.setShader(this.shader);
-            this.render.setProjectionMatrix(this.pMatrix);
-            this.render.setModelViewMatrix(this.mvMatrix);
+            this.render.setProjectionMatrix(this.projectionMatrix);
+            this.render.setModelViewMatrix(this.modelViewMatrix);
             this.render.setBuffers(renderObject.model, renderObject.images);
             this.render.setDepthTest(renderObject.depthTest);
             this.render.setDepthMask(renderObject.depthMask);
             this.render.setCulling(renderObject.culling);
             this.render.drawElements(renderObject.model);
         };
-        Main.prototype.loadTexture = function (result, url) {
+        Main.prototype.loadTexture = function (resultImage, url) {
             var _this = this;
-            result.imageData = new Image();
-            result.imageData.addEventListener('load', function () {
-                _this.render.initializeImageTexture(result);
+            resultImage.imageData = new Image();
+            resultImage.imageData.addEventListener('load', function () {
+                _this.render.initializeImageTexture(resultImage);
             });
-            result.imageData.src = url;
+            resultImage.imageData.src = url;
         };
-        Main.prototype.loadModel = function (result, url, modelName) {
+        Main.prototype.loadModel = function (resultModel, url, modelName) {
             var _this = this;
             var xhr = new XMLHttpRequest();
             xhr.open('GET', url);

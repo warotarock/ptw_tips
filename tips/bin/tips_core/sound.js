@@ -39,33 +39,33 @@ var PTWTipsSound;
             this.loopStartTime = loopStartTime;
             this.loopEndTime = loopEndTime;
         };
-        // override methods
+        // Override methods
         SoundPlayingUnit.prototype.getState = function () {
-            // override method
+            // Override method
             return SoundPlayingState.none;
         };
         SoundPlayingUnit.prototype.play = function () {
-            // override method
+            // Override method
         };
         SoundPlayingUnit.prototype.pause = function () {
-            // override method
+            // Override method
         };
         SoundPlayingUnit.prototype.stop = function () {
-            // override method
+            // Override method
         };
         SoundPlayingUnit.prototype.getPosition = function () {
-            // override method
+            // Override method
             return 0.0;
         };
         SoundPlayingUnit.prototype.setPosition = function (time) {
-            // override method
+            // Override method
         };
         SoundPlayingUnit.prototype.getVolume = function () {
-            // override method
+            // Override method
             return 0.0;
         };
         SoundPlayingUnit.prototype.setVolume = function (volume) {
-            // override method
+            // Override method
         };
         return SoundPlayingUnit;
     }());
@@ -101,23 +101,23 @@ var PTWTipsSound;
             playingUnit.play();
             return playingUnit;
         };
-        // override methods
+        // Override methods
         SoundSource.prototype.load = function (fileName) {
-            // override method
+            // Override method
         };
         SoundSource.prototype.release = function () {
-            // override method
+            // Override method
         };
         SoundSource.prototype.getDulation = function () {
-            // override method
+            // Override method
             return 0.0;
         };
         SoundSource.prototype.getPlayingUnitCount = function () {
-            // override method
+            // Override method
             return 0;
         };
         SoundSource.prototype.getPlayingUnit = function (index) {
-            // override method
+            // Override method
             return null;
         };
         return SoundSource;
@@ -134,17 +134,17 @@ var PTWTipsSound;
         SoundDevice.prototype.setMasterVolume = function (volume) {
             this.volume = volume;
         };
-        // override methods
+        // Override methods
         SoundDevice.prototype.isAvailable = function () {
-            // override method
+            // Override method
             return false;
         };
         SoundDevice.prototype.initialize = function () {
-            // override method
+            // Override method
             return false;
         };
         SoundDevice.prototype.createSoundSource = function (maxPlayingUnitCount) {
-            // override method
+            // Override method
             return null;
         };
         return SoundDevice;

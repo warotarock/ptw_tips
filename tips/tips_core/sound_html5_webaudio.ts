@@ -13,7 +13,7 @@ namespace PTWTipsSound_HTML5_WebAudio {
         private startTime: long = 0;
         private restartTime: long = 0;
 
-        // override methods
+        // Override methods
 
         getState(): PTWTipsSound.SoundPlayingState {
 
@@ -124,7 +124,7 @@ namespace PTWTipsSound_HTML5_WebAudio {
         loadingDataTotal: long = 0;
         loadingDataLoaded: long = 0;
 
-        // override methods
+        // Override methods
 
         load(fileName: string) {
 
@@ -190,7 +190,7 @@ namespace PTWTipsSound_HTML5_WebAudio {
 
         isReady = false;
 
-        // override methods
+        // Override methods
 
         maxParallelLoadingCount = 3;
 

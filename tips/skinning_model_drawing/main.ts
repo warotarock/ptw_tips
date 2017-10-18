@@ -1,7 +1,7 @@
 
 namespace SkinningModelDrawing {
 
-    // types used this sample
+    // Model data types used this sample
     interface SkinningModelData {
         images: List<string>;
         bones: List<SkinningModelBoneData>;
@@ -41,18 +41,17 @@ namespace SkinningModelDrawing {
         modelResource = new SkinningModel();
         imageResources = new List<RenderImage>();
 
-        boneMatrixList = new List<Mat4>();
-
         eyeLocation = vec3.create();
         lookatLocation = vec3.create();
         upVector = vec3.create();
 
         modelMatrix = mat4.create();
         viewMatrix = mat4.create();
-        pMatrix = mat4.create();
-        mvMatrix = mat4.create();
+        modelViewMatrix = mat4.create();
+        projectionMatrix = mat4.create();
         boneMatrix = mat4.create();
 
+        boneMatrixList = new List<Mat4>();
         animationTime = 0.0;
 
         isLoaded = false;
@@ -115,7 +114,7 @@ namespace SkinningModelDrawing {
         draw() {
 
             var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
-            mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 50.0);
+            mat4.perspective(this.projectionMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 50.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
 
             this.render.setDepthTest(true)
@@ -147,16 +146,16 @@ namespace SkinningModelDrawing {
         private drawSkinningModel(modelMatrix: Mat4, skinningModel: SkinningModel) {
 
             // calc base matrix (model-view matrix)
-            mat4.multiply(this.mvMatrix, this.viewMatrix, this.modelMatrix);
+            mat4.multiply(this.modelViewMatrix, this.viewMatrix, this.modelMatrix);
 
             // set parameter not dependent on parts
             this.render.setShader(this.bone2Shader);
-            this.render.setModelViewMatrix(this.mvMatrix);
-            this.render.setProjectionMatrix(this.pMatrix);
+            this.render.setModelViewMatrix(this.modelViewMatrix);
+            this.render.setProjectionMatrix(this.projectionMatrix);
 
             this.render.setShader(this.bone4Shader);
-            this.render.setModelViewMatrix(this.mvMatrix);
-            this.render.setProjectionMatrix(this.pMatrix);
+            this.render.setModelViewMatrix(this.modelViewMatrix);
+            this.render.setProjectionMatrix(this.projectionMatrix);
 
             // drawing for each part
             var bones = skinningModel.data.bones;
@@ -191,7 +190,20 @@ namespace SkinningModelDrawing {
             }
         }
 
-        private loadModel(model: SkinningModel, url: string) {
+        private loadTexture(resultImage: RenderImage, url: string) {
+
+            resultImage.imageData = new Image();
+
+            resultImage.imageData.addEventListener('load',
+                () => {
+                    this.render.initializeImageTexture(resultImage);
+                }
+            );
+
+            resultImage.imageData.src = url;
+        }
+
+        private loadModel(resultModel: SkinningModel, url: string) {
 
             var xhr = new XMLHttpRequest();
             xhr.open('GET', url);
@@ -208,8 +220,8 @@ namespace SkinningModelDrawing {
                         data = JSON.parse(xhr.response);
                     }
 
-                    model.data = data['models']['Cube'];
-                    model.loaded = true;
+                    resultModel.data = data['models']['Cube'];
+                    resultModel.loaded = true;
                 }
             );
 
@@ -234,19 +246,6 @@ namespace SkinningModelDrawing {
             for (var i = 0; i < skinningModel.data.bones.length; i++) {
                 this.boneMatrixList.push(mat4.create());
             }
-        }
-
-        private loadTexture(image: RenderImage, url: string) {
-
-            image.imageData = new Image();
-
-            image.imageData.addEventListener('load',
-                () => {
-                    this.render.initializeImageTexture(image);
-                }
-            );
-
-            image.imageData.src = url;
         }
     }
 

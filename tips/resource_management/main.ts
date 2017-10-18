@@ -194,16 +194,16 @@ namespace ResourceManagement {
         lookatLocation = vec3.create();
         upVector = vec3.create();
 
-        commonModel_Location = vec3.create();
-        sceneModel_Location = vec3.create();
-
         modelMatrix = mat4.create();
         viewMatrix = mat4.create();
-        pMatrix = mat4.create();
-        mvMatrix = mat4.create();
+        modelViewMatrix = mat4.create();
+        projectionMatrix = mat4.create();
 
         currentSceneID = SceneID.Scene01;
         requestedSeneID = SceneID.None;
+
+        commonModel_Location = vec3.create();
+        sceneModel_Location = vec3.create();
         animationTime = 0.0;
 
         isLoaded = false;
@@ -462,7 +462,7 @@ namespace ResourceManagement {
             }
 
             var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
-            mat4.perspective(this.pMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 100.0);
+            mat4.perspective(this.projectionMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 100.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
 
             this.render.setDepthTest(true)
@@ -486,11 +486,11 @@ namespace ResourceManagement {
 
         private drawModel(modelMatrix: Mat4, modelResource: ModelResource) {
 
-            mat4.multiply(this.mvMatrix, this.viewMatrix, modelMatrix);
+            mat4.multiply(this.modelViewMatrix, this.viewMatrix, modelMatrix);
 
             this.render.setShader(this.shader);
-            this.render.setProjectionMatrix(this.pMatrix);
-            this.render.setModelViewMatrix(this.mvMatrix);
+            this.render.setProjectionMatrix(this.projectionMatrix);
+            this.render.setModelViewMatrix(this.modelViewMatrix);
 
             this.render.setBuffers(modelResource.model, modelResource.images);
 

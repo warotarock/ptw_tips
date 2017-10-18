@@ -8,7 +8,7 @@ namespace PTWTipsSound_HTML5_Audio {
 
         private state = PTWTipsSound.SoundPlayingState.ready;
 
-        // override methods
+        // Override methods
 
         getState(): PTWTipsSound.SoundPlayingState {
 
@@ -87,7 +87,7 @@ namespace PTWTipsSound_HTML5_Audio {
 
         playingUnits = new List<SoundPlayingUnit>();
 
-        // override methods
+        // Override methods
 
         load(fileName: string) {
 
@@ -136,7 +136,7 @@ namespace PTWTipsSound_HTML5_Audio {
 
     export class SoundDevice extends PTWTipsSound.SoundDevice {
 
-        // override methods
+        // Override methods
 
         maxParallelLoadingCount = 1;
 

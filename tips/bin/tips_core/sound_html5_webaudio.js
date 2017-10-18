@@ -23,7 +23,7 @@ var PTWTipsSound_HTML5_WebAudio;
             _this.restartTime = 0;
             return _this;
         }
-        // override methods
+        // Override methods
         SoundPlayingUnit.prototype.getState = function () {
             return this.state;
         };
@@ -100,7 +100,7 @@ var PTWTipsSound_HTML5_WebAudio;
             _this.loadingDataLoaded = 0;
             return _this;
         }
-        // override methods
+        // Override methods
         SoundSource.prototype.load = function (fileName) {
             this.device.loadSound(this, fileName);
         };
@@ -146,7 +146,7 @@ var PTWTipsSound_HTML5_WebAudio;
             _this.audioContext = null;
             _this.audioBufferChache = new Dictionary();
             _this.isReady = false;
-            // override methods
+            // Override methods
             _this.maxParallelLoadingCount = 3;
             return _this;
         }

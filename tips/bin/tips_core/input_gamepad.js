@@ -24,7 +24,7 @@ var PTWTipsInput;
             this.StickIndexMappings = null;
         }
         GamepadDeviceLayout.prototype.initialize = function () {
-            // override method
+            // Override method
         };
         GamepadDeviceLayout.prototype.getMappingTypeForEnvironment = function () {
             var userAgent = window.navigator.userAgent.toLowerCase();
@@ -50,11 +50,11 @@ var PTWTipsInput;
             return browerType;
         };
         GamepadDeviceLayout.prototype.isMatch = function (mappingName) {
-            // override method
+            // Override method
             return false;
         };
         GamepadDeviceLayout.prototype.processPollingCrossButton = function (crossButtons, buttons, gamepad, time, doublePressMilliSecond) {
-            // override method
+            // Override method
         };
         return GamepadDeviceLayout;
     }());
