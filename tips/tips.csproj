@@ -40,7 +40,6 @@
     <Content Include="skinning_model_drawing\index.html" />
     <Content Include="skinning_model_converting\index.html" />
     <Content Include="sound_management\index.html" />
-    <Content Include="sound_management\package_main.js" />
     <Content Include="task_management\index.html" />
     <Content Include="tips_core\app.css" />
     <Content Include="web.config" />
@@ -63,7 +62,6 @@
     <Content Include="object_pooling\README.md" />
     <Content Include="resource_management\README.md" />
     <Content Include="input_management\README.md" />
-    <Content Include="sound_management\package.json" />
     <Content Include="sound_management\README.md" />
     <Content Include="canvas_drawing\README.md" />
     <None Include="web.Debug.config">
