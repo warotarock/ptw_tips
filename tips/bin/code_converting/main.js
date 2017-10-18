@@ -75,8 +75,11 @@ var CodeConverter;
     }
     function convertStatementToHTMLRecursive(result, statement) {
         var isFirstLine = true;
-        for (var _i = 0, _a = statement.TokensList; _i < _a.length; _i++) {
-            var tokens = _a[_i];
+        for (var _i = 0, _a = statement.StatementLines; _i < _a.length; _i++) {
+            var line = _a[_i];
+            var tokens = CodeConverter.TextTokenCollection.create();
+            ListAddRange(tokens, line.indentTokens);
+            ListAddRange(tokens, line.tokens);
             convertTokensToHTML(result, tokens, isFirstLine ? '#' : ' ');
             isFirstLine = false;
         }

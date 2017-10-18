@@ -9,6 +9,8 @@
 - [サンプルプログラム（main.ts）](./main.ts)  
 - [リソースマネージャ及び関連クラス（game_resource_manager.ts）](../tips_core/game_resource_manager.ts)
 
+![](resource_management_fig001.png)
+
 
 ## リソース管理
 
@@ -64,18 +66,18 @@ WebGLの場合、リソースの管理の多くの部分はブラウザが行っ
 
 ### プログラム構成
 
-![プログラムの構成](figure_image01.png)
+![プログラムの構成](resource_management_fig002.png)
 
-サンプルプログラムは、１つのマネージャクラス、２つのローダクラス、そしてリソースクラスで構成されます。マネージャクラスはローダを統括する役割を持ちます。ローダクラスはリソースの種類ごとに実装され、リソースの読み込み処理を行う役割を持ちます。各種リソースクラスはファイル名やリソース本体を保持します。
+サンプルプログラムは、１つのマネージャクラス、２つのローダクラス、そしてリソースクラスで構成されます。マネージャクラスはローダを統括する役割を持ちます。ローダクラスはリソースの種類ごとに実装され、リソースの読み込み処理を行う役割を持ちます。各種リソースクラスはファイル名やリソースのデータ本体を保持します。
 
-なお、リソースクラスやローダクラスはそれぞれ継承元のクラスがあります。マネージャクラスはそれら継承元のクラスの関数やプロパティを使用して動作するため、リソースの種類が増えてもマネージャクラスを修正する必要はありません
+リソースクラスやローダクラスにはそれぞれ継承元のクラスがあります。マネージャクラスはそれら継承元のクラスの関数やプロパティを使用して動作するため、リソースの種類が増えてもマネージャクラスを修正する必要はありません
 
 ### 処理の流れ
 
 1. 設定の構築
-    1. リソースクラスを作成
-    2. ローダクラスを作成、ローダにリソースクラスを登録
-    3. ロード制御情報を作成
+    1. リソース(ImageResource、SceneResourceのリスト)を生成
+    2. ローダを生成し、ローダにリソースを登録
+    3. ロード制御情報を生成
     4. リソースマネージャにローダとロード制御情報を登録
 
 2. 読み込みの開始
@@ -91,7 +93,37 @@ WebGLの場合、リソースの管理の多くの部分はブラウザが行っ
 
 リソースのファイル名などの設定、リソース本体データへの参照を保持するためクラスです。ResourceItemを継承しています。
 
-なお、サンプルプログラムにはModelResourceクラスも存在しますが、これはシーンリソースの中に含まれているデータを分解したもので、リソース管理の対象ではありません。
+なお、サンプルプログラムにはModelResourceクラスも存在しますが、これはシーンリソースの中に含まれているデータを分解したものです。ロードや解放はシーンリソースの処理の一部として行われます。
+
+
+### リソースの設定の記述について
+
+サンプルプログラムではリソースのファイル名などの設定をプログラム中に記述しています。ゲーム内で使用されるリソースが動的に増減しないのであれば、これでほとんどの場合に対応できるでしょう。また、コンパイルエラーにより不整合の検出が早期にできる可能性もあります。
+
+記述の例を次に示します。なお、リソースの数が多い場合はこれらの記述をジェネレートするプログラムを別途作成してもよいでしょう。
+
+```
+// Image resource settings
+var imageResources = new List<ImageResource>(ImageResourceID.MaxID + 1);
+
+imageResources[ImageResourceID.None] = new ImageResource();
+imageResources[ImageResourceID.Image00] = new ImageResource().path('image00.png').mipmap(true).weight(1.0);
+imageResources[ImageResourceID.Image01] = new ImageResource().path('image01.png').mipmap(true).weight(1.0);
+imageResources[ImageResourceID.Image02] = new ImageResource().path('image02.png').mipmap(true).weight(1.2);
+imageResources[ImageResourceID.Image03] = new ImageResource().path('image03.png').mipmap(true).weight(1.2);
+
+this.imageResources = imageResources;
+
+// Scene resource settings
+var sceneResources = new List<SceneResource>(SceneResourceID.MaxID + 1);
+
+sceneResources[SceneResourceID.None] = new SceneResource();
+sceneResources[SceneResourceID.Common] = new SceneResource().path('scene00.json').image(ImageResourceID.Image00).weight(1.0);
+sceneResources[SceneResourceID.Scene01] = new SceneResource().path('scene01.json').image(ImageResourceID.Image01).weight(1.0);
+sceneResources[SceneResourceID.Scene02] = new SceneResource().path('scene02.json').image(ImageResourceID.Image02).weight(1.0);
+
+this.sceneResources = sceneResources;
+```
 
 
 ### ローダ(ImageResourceLoader、SceneResourceLoader)
@@ -104,52 +136,34 @@ WebGLの場合、リソースの管理の多くの部分はブラウザが行っ
 また、並列読み込みの最大数の設定として、maxParallelLoadingCountに初期値を与えています。
 
 
-### リソースの設定の記述
+### ロード制御情報(ResourceItemLoadingSettingSet)
 
-サンプルプログラムではプログラム中に記述しています。ゲーム内で使用されるリソースが動的に増減しないのであれば、これでほとんどの場合に対応できるでしょう。また、コンパイルエラーにより不整合の検出が早期にできる可能性もあります。
+リソースの組み合わせを定義し、ロード処理を制御するためのクラスです。例えばシーンやキャラクターなどごとに必要なリソースの組み合わせを定義します。この定義をリソースマネージャに与えることで、不要となるリソースを検出し、必要となるリソースだけをロードすることができます。
 
-なお、リソースの数が多い場合は、記述をジェネレートしたほうがよい場合もあります。
+サンプルプログラムでは共通シーン、シーン１、シーン２を定義しています。これはリソースの設定と同様にプログラム中に記述しています。以下はその抜粋です。
 
 ```
-	// Image resource settings
-	var imageResources = new List<ImageResource>(ImageResourceID.MaxID + 1);
+// Loading settings
+var loadingSettings = new List<Game.ResourceItemLoadingSettingSet>(SceneID.MaxID + 1);
 
-	imageResources[ImageResourceID.None] = new ImageResource();
-	imageResources[ImageResourceID.Image00] = new ImageResource().path('image00.png').mipmap(true).weight(1.0);
-	imageResources[ImageResourceID.Image01] = new ImageResource().path('image01.png').mipmap(true).weight(1.0);
-	imageResources[ImageResourceID.Image02] = new ImageResource().path('image02.png').mipmap(true).weight(1.2);
-	imageResources[ImageResourceID.Image03] = new ImageResource().path('image03.png').mipmap(true).weight(1.2);
+loadingSettings[SceneID.None] = new Game.ResourceItemLoadingSettingSet();
 
-	this.imageResources = imageResources;
+loadingSettings[SceneID.Common] = new Game.ResourceItemLoadingSettingSet()
+    .add(sceneResources[SceneResourceID.Common])
+    .add(imageResources[ImageResourceID.Image00]);
 
-	// Scene resource settings
-	var sceneResources = new List<SceneResource>(SceneResourceID.MaxID + 1);
+loadingSettings[SceneID.Scene01] = new Game.ResourceItemLoadingSettingSet()
+    .add(sceneResources[SceneResourceID.Scene01])
+    .add(imageResources[ImageResourceID.Image01]);
 
-	sceneResources[SceneResourceID.None] = new SceneResource();
-	sceneResources[SceneResourceID.Common] = new SceneResource().path('scene00.json').image(ImageResourceID.Image00).weight(1.0);
-	sceneResources[SceneResourceID.Scene01] = new SceneResource().path('scene01.json').image(ImageResourceID.Image01).weight(1.0);
-	sceneResources[SceneResourceID.Scene02] = new SceneResource().path('scene02.json').image(ImageResourceID.Image02).weight(1.0);
-
-	this.sceneResources = sceneResources;
+loadingSettings[SceneID.Scene02] = new Game.ResourceItemLoadingSettingSet()
+    .add(sceneResources[SceneResourceID.Scene02])
+    .add(imageResources[ImageResourceID.Image02])
+    .add(imageResources[ImageResourceID.Image03]);
 ```
 
 
-### ロード制御情報の定義
-
-リソースの設定と同様にプログラム中に記述しています。必要となるリソースの組み合わせを設定します。この設定をリソースマネージャに与えることで、不要となるリソースを検出し、必要となるリソースだけをロードすることができます
-
-```
-    var loadingSettings = new List<Game.ResourceItemLoadingSettingSet>(SceneID.MaxID + 1);
-
-    loadingSettings[SceneID.None] = new Game.ResourceItemLoadingSettingSet();
-
-    loadingSettings[SceneID.Common] = new Game.ResourceItemLoadingSettingSet()
-        .add(sceneResources[SceneResourceID.Common])
-        .add(imageResources[ImageResourceID.Image00]);
-```
-
-
-### マネージャクラス(ResourceManager)
+### マネージャ(ResourceManager)
 
 複数のローダを統括して実行するとともに、進捗制御をするためのクラスです。このクラスはResourceLoaderを継承したクラスを受け取ることができます。
 

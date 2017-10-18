@@ -67,8 +67,7 @@ var CodeConverter;
             return (this.Type == TextTokenType.Seperator && this.Text == text);
         };
         TextToken.prototype.isWhitesSpace = function () {
-            return (this.Type == TextTokenType.WhiteSpaces
-                || this.Type == TextTokenType.LineEnd);
+            return (this.Type == TextTokenType.WhiteSpaces);
         };
         TextToken.prototype.isLineEnd = function () {
             return (this.Type == TextTokenType.LineEnd);
@@ -381,8 +380,7 @@ var CodeConverter;
         };
         TextTokenCollection.createFrom = function (tokens) {
             var target = tokens.slice(0);
-            TextTokenCollection.initialize(target);
-            return target;
+            return TextTokenCollection.initialize(target);
         };
         TextTokenCollection.initialize = function (tokens) {
             var target = tokens;

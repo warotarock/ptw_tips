@@ -19,6 +19,9 @@ namespace ObjectPooling {
 
             var sampleObjectPool = new RecyclePool<SampleObject>(SampleObject, 50);
 
+            var result = [];
+            var content_element = document.getElementById('content');
+
             for (var i = 0; i < 1000; i++) {
 
                 var sampleObject = sampleObjectPool.get();
@@ -27,7 +30,9 @@ namespace ObjectPooling {
                     return;
                 }
 
-                console.log(sampleObject.recycleIndex + ' sampleObject countA: ' + sampleObject.countA + ', countB: ' + sampleObject.countB);
+                let logText = sampleObject.recycleIndex + ' sampleObject countA: ' + sampleObject.countA + ', countB: ' + sampleObject.countB;
+                result.push(logText);
+                console.log(logText);
 
                 sampleObject.countA++;
                 sampleObject.countB++;
@@ -36,6 +41,8 @@ namespace ObjectPooling {
             }
 
             sampleObjectPool.free();
+
+            content_element.innerHTML = result.join('<br/>');
         }
     }
 

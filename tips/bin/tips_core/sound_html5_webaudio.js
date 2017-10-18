@@ -173,9 +173,9 @@ var PTWTipsSound_HTML5_WebAudio;
             }
         };
         SoundDevice.prototype.createSoundSource = function (maxPlayingUnitCount) {
-            var soundSource = new soundSource();
+            var soundSource = new SoundSource();
             soundSource.device = this;
-            soundSource.initializePlayingUnits(this, maxPlayingUnitCount);
+            soundSource.initializePlayingUnits(maxPlayingUnitCount);
             return soundSource;
         };
         // own methods

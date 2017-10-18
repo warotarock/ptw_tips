@@ -6,7 +6,7 @@
 Collada形式(.dae)のファイルからモデル情報を抽出し、json形式(.json)で出力します。
 .daeファイルのパースにはThree.jsのColladaLoaderを利用します。
 
-一部でBlendFileReader.tsも使用しています。
+一部で[BlendFileReader.ts](../blend_file_reader_sample/)も使用しています。
 
 ## .daeファイルの作成方法
 .daeファイルはBlenderから標準のエクスポータで以下の設定でエクスポートしたものです。
@@ -30,4 +30,7 @@ Collada形式(.dae)のファイルからモデル情報を抽出し、json形式
       Use Object Instances Transformation: Matrix  
       Sort by Object name: true  
 	  
+
+## 関連情報
+
 - [Blendファイルからのデータ抽出](../blend_file_reader_sample/)

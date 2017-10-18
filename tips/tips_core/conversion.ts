@@ -21,6 +21,10 @@ function ListAddRange<T>(destList: List<T>, addList: List<T>) {
     Array.prototype.push.apply(destList, addList);
 }
 
+function ListGetRange<T>(srcList: List<T>, index: int, length: int): List<T> {
+    return srcList.slice(index, index + length);
+}
+
 function ListRemoveAt<T>(destList: List<T>, index: int) {
     destList.splice(index, 1);
 }

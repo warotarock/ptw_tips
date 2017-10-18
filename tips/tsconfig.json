@@ -8,7 +8,7 @@
     "noLib": false,
     "preserveConstEnums": true,
     "suppressImplicitAnyIndexErrors": true,
-    "sourceMap": true,
+    "sourceMap": false,
     "outDir": "./bin/"
   },
   "formatCodeOptions": {

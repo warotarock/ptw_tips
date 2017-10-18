@@ -8,6 +8,8 @@
 - [タスクマネージャ（game_task_manager.ts）](../tips_core/game_task_manager.ts)
 - [タスク実行環境変数（game_task_environment.ts）](../tips_core/game_task_environment.ts)
 
+![test](task_management_fig001.png)
+
 
 ### タスク管理
 「トリノワールド」に登場するキャラクターやオブジェクトは、自分の役割によって自律的に動いているように見えます。また、時系列のあるイベントなど目に見えない現象についても、自律的に動作するものがあります。
@@ -95,8 +97,6 @@ class RenderTaskEnv {
 
 
 ### サンプルプログラム
-
-![test](task_management_fig001.png)
 
 サンプルプログラムでは描画オブジェクト制御するタスクを実装しています。
 タスクは次のような継承関係を持ちます。

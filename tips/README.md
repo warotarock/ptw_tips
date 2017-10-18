@@ -1,8 +1,5 @@
-# tips
 
 ゲームのためのプログラミングのtipsのフォルダです。
-
-## コンテンツ
 
 ### １．基盤技術
 - [TypeScriptによる基本的なWebGLプログラミング](./basic_webgl_ts/) - Basic TypeScript-WebGL programming
@@ -10,7 +7,7 @@
 - [モデルの描画](./basic_model_drawing/) - Basic model drawing
 - [オブジェクトアニメーションデータの作成](./object_animation_converting/) - Object animation converting
 - [オブジェクトアニメーションの再生](./object_animation_drawing/) - Object Animation Drawing
-- [スキンモデルとアニメーションデータの作成](./skinning_model_converting/) - Skinning model converting
+- [スキンモデルデータの作成](./skinning_model_converting/) - Skinning model data converting
 - [スキンモデルとアニメーションの再生](./skinning_model_drawing/) - Skinning Model Drawing
 <br />
 

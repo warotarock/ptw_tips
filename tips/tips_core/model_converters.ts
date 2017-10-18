@@ -416,7 +416,9 @@ namespace Converters {
                 // create vertices
                 var part_vertices = new List<SkinVertex>(new_vertex_count);
                 for (var k = 0; k < vertexIndexTable.length; k++) {
+
                     if (vertexIndexTable[k] != -1) {
+
                         var src_vertex = vertices[k];
 
                         var skinVertex = new SkinVertex();
@@ -479,8 +481,10 @@ namespace Converters {
             // replace bone index to re-ordered one
             var boneIndexTable = [];
             for (var i = 0; i < bones.length; i++) {
+
                 boneIndexTable[bones[i].originalBoneIndex] = i;
             }
+
             for (var i = 0; i < parts.length; i++) {
                 var part = parts[i];
 

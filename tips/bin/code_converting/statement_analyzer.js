@@ -28,16 +28,36 @@ var CodeConverter;
         StatementType[StatementType["TargetLanguageCode"] = 23] = "TargetLanguageCode";
         StatementType[StatementType["ConverterAnotation"] = 24] = "ConverterAnotation";
     })(StatementType = CodeConverter.StatementType || (CodeConverter.StatementType = {}));
+    var CodeStatementLine = (function () {
+        function CodeStatementLine() {
+            this.indentTokens = CodeConverter.TextTokenCollection.create();
+            this.tokens = CodeConverter.TextTokenCollection.create();
+        }
+        Object.defineProperty(CodeStatementLine.prototype, "lineNumber", {
+            get: function () {
+                if (this.indentTokens.length > 0) {
+                    return this.tokens[0].LineNumber;
+                }
+                else {
+                    return 0;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return CodeStatementLine;
+    }());
+    CodeConverter.CodeStatementLine = CodeStatementLine;
     var CodeStatement = (function () {
         function CodeStatement() {
             this.Type = StatementType.None;
-            this.TokensList = null;
+            this.StatementLines = null;
             this.InnerStatements = null;
         }
         Object.defineProperty(CodeStatement.prototype, "LineNumber", {
             get: function () {
-                if (this.TokensList != null && this.TokensList.length > 0) {
-                    return this.TokensList[0][0].LineNumber;
+                if (this.StatementLines != null && this.StatementLines.length > 0) {
+                    return this.StatementLines[0].lineNumber;
                 }
                 else {
                     return 0;
@@ -97,14 +117,27 @@ var CodeConverter;
                 this.CurrentStatement.Type = type;
             };
             AnalyzerResult.prototype.AppendToCurrentStatement = function (token) {
+                this.processNewLine();
+                var line = this.getCurrentStatementLastLine();
+                line.tokens.push(token);
+            };
+            AnalyzerResult.prototype.AppendIndentToCurrentStatement = function (token) {
+                this.processNewLine();
+                var line = this.getCurrentStatementLastLine();
+                line.indentTokens.push(token);
+            };
+            AnalyzerResult.prototype.getCurrentStatementLastLine = function () {
+                var line = this.CurrentStatement.StatementLines[this.CurrentStatement.StatementLines.length - 1];
+                return line;
+            };
+            AnalyzerResult.prototype.processNewLine = function () {
                 if (this.NeedsNewTokensBeforeAppendToken) {
-                    if (this.CurrentStatement.TokensList == null) {
-                        this.CurrentStatement.TokensList = new List();
+                    if (this.CurrentStatement.StatementLines == null) {
+                        this.CurrentStatement.StatementLines = new List();
                     }
                     this.NeedsNewTokensBeforeAppendToken = false;
-                    this.CurrentStatement.TokensList.push(CodeConverter.TextTokenCollection.create());
+                    this.CurrentStatement.StatementLines.push(new CodeConverter.CodeStatementLine());
                 }
-                this.CurrentStatement.TokensList[this.CurrentStatement.TokensList.length - 1].push(token);
             };
             AnalyzerResult.prototype.SetInnerStatementToCurrentStatement = function (statements) {
                 this.CurrentStatement.InnerStatements = statements;
@@ -122,6 +155,43 @@ var CodeConverter;
                 //}
                 this.CurrentStatement = new CodeConverter.CodeStatement();
                 this.NeedsNewTokensBeforeAppendToken = true;
+            };
+            AnalyzerResult.prototype.FlushCurrentStatementToSeperateIndentTokens = function () {
+                var line = this.getCurrentStatementLastLine();
+                var existsWhiteSpace = false;
+                var existsLineEnd = false;
+                var lastLineEndIndex = -1;
+                for (var i = line.tokens.length - 1; i >= 0; i--) {
+                    var token = line.tokens[i];
+                    if (token.isWhitesSpace()) {
+                        existsWhiteSpace = true;
+                        continue;
+                    }
+                    if (token.isLineEnd()) {
+                        if (existsWhiteSpace) {
+                            existsLineEnd = true;
+                            lastLineEndIndex = i;
+                        }
+                        break;
+                    }
+                    if (!token.isBlank()) {
+                        break;
+                    }
+                }
+                var needsSeperate = (existsWhiteSpace && existsLineEnd);
+                if (needsSeperate) {
+                    var remainingTokens = ListGetRange(line.tokens, 0, lastLineEndIndex + 1);
+                    var indentTokens = ListGetRange(line.tokens, lastLineEndIndex + 1, line.tokens.length - (lastLineEndIndex + 1));
+                    line.tokens = CodeConverter.TextTokenCollection.initialize(remainingTokens);
+                    this.FlushStatement();
+                    for (var _i = 0, indentTokens_1 = indentTokens; _i < indentTokens_1.length; _i++) {
+                        var token = indentTokens_1[_i];
+                        this.AppendIndentToCurrentStatement(token);
+                    }
+                }
+                else {
+                    this.FlushStatement();
+                }
             };
             return AnalyzerResult;
         }());
@@ -264,7 +334,7 @@ var CodeConverter;
                         break;
                     }
                     else if (!token.isBlank()) {
-                        result.FlushStatement();
+                        result.FlushCurrentStatementToSeperateIndentTokens();
                         switch (scopeLevel) {
                             case ScopeLevel.Global:
                                 this.processGlobalLevelSyntax(result, tokens, state);
@@ -974,14 +1044,16 @@ var CodeConverter;
             };
             // Statement level syntax analyzing /////////////////////////
             Analyzer.prototype.processStatementBlock = function (result, tokens, state) {
+                // Now current index is before "{" of a block or first token of single statement.
+                // And this function sets result to current statement.
                 var currentIndex = state.CurrentIndex;
                 state.LastIndex = state.CurrentIndex;
                 // Searching block start or single statement
-                var existsBrace = false;
+                var existsLeftBrace = false;
                 while (state.CurrentIndex < tokens.length) {
                     var token = tokens[state.CurrentIndex];
                     if (token.isSeperatorOf('{')) {
-                        existsBrace = true;
+                        existsLeftBrace = true;
                         break;
                     }
                     else if (!token.isBlank()) {
@@ -994,12 +1066,12 @@ var CodeConverter;
                         return false;
                     }
                 }
-                var isImplicitBlock = !existsBrace;
-                if (existsBrace) {
+                var isImplicitBlock = !existsLeftBrace;
+                if (existsLeftBrace) {
                     result.AppendToCurrentStatement(tokens[state.CurrentIndex]);
                     state.CurrentIndex++;
                 }
-                // Process inner statements
+                // Process bolock-inner statements till block end. It will process multiple statement.
                 var innerState = state.cloneForInnerState();
                 var innerResult = new AnalyzerResult();
                 while (innerState.CurrentIndex < tokens.length) {
@@ -1019,7 +1091,7 @@ var CodeConverter;
                         break;
                     }
                     else if (!token.isBlank()) {
-                        innerResult.FlushStatement();
+                        innerResult.FlushCurrentStatementToSeperateIndentTokens();
                         this.processStatementLevelSyntax(innerResult, tokens, innerState);
                     }
                     else {
@@ -1030,7 +1102,7 @@ var CodeConverter;
                         return false;
                     }
                 }
-                // Set inner statement result
+                // Set bolock-inner statement result
                 result.SetInnerStatementToCurrentStatement(innerResult.Statements);
                 state.CurrentIndex = innerState.CurrentIndex;
                 // }
@@ -1318,7 +1390,8 @@ var CodeConverter;
             };
             Analyzer.prototype.appendToResultTillCurrent = function (result, tokens, state) {
                 for (var tokenIndex = state.LastIndex; tokenIndex < state.CurrentIndex; tokenIndex++) {
-                    result.AppendToCurrentStatement(tokens[tokenIndex]);
+                    var token = tokens[tokenIndex];
+                    result.AppendToCurrentStatement(token);
                 }
                 state.LastIndex = state.CurrentIndex;
             };

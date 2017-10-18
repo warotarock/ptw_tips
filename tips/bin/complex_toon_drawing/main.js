@@ -106,6 +106,7 @@ var ComplexToonDrawing;
             if (this.render.initializeWebGL(canvas)) {
                 return;
             }
+            this.gl = this.render.gl;
             this.render.initializeShader(this.screenShader);
             this.render.initializeShader(this.bone2Shader);
             this.render.initializeShader(this.bone4Shader);

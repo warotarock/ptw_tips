@@ -1,15 +1,24 @@
 # モデルの描画 - Basic model drawing
 
 ## 概要
-基本的なモデルのロードと描画処理です。
-ほとんどの内容は関連情報にあるものと同様ですが、
+
+基本的なモデルのロードと描画処理です。ほとんどの内容は関連情報にあるものと同様ですが、
 記述を省略するために以下の変更があります。
 
 - 共通のサンプルプログラム用シェーダクラスを使用
 - 共通のサンプルモデルデータをファイルからロードして使用
 
+ソースコード
+
+- [サンプルプログラム（main.ts）](./main.ts)  
+
+
+ライブデモ
+- [index.html](https://warotarock.github.io/ptw_tips/basic_model_drawing/)  
+
 ![](./basic_model_drawing_fig001.png)
 
 ## 関連情報
+
 - [TypeScriptによる基本的なWebGLプログラミング](./basic_webgl_ts/)
 - [モデルデータの作成](./basic_model_converting/)

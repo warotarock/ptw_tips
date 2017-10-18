@@ -15,17 +15,22 @@ var ObjectPooling;
         }
         Main.prototype.run = function () {
             var sampleObjectPool = new RecyclePool(SampleObject, 50);
+            var result = [];
+            var content_element = document.getElementById('content');
             for (var i = 0; i < 1000; i++) {
                 var sampleObject = sampleObjectPool.get();
                 if (sampleObject == null) {
                     return;
                 }
-                console.log(sampleObject.recycleIndex + ' sampleObject countA: ' + sampleObject.countA + ', countB: ' + sampleObject.countB);
+                var logText = sampleObject.recycleIndex + ' sampleObject countA: ' + sampleObject.countA + ', countB: ' + sampleObject.countB;
+                result.push(logText);
+                console.log(logText);
                 sampleObject.countA++;
                 sampleObject.countB++;
                 sampleObjectPool.recycle(sampleObject);
             }
             sampleObjectPool.free();
+            content_element.innerHTML = result.join('<br/>');
         };
         return Main;
     }());

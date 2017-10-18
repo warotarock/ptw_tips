@@ -229,11 +229,11 @@ namespace PTWTipsSound_HTML5_WebAudio {
 
         createSoundSource(maxPlayingUnitCount: int): PTWTipsSound.SoundSource {
 
-            var soundSource = new soundSource();
+            var soundSource = new SoundSource();
 
             soundSource.device = this;
 
-            soundSource.initializePlayingUnits(this, maxPlayingUnitCount)
+            soundSource.initializePlayingUnits(maxPlayingUnitCount)
 
             return soundSource;
         }
