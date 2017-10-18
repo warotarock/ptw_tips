@@ -12,9 +12,9 @@
 
 - [サンプルプログラム（main.ts）](./main.ts)  
 
-
 ライブデモ
-- [index.html](https://warotarock.github.io/ptw_tips/basic_model_drawing/)  
+
+- [Live Demo](https://warotarock.github.io/ptw_tips/basic_model_drawing/)  
 
 ![](./basic_model_drawing_fig001.png)
 

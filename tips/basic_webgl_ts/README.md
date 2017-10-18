@@ -6,7 +6,11 @@ TypeScriptによる基本的なWebGL(1.0系)プログラム実装のサンプル
 ソースコード
 
 - [サンプルプログラム（main.ts）](./main.ts)  
-- [レンダラ（render3d.ts）](../tips_core/render3d.ts)
+- [レンダラ（render3d.ts）](../tips_core/render3d.ts) 
+
+ライブデモ
+
+- [Live Demo](https://warotarock.github.io/ptw_tips/basic_webgl_ts/)
 
 ![](./basic_webgl_ts_fig001.png)
 
