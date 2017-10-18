@@ -28,7 +28,7 @@
 
 ## ライブデモ
 
-[Github Pages](https://warotarock.github.io/ptw_tips/) でライブデモを実行できます。
+[Github Pages](https://warotarock.github.io/ptw_tips/tips/) でライブデモを実行できます。
 
 ※ソースコードのリポジトリがそのままページになっていますので、ファイル書き込みなどElectronの機能を使用しているデモは動作しない場合があります。
 <br />
