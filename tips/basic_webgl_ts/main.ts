@@ -7,7 +7,7 @@ namespace BasicWebGL {
         logicalScreenHeight = 360.0;
 
         render = new WebGLRender();
-        shader = new BasicShader();
+        shader = new SampleShader();
         model = new RenderModel();
         images = new List<RenderImage>();
 
@@ -48,16 +48,16 @@ namespace BasicWebGL {
 
             this.render.initializeShader(this.shader);
 
+            this.render.initializeModelBuffer(this.model, this.vertexData, this.indexData, 4 * 5); // 4 (=size of float) * 5 (=x, y, z, u, v)
+
             var image = new RenderImage();
             this.loadTexture(image, './texture.png');
             this.images.push(image);
-
-            this.render.initializeModelBuffer(this.model, this.vertexData, this.indexData, 4 * 5); // 4 (=size of float) * 5 (=x, y, z, u, v)
         }
 
         processLoading() {
 
-            // Waiting for data
+            // Waiting for loading data
             if (this.images[0].texture == null) {
                 return;
             }
@@ -122,7 +122,7 @@ namespace BasicWebGL {
         }
     }
 
-    class BasicShader extends RenderShader {
+    class SampleShader extends RenderShader {
 
         aPosition = -1;
         aTexCoord = -1;
@@ -165,10 +165,10 @@ namespace BasicWebGL {
         initializeAttributes(gl: WebGLRenderingContext) {
 
             this.initializeAttributes_RenderShader(gl);
-            this.initializeAttributes_BasicShader(gl);
+            this.initializeAttributes_SampleShader(gl);
         }
 
-        initializeAttributes_BasicShader(gl: WebGLRenderingContext) {
+        initializeAttributes_SampleShader(gl: WebGLRenderingContext) {
 
             this.aPosition = this.getAttribLocation('aPosition', gl);
             this.aTexCoord = this.getAttribLocation('aTexCoord', gl);

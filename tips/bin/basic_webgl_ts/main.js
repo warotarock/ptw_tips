@@ -15,7 +15,7 @@ var BasicWebGL;
             this.logicalScreenWidth = 640.0;
             this.logicalScreenHeight = 360.0;
             this.render = new WebGLRender();
-            this.shader = new BasicShader();
+            this.shader = new SampleShader();
             this.model = new RenderModel();
             this.images = new List();
             this.eyeLocation = vec3.create();
@@ -46,13 +46,13 @@ var BasicWebGL;
                 return;
             }
             this.render.initializeShader(this.shader);
+            this.render.initializeModelBuffer(this.model, this.vertexData, this.indexData, 4 * 5); // 4 (=size of float) * 5 (=x, y, z, u, v)
             var image = new RenderImage();
             this.loadTexture(image, './texture.png');
             this.images.push(image);
-            this.render.initializeModelBuffer(this.model, this.vertexData, this.indexData, 4 * 5); // 4 (=size of float) * 5 (=x, y, z, u, v)
         };
         Main.prototype.processLoading = function () {
-            // Waiting for data
+            // Waiting for loading data
             if (this.images[0].texture == null) {
                 return;
             }
@@ -98,16 +98,16 @@ var BasicWebGL;
         };
         return Main;
     }());
-    var BasicShader = (function (_super) {
-        __extends(BasicShader, _super);
-        function BasicShader() {
+    var SampleShader = (function (_super) {
+        __extends(SampleShader, _super);
+        function SampleShader() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
             _this.aPosition = -1;
             _this.aTexCoord = -1;
             _this.uTexture0 = null;
             return _this;
         }
-        BasicShader.prototype.initializeVertexSourceCode = function () {
+        SampleShader.prototype.initializeVertexSourceCode = function () {
             this.vertexShaderSourceCode = ''
                 + this.floatPrecisionDefinitionCode
                 + 'attribute vec3 aPosition;'
@@ -120,7 +120,7 @@ var BasicWebGL;
                 + '    vTexCoord = aTexCoord;'
                 + '}';
         };
-        BasicShader.prototype.initializeFragmentSourceCode = function () {
+        SampleShader.prototype.initializeFragmentSourceCode = function () {
             this.fragmentShaderSourceCode = ''
                 + this.floatPrecisionDefinitionCode
                 + 'varying vec2 vTexCoord;'
@@ -129,16 +129,16 @@ var BasicWebGL;
                 + '    gl_FragColor = texture2D(uTexture0, vTexCoord);'
                 + '}';
         };
-        BasicShader.prototype.initializeAttributes = function (gl) {
+        SampleShader.prototype.initializeAttributes = function (gl) {
             this.initializeAttributes_RenderShader(gl);
-            this.initializeAttributes_BasicShader(gl);
+            this.initializeAttributes_SampleShader(gl);
         };
-        BasicShader.prototype.initializeAttributes_BasicShader = function (gl) {
+        SampleShader.prototype.initializeAttributes_SampleShader = function (gl) {
             this.aPosition = this.getAttribLocation('aPosition', gl);
             this.aTexCoord = this.getAttribLocation('aTexCoord', gl);
             this.uTexture0 = this.getUniformLocation('uTexture0', gl);
         };
-        BasicShader.prototype.setBuffers = function (model, images, gl) {
+        SampleShader.prototype.setBuffers = function (model, images, gl) {
             gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexBuffer);
             this.enableVertexAttributes(gl);
             this.resetVertexAttribPointerOffset();
@@ -149,7 +149,7 @@ var BasicWebGL;
             gl.bindTexture(gl.TEXTURE_2D, images[0].texture);
             gl.uniform1i(this.uTexture0, 0);
         };
-        return BasicShader;
+        return SampleShader;
     }(RenderShader));
     var _Main;
     window.onload = function () {

@@ -12,7 +12,7 @@
 
 - [サンプルプログラム（main.ts）](./main.ts)  
 
-ライブデモ
+デモの実行
 
 - [Live Demo](https://warotarock.github.io/ptw_tips/tips/basic_model_drawing/)  
 
