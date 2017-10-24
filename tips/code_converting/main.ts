@@ -68,21 +68,25 @@ namespace CodeConverter {
 
             var text = token.Text.replace(/\</g, '&lang;').replace(/\>/g, '&rang;');
 
-            if (i == tokens.length - 1) {
-                lineTexts.push(text);
-                result.push(lineTexts.join(""));
-            }
-            else if (token.Type == TextTokenType.LineEnd) {
+            if (token.isLineEnd()) {
                 lineTexts.push('↓');
                 result.push(lineTexts.join(""));
                 lineTexts = [];
+
+                if (i == tokens.length - 1) {
+                    break;
+                }
             }
-            else if (token.Type == TextTokenType.WhiteSpaces) {
+            else if (token.isWhitesSpace()) {
                 lineTexts.push(text);
             }
             else {
                 //line.push(token.LineNumber + " " + TokenType[token.Type] + " " + token.Text);
                 lineTexts.push(text);
+            }
+
+            if (i == tokens.length - 1) {
+                result.push(lineTexts.join(""));
             }
         }
     }
@@ -101,11 +105,17 @@ namespace CodeConverter {
     function convertStatementToHTMLRecursive(result: List<string>, statement: CodeStatement) {
 
         let isFirstLine = true;
-        for (let line of statement.StatementLines) {
+
+        let firstLineCount = 1;
+        //let firstLineCount = statement.StatementLines.length;
+
+        for (let i = 0; i < firstLineCount; i++) {
+            let line = statement.StatementLines[i];
 
             let tokens = TextTokenCollection.create();
             ListAddRange(tokens, line.indentTokens);
             ListAddRange(tokens, line.tokens);
+            ListAddRange(tokens, line.followingTokens);
 
             convertTokensToHTML(result, tokens, isFirstLine ? '#' : ' ');
 
@@ -118,6 +128,16 @@ namespace CodeConverter {
 
                 convertStatementToHTMLRecursive(result, innerStatement);
             }
+        }
+
+        for (let i = firstLineCount; i < statement.StatementLines.length; i++) {
+            let line = statement.StatementLines[i];
+
+            let tokens = TextTokenCollection.create();
+            ListAddRange(tokens, line.indentTokens);
+            ListAddRange(tokens, line.tokens);
+
+            convertTokensToHTML(result, tokens, ' ');
         }
     }
 
