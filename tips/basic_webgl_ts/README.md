@@ -1,6 +1,7 @@
 # TypeScriptによる基本的なWebGLプログラミング - Basic TypeScript-WebGL programming
 
 ## 概要
+
 TypeScriptによる基本的なWebGL(1.0系)プログラムのサンプルです。このサンプルは他のサンプルの基礎となる要素を含んでいます。
 
 ソースコード
@@ -96,7 +97,7 @@ RenderImageクラスの目的はWebGLのテクスチャオブジェクトを保�
 - WebGLを操作する関数を提供する
 - 疑似差分プログラミングを可能にする
 
-SanmpleShaderラスはシェーダの基本クラスであるRenderShaderラスを継承して作成したクラスです。これらシェーダクラスの主な目的は三つありますが、一つめはモデルやイメージと同じであるためここでの説明は省略し、他の二つについて説明します。
+SanmpleShaderクラスはシェーダの基本クラスであるRenderShaderクラス(render3d.tsで定義)を継承して作成したクラスです。これらシェーダクラスの主な目的は上記の通り三つありますが、一つめはモデルやイメージと同じであるためここでの説明は省略し、他の二つについて説明します。
 
 
 #### WebGLを操作する関数を提供する
@@ -184,10 +185,9 @@ class SampleShader extends RenderShader {
 }
 ```
 
-SampleShaderクラスはRenderShaderクラスを継承しています。RenderShaderにはいくつかの基本的な機能だけが含まれています。シェーダ個性が決まるような部分は、継承先のクラスで関数をオーバーライドして実装します。
+SampleShaderクラスはRenderShaderクラスを継承しています。RenderShaderにはいくつかの基本的な機能だけが含まれており、シェーダ個性が決まるような機能は継承先のクラスで関数をオーバーライドして実装します。
 
-SampleShaderクラスではinitializeVertexSourceCode関数とinitializeFragmentSourceCode関数をオーバーライドし、それぞれ頂点シェーダとフラグメントシェーダのソースコードの文字列を初期化しています。シェーダのソースコードが関数内に組み込まれているのは、WebGLのサンプルプログラムとしては珍しいかもしれません。しかし関数になっていることで、クラスの機能を使って、変更したい部分だけを記述して新たなシェーダクラスを作ることができます。  
-例えば上記のサンプルでもソースコードに変数を使用しています。
+SampleShaderクラスではinitializeVertexSourceCode関数とinitializeFragmentSourceCode関数をオーバーライドし、それぞれ頂点シェーダとフラグメントシェーダのソースコードの文字列を初期化しています。シェーダのソースコードが関数内に組み込まれているのは、WebGLのサンプルプログラムとしては珍しいかもしれません。しかし関数になっていることで、クラスの機能を使って、変更したい部分だけを記述して新たなシェーダクラスを作ることができます。例えば上記のサンプルでもソースコードに変数を使用しています。
 
 ```
     initializeVertexSourceCode() {
@@ -200,7 +200,7 @@ SampleShaderクラスではinitializeVertexSourceCode関数とinitializeFragment
 ```
 
 
-また、シェーダクラスではinitializeAttributes関数内でattribute変数やuniform変数の取得を行っています。こちらもシェーダのソースコードと同様に、クラスの作り方しだいで差分だけを記述することができます。例えば、継承元クラスの関数と新しく作成した関数をそれぞれ呼び出すことで実現できます。
+また、SampleShadeクラスではinitializeAttributes関数内でattribute変数やuniform変数の取得を行っています。こちらもシェーダのソースコードと同様に、クラスの作り方しだいで差分だけを記述することができます。例えば次のように、継承元クラスの関数と新しく作成した関数をそれぞれ呼び出すことで実現できます。
 
 ```
     initializeAttributes(gl: WebGLRenderingContext) {
@@ -219,7 +219,9 @@ SampleShaderクラスではinitializeVertexSourceCode関数とinitializeFragment
 
 WebGLRenderクラスの主な目的はWebGLコンテキストをクラスでラップすることです。これはプログラムの保守性を高める意味で有効です。
 
-また、WebGLを扱うとき重要なこととして、WebGLがステートマシンであるという事情があります。しかも、必ずしも現在の状態の全ての情報を取得できるように設計されているわけではありません。WebGLコンテキストやGPUの状態をプログラム側で記憶しておく必要があったり、そのほうが高速に処理できる場合もあります。例えばWebGLRenderクラスではenableVertexAttribArray関数によって有効にされたレジスタの中で使用しないレジスタを無効にする処理をsetShader関数の中で行っています。またWebGLRenderクラスは、現在のシェーダがどれであるかを記憶するメンバ変数を持っています。
+また、WebGLを扱うとき重要なこととして、WebGLがステートマシンであるという事情があります。しかも、必ずしも現在の状態の全ての情報を取得できるように設計されているわけではありません。WebGLコンテキストやGPUの状態をプログラム側で記憶しておく必要があったり、そのほうが高速に処理できる場合もあります。
+
+例えばWebGLRenderクラスではenableVertexAttribArray関数によって有効にされたレジスタの中で使用しないレジスタを無効にする処理をsetShader関数の中で行っています。またWebGLRenderクラスは、現在のシェーダがどれであるかを記憶するメンバ変数を持っています。
 
 
 ## 余談

@@ -5,8 +5,8 @@
       <author>Blender User</author>
       <authoring_tool>Blender 2.76.0 commit date:2015-11-03, commit time:10:56, hash:f337fea</authoring_tool>
     </contributor>
-    <created>2017-10-23T12:36:24</created>
-    <modified>2017-10-23T12:36:24</modified>
+    <created>2017-10-23T12:48:19</created>
+    <modified>2017-10-23T12:48:19</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -169,7 +169,11 @@
       </extra>
     </light>
   </library_lights>
-  <library_images/>
+  <library_images>
+    <image id="texture_png" name="texture_png">
+      <init_from>texture.png</init_from>
+    </image>
+  </library_images>
   <library_effects>
     <effect id="Material-effect">
       <profile_COMMON>
@@ -301,7 +305,6 @@
       </mesh>
     </geometry>
   </library_geometries>
-  <library_controllers/>
   <library_visual_scenes>
     <visual_scene id="Scene" name="Scene">
       <node id="Camera" name="Camera" type="NODE">

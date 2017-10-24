@@ -49,21 +49,23 @@ var CodeConverter;
         for (var i = 0; i < tokens.length; i++) {
             var token = tokens[i];
             var text = token.Text.replace(/\</g, '&lang;').replace(/\>/g, '&rang;');
-            if (i == tokens.length - 1) {
-                lineTexts.push(text);
-                result.push(lineTexts.join(""));
-            }
-            else if (token.Type == CodeConverter.TextTokenType.LineEnd) {
+            if (token.isLineEnd()) {
                 lineTexts.push('↓');
                 result.push(lineTexts.join(""));
                 lineTexts = [];
+                if (i == tokens.length - 1) {
+                    break;
+                }
             }
-            else if (token.Type == CodeConverter.TextTokenType.WhiteSpaces) {
+            else if (token.isWhitesSpace()) {
                 lineTexts.push(text);
             }
             else {
                 //line.push(token.LineNumber + " " + TokenType[token.Type] + " " + token.Text);
                 lineTexts.push(text);
+            }
+            if (i == tokens.length - 1) {
+                result.push(lineTexts.join(""));
             }
         }
     }
@@ -75,19 +77,29 @@ var CodeConverter;
     }
     function convertStatementToHTMLRecursive(result, statement) {
         var isFirstLine = true;
-        for (var _i = 0, _a = statement.StatementLines; _i < _a.length; _i++) {
-            var line = _a[_i];
+        var firstLineCount = 1;
+        //let firstLineCount = statement.StatementLines.length;
+        for (var i = 0; i < firstLineCount; i++) {
+            var line = statement.StatementLines[i];
             var tokens = CodeConverter.TextTokenCollection.create();
             ListAddRange(tokens, line.indentTokens);
             ListAddRange(tokens, line.tokens);
+            ListAddRange(tokens, line.followingTokens);
             convertTokensToHTML(result, tokens, isFirstLine ? '#' : ' ');
             isFirstLine = false;
         }
         if (statement.InnerStatements != null) {
-            for (var _b = 0, _c = statement.InnerStatements; _b < _c.length; _b++) {
-                var innerStatement = _c[_b];
+            for (var _i = 0, _a = statement.InnerStatements; _i < _a.length; _i++) {
+                var innerStatement = _a[_i];
                 convertStatementToHTMLRecursive(result, innerStatement);
             }
+        }
+        for (var i = firstLineCount; i < statement.StatementLines.length; i++) {
+            var line = statement.StatementLines[i];
+            var tokens = CodeConverter.TextTokenCollection.create();
+            ListAddRange(tokens, line.indentTokens);
+            ListAddRange(tokens, line.tokens);
+            convertTokensToHTML(result, tokens, ' ');
         }
     }
     function showStatements(statements) {

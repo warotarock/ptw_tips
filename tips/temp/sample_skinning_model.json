@@ -1,6 +1,6 @@
 {
-  "models": {
-    "Cube": {
+  "skin_models": {
+    "SkinModel1": {
       "images": ["texture.png", "bump.png"],
       "bones": [
         {"name": "Bone", "parent": -1, "matrix": [1,0,0,0,0,0,1,0,0,-1,0,0,0,0,0,1]},

@@ -6,6 +6,17 @@ Blenderのオブジェクトアニメーションのコンバート処理結果�
 
 アニメーションの計算はtips_coreフォルダの animation.tsを使用します。
 
+ソースコード
+
+- [サンプルプログラム（main.ts）](./main.ts)  
+- [アニメーション（animation.ts）](../tips_core/animation.ts)  
+
+デモの実行
+
+- [Live Demo](https://warotarock.github.io/ptw_tips/tips/object_animation_drawing/)
+
+![](./object_animation_drawing_fig001.png)
+
 ## 関連情報
 
 - [オブジェクトアニメーションデータの作成](../object_animation_converter/) 

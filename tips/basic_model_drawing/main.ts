@@ -1,6 +1,13 @@
 ﻿
 namespace ObjectAnimationDrawing {
 
+    interface ModelData {
+
+        vertexStride: int;
+        vertex: List<float>;
+        index: List<int>;
+    }
+
     class Main {
 
         logicalScreenWidth = 640.0;
@@ -128,7 +135,7 @@ namespace ObjectAnimationDrawing {
                         data = JSON.parse(xhr.response);
                     }
 
-                    var modelData = data['models'][modelName];
+                    var modelData: ModelData = data['models'][modelName];
 
                     this.render.initializeModelBuffer(resultModel, modelData.vertex, modelData.index, 4 * modelData.vertexStride); // 4 = size of float
                 }

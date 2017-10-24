@@ -2,6 +2,7 @@ var fs = require('fs');
 var path = require('path');
 var SkinningModelConverting;
 (function (SkinningModelConverting) {
+    // Data types
     var MeshInfo = (function () {
         function MeshInfo() {
             this.name = null;
@@ -20,93 +21,37 @@ var SkinningModelConverting;
         }
         return ConvertedSkinningModel;
     }());
+    // Main process
     window.onload = function () {
-        var fileName = 'sample_skinning_model.blend';
+        var fileName = 'sample_skinning_model.dae';
+        var blendFileName = getExtensionChangedFileName(fileName, 'blend');
         var outFileName = getExtensionChangedFileName('../temp/' + fileName, 'json');
-        // load collada
+        document.getElementById('content').innerHTML = 'Out put will be located ' + outFileName;
+        // Parsing by collada loader
         var collada_loader = new THREE.ColladaLoader();
-        collada_loader.load(getExtensionChangedFileName(fileName, 'dae'), function (threeJSCollada) {
+        collada_loader.load(fileName, function (threeJSCollada) {
             var helper = new Converters.ThreeJSColladaConverterHelper();
-            helper.attach(threeJSCollada);
-            // load .blend for additional information
+            var sceneData = helper.parse(threeJSCollada);
+            // Additional information from .blend
             var request = new XMLHttpRequest();
-            request.open('GET', fileName, true);
+            request.open('GET', blendFileName, true);
             request.responseType = 'arraybuffer';
             request.addEventListener('load', function (e) {
                 var blendFile = BlendFileReader.readBlendFile(request.response);
                 var meshInfos = getMeshInfoFromBlend(blendFile);
-                // execute converting
-                var convetedModels = convert(helper, meshInfos);
+                // Converting
+                var convetedModels = convert(sceneData, meshInfos);
+                // Output
                 output(convetedModels, outFileName);
-                console.log("converting done.");
+                document.getElementById('content').innerHTML = 'Out put done ' + outFileName;
             });
             request.send();
         });
     };
-    function getExtensionChangedFileName(fileName, newExtension) {
-        return (fileName.match(/(.*)(?:\.([^.]+$))/))[1] + '.' + newExtension;
-    }
-    function jsonStringifyReplacer(key, value) {
-        if (typeof value === 'number') {
-            return Number(value.toFixed(4));
-        }
-        else {
-            return value;
-        }
-    }
-    function floatArrayToArray(array) {
-        var result = [];
-        for (var i = 0; i < array.length; i++) {
-            result.push(array[i]);
-        }
-        return result;
-    }
-    function getMeshInfoFromBlend(blendFile) {
-        var bheadDictionary = new Dictionary();
-        Enumerable.From(blendFile.bheadList)
-            .ForEach(function (bhead) { return bheadDictionary[bhead.old] = bhead; });
-        var mesh_TypeInfo = blendFile.dna.getStructureTypeInfo('Mesh');
-        var mesh_BHeads = Enumerable.From(blendFile.bheadList)
-            .Where(function (bh) { return bh.SDNAnr == mesh_TypeInfo.sdnaIndex; })
-            .ToArray();
-        var result = new Dictionary();
-        // search image file path by: mesh -> list of material -> material -> list of texture -> texture -> image -> file path
-        for (var i = 0; i < mesh_BHeads.length; i++) {
-            var mesh_bhead = mesh_BHeads[i];
-            var mesh_dataset = blendFile.dna.createDataSetFromBHead(mesh_bhead);
-            var totcol = mesh_dataset.totcol;
-            var meshInfo = new MeshInfo();
-            meshInfo.name = (mesh_dataset.id.name).substring(2);
-            meshInfo.conversionName = meshInfo.name.replace('.', '_');
-            if (mesh_dataset.mat != 0) {
-                var material_array_bhead = bheadDictionary[mesh_dataset.mat];
-                var material_array_dataset = blendFile.dna.createDataSetFromBHead(material_array_bhead);
-                for (var m = 0; m < totcol; m++) {
-                    var material_bhead = bheadDictionary[material_array_dataset[m]];
-                    var material_dataset = blendFile.dna.createDataSetFromBHead(material_bhead);
-                    var mtex = material_dataset.mtex;
-                    for (var k = 0; k < mtex.length; k++) {
-                        if (mtex[k] != 0) {
-                            var mtex_bhead = bheadDictionary[mtex[k]];
-                            var mtex_dataset = blendFile.dna.createDataSetFromBHead(mtex_bhead);
-                            if (mtex_dataset.tex != 0) {
-                                var tex_dataset = blendFile.dna.createDataSetFromBHead(bheadDictionary[mtex_dataset.tex]);
-                                var image_dataset = blendFile.dna.createDataSetFromBHead(bheadDictionary[tex_dataset.ima]);
-                                meshInfo.imageList.push(image_dataset.name);
-                            }
-                        }
-                    }
-                }
-            }
-            result[meshInfo.conversionName] = meshInfo;
-        }
-        return result;
-    }
-    function convert(helper, meshInfos) {
-        var skinModels = helper.skinModels;
+    function convert(sceneData, meshInfos) {
         var convetedModels = new List();
-        for (var modelIndex = 0; modelIndex < skinModels.length; modelIndex++) {
-            var skinModel = skinModels[modelIndex];
+        for (var modelIndex = 0; modelIndex < sceneData.skinModels.length; modelIndex++) {
+            var skinModel = sceneData.skinModels[modelIndex];
             var sortedParts = Enumerable.From(skinModel.parts)
                 .OrderBy(function (part) { return part.boneIndices.length; })
                 .ThenBy(function (part) { return part.boneIndices[0]; })
@@ -178,17 +123,6 @@ var SkinningModelConverting;
         }
         return convetedModels;
     }
-    function getBoneParentIndex(boneList, parent) {
-        if (parent == null) {
-            return -1;
-        }
-        for (var i = 0; i < boneList.length; i++) {
-            if (boneList[i].name == parent.name) {
-                return i;
-            }
-        }
-        return -1;
-    }
     function output(skinningModels, outFileName) {
         var tab1 = '  ';
         var tab2 = '    ';
@@ -196,7 +130,7 @@ var SkinningModelConverting;
         var tab4 = '        ';
         var out = [];
         out.push('{');
-        out.push(tab1 + '\"models\": {');
+        out.push(tab1 + '\"skin_models\": {');
         for (var modelIndex = 0; modelIndex < skinningModels.length; modelIndex++) {
             var skinningModel = skinningModels[modelIndex];
             out.push(tab2 + '\"' + skinningModel.name + '\": {');
@@ -246,5 +180,75 @@ var SkinningModelConverting;
                 alert('error : ' + error);
             }
         });
+    }
+    function getExtensionChangedFileName(fileName, newExtension) {
+        return (fileName.match(/(.*)(?:\.([^.]+$))/))[1] + '.' + newExtension;
+    }
+    function jsonStringifyReplacer(key, value) {
+        if (typeof value === 'number') {
+            return Number(value.toFixed(4));
+        }
+        else {
+            return value;
+        }
+    }
+    function floatArrayToArray(array) {
+        var result = [];
+        for (var i = 0; i < array.length; i++) {
+            result.push(array[i]);
+        }
+        return result;
+    }
+    function getMeshInfoFromBlend(blendFile) {
+        var bheadDictionary = new Dictionary();
+        Enumerable.From(blendFile.bheadList)
+            .ForEach(function (bhead) { return bheadDictionary[bhead.old] = bhead; });
+        var mesh_TypeInfo = blendFile.dna.getStructureTypeInfo('Mesh');
+        var mesh_BHeads = Enumerable.From(blendFile.bheadList)
+            .Where(function (bh) { return bh.SDNAnr == mesh_TypeInfo.sdnaIndex; })
+            .ToArray();
+        var result = new Dictionary();
+        // search image file path by: mesh -> list of material -> material -> list of texture -> texture -> image -> file path
+        for (var i = 0; i < mesh_BHeads.length; i++) {
+            var mesh_bhead = mesh_BHeads[i];
+            var mesh_dataset = blendFile.dna.createDataSetFromBHead(mesh_bhead);
+            var totcol = mesh_dataset.totcol;
+            var meshInfo = new MeshInfo();
+            meshInfo.name = (mesh_dataset.id.name).substring(2);
+            meshInfo.conversionName = meshInfo.name.replace('.', '_');
+            if (mesh_dataset.mat != 0) {
+                var material_array_bhead = bheadDictionary[mesh_dataset.mat];
+                var material_array_dataset = blendFile.dna.createDataSetFromBHead(material_array_bhead);
+                for (var m = 0; m < totcol; m++) {
+                    var material_bhead = bheadDictionary[material_array_dataset[m]];
+                    var material_dataset = blendFile.dna.createDataSetFromBHead(material_bhead);
+                    var mtex = material_dataset.mtex;
+                    for (var k = 0; k < mtex.length; k++) {
+                        if (mtex[k] != 0) {
+                            var mtex_bhead = bheadDictionary[mtex[k]];
+                            var mtex_dataset = blendFile.dna.createDataSetFromBHead(mtex_bhead);
+                            if (mtex_dataset.tex != 0) {
+                                var tex_dataset = blendFile.dna.createDataSetFromBHead(bheadDictionary[mtex_dataset.tex]);
+                                var image_dataset = blendFile.dna.createDataSetFromBHead(bheadDictionary[tex_dataset.ima]);
+                                meshInfo.imageList.push(image_dataset.name);
+                            }
+                        }
+                    }
+                }
+            }
+            result[meshInfo.conversionName] = meshInfo;
+        }
+        return result;
+    }
+    function getBoneParentIndex(boneList, parent) {
+        if (parent == null) {
+            return -1;
+        }
+        for (var i = 0; i < boneList.length; i++) {
+            if (boneList[i].name == parent.name) {
+                return i;
+            }
+        }
+        return -1;
     }
 })(SkinningModelConverting || (SkinningModelConverting = {}));

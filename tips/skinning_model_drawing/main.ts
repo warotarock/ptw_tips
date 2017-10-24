@@ -69,7 +69,7 @@ namespace SkinningModelDrawing {
             this.render.initializeShader(this.bone4Shader);
 
             this.modelResource = new SkinningModel();
-            this.loadModel(this.modelResource, '../temp/sample_skinning_model.json');
+            this.loadModel(this.modelResource, '../temp/sample_skinning_model.json', 'SkinModel1');
 
             var image = new RenderImage();
             this.loadTexture(image, './texture.png');
@@ -117,7 +117,7 @@ namespace SkinningModelDrawing {
             mat4.perspective(this.projectionMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 50.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
 
-            this.render.setDepthTest(true)
+            this.render.setDepthTest(true);
             this.render.setCulling(false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
 
@@ -203,7 +203,7 @@ namespace SkinningModelDrawing {
             resultImage.imageData.src = url;
         }
 
-        private loadModel(resultModel: SkinningModel, url: string) {
+        private loadModel(resultModel: SkinningModel, url: string, modelName: string) {
 
             var xhr = new XMLHttpRequest();
             xhr.open('GET', url);
@@ -220,7 +220,7 @@ namespace SkinningModelDrawing {
                         data = JSON.parse(xhr.response);
                     }
 
-                    resultModel.data = data['models']['Cube'];
+                    resultModel.data = data['skin_models'][modelName];
                     resultModel.loaded = true;
                 }
             );
@@ -344,11 +344,11 @@ namespace SkinningModelDrawing {
 
             this.vertexAttribPointer(this.aWeight1, 1, gl.FLOAT, model.vertexDataStride, gl);
             this.vertexAttribPointer(this.aPosition1, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointerOffset += 4 * 3;// skip normal data
+            this.addVertexAttribPointerOffset(4 * 3);// skip normal data
 
             this.vertexAttribPointer(this.aWeight2, 1, gl.FLOAT, model.vertexDataStride, gl);
             this.vertexAttribPointer(this.aPosition2, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointerOffset += 4 * 3;// skip normal data
+            this.addVertexAttribPointerOffset(4 * 3);// skip normal data
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
 

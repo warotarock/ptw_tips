@@ -1,33 +1,29 @@
 var fs = require('fs');
 var BasicModelConverting;
 (function (BasicModelConverting) {
+    // Data types
     var ConvertedModel = (function () {
         function ConvertedModel() {
         }
         return ConvertedModel;
     }());
+    // Main process
     window.onload = function () {
         var fileName = 'sample_basic_model.dae';
         var outFileName = getExtensionChangedFileName('../temp/' + fileName, 'json');
+        document.getElementById('content').innerHTML = 'Out put will be located ' + outFileName;
         var collada_loader = new THREE.ColladaLoader();
+        // Parsing by collada loader
         collada_loader.load(fileName, function (threeJSCollada) {
             var helper = new Converters.ThreeJSColladaConverterHelper();
-            helper.attach(threeJSCollada);
-            var convetedModels = convert(helper.staticMeshes);
+            var sceneData = helper.parse(threeJSCollada);
+            // Converting
+            var convetedModels = convert(sceneData.staticMeshes);
+            // Output
             output(convetedModels, outFileName);
+            document.getElementById('content').innerHTML = 'Out put done ' + outFileName;
         });
     };
-    function getExtensionChangedFileName(fileName, newExtension) {
-        return (fileName.match(/(.*)(?:\.([^.]+$))/))[1] + '.' + newExtension;
-    }
-    function jsonStringifyReplacer(key, value) {
-        if (typeof value === 'number') {
-            return Number(value.toFixed(4));
-        }
-        else {
-            return value;
-        }
-    }
     function convert(staticMeshes) {
         var convetedModels = new List();
         for (var meshIndex = 0; meshIndex < staticMeshes.length; meshIndex++) {
@@ -84,5 +80,16 @@ var BasicModelConverting;
                 alert('error : ' + error);
             }
         });
+    }
+    function getExtensionChangedFileName(fileName, newExtension) {
+        return (fileName.match(/(.*)(?:\.([^.]+$))/))[1] + '.' + newExtension;
+    }
+    function jsonStringifyReplacer(key, value) {
+        if (typeof value === 'number') {
+            return Number(value.toFixed(4));
+        }
+        else {
+            return value;
+        }
     }
 })(BasicModelConverting || (BasicModelConverting = {}));

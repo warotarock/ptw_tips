@@ -11,6 +11,10 @@
 
 ![](resource_management_fig001.png)
 
+デモの実行
+
+- [Live Demo](https://warotarock.github.io/ptw_tips/tips/resource_management/)
+
 
 ## リソース管理
 

@@ -48,7 +48,7 @@ var SkinningModelDrawing;
             this.render.initializeShader(this.bone2Shader);
             this.render.initializeShader(this.bone4Shader);
             this.modelResource = new SkinningModel();
-            this.loadModel(this.modelResource, '../temp/sample_skinning_model.json');
+            this.loadModel(this.modelResource, '../temp/sample_skinning_model.json', 'SkinModel1');
             var image = new RenderImage();
             this.loadTexture(image, './texture.png');
             this.imageResources.push(image);
@@ -147,7 +147,7 @@ var SkinningModelDrawing;
             });
             resultImage.imageData.src = url;
         };
-        Main.prototype.loadModel = function (resultModel, url) {
+        Main.prototype.loadModel = function (resultModel, url, modelName) {
             var xhr = new XMLHttpRequest();
             xhr.open('GET', url);
             xhr.responseType = 'json';
@@ -159,7 +159,7 @@ var SkinningModelDrawing;
                 else {
                     data = JSON.parse(xhr.response);
                 }
-                resultModel.data = data['models']['Cube'];
+                resultModel.data = data['skin_models'][modelName];
                 resultModel.loaded = true;
             });
             xhr.send();
@@ -245,10 +245,10 @@ var SkinningModelDrawing;
             this.resetVertexAttribPointerOffset();
             this.vertexAttribPointer(this.aWeight1, 1, gl.FLOAT, model.vertexDataStride, gl);
             this.vertexAttribPointer(this.aPosition1, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointerOffset += 4 * 3; // skip normal data
+            this.addVertexAttribPointerOffset(4 * 3); // skip normal data
             this.vertexAttribPointer(this.aWeight2, 1, gl.FLOAT, model.vertexDataStride, gl);
             this.vertexAttribPointer(this.aPosition2, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointerOffset += 4 * 3; // skip normal data
+            this.addVertexAttribPointerOffset(4 * 3); // skip normal data
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, images[0].texture);

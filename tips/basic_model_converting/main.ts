@@ -5,6 +5,8 @@ namespace BasicModelConverting {
 
     declare var THREE: any;
 
+    // Data types
+
     class ConvertedModel {
         name: string;
         vertexStride: int;
@@ -12,38 +14,34 @@ namespace BasicModelConverting {
         indices: List<int>;
     }
 
+    // Main process
+
     window.onload = () => {
 
         var fileName = 'sample_basic_model.dae';
         var outFileName = getExtensionChangedFileName('../temp/' + fileName, 'json');
 
+        document.getElementById('content').innerHTML = 'Out put will be located ' + outFileName;
+
         var collada_loader = new THREE.ColladaLoader();
+
+        // Parsing by collada loader
         collada_loader.load(
             fileName,
             function (threeJSCollada) {
                 var helper = new Converters.ThreeJSColladaConverterHelper();
-                helper.attach(threeJSCollada);
+                let sceneData = helper.parse(threeJSCollada);
 
-                var convetedModels = convert(helper.staticMeshes);
+                // Converting
+                var convetedModels = convert(sceneData.staticMeshes);
+
+                // Output
                 output(convetedModels, outFileName);
+
+                document.getElementById('content').innerHTML = 'Out put done ' + outFileName;
             }
         );
     };
-
-    function getExtensionChangedFileName(fileName: string, newExtension) {
-
-        return (fileName.match(/(.*)(?:\.([^.]+$))/))[1] + '.' + newExtension;
-    }
-
-    function jsonStringifyReplacer(key: string, value: any): any {
-
-        if (typeof value === 'number') {
-            return Number(value.toFixed(4));
-        }
-        else {
-            return value;
-        }
-    }
 
     function convert(staticMeshes: List<Converters.Mesh>): List<ConvertedModel> {
 
@@ -120,5 +118,20 @@ namespace BasicModelConverting {
                 alert('error : ' + error);
             }
         });
+    }
+
+    function getExtensionChangedFileName(fileName: string, newExtension) {
+
+        return (fileName.match(/(.*)(?:\.([^.]+$))/))[1] + '.' + newExtension;
+    }
+
+    function jsonStringifyReplacer(key: string, value: any): any {
+
+        if (typeof value === 'number') {
+            return Number(value.toFixed(4));
+        }
+        else {
+            return value;
+        }
     }
 }

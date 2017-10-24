@@ -1,6 +1,8 @@
 ﻿
 namespace Converters {
 
+    // Data types
+
     export class MeshVertex {
 
         position: Vec3 = vec3.create();
@@ -74,15 +76,6 @@ namespace Converters {
         parts: List<SkinModelPart> = null;
     }
 
-    export class ModelConverterHelper {
-
-        staticMeshes: List<Mesh> = null;
-        skinModels: List<PartedSkinModel> = null;
-
-        attach(rawData: any) {
-        }
-    }
-
     class SkinningFaceGroup {
 
         key: string;
@@ -114,15 +107,28 @@ namespace Converters {
         );
     }
 
-    export class ThreeJSColladaConverterHelper extends ModelConverterHelper {
+    export class SceneData {
+
+        staticMeshes: List<Mesh> = null;
+        skinModels: List<PartedSkinModel> = null;
+    }
+
+    // Converter
+
+    export class ThreeJSColladaConverterHelper {
 
         collada: any = null;
 
-        attach(threeJSCollada: any) {
+        parse(threeJSCollada: any): SceneData {
 
             this.collada = threeJSCollada;
-            this.staticMeshes = this.parseStaticGeometries();
-            this.skinModels = this.parseSkinGeometries();
+
+            let sceneData = new SceneData();
+
+            sceneData.staticMeshes = this.parseStaticGeometries();
+            sceneData.skinModels = this.parseSkinGeometries();
+
+            return sceneData;
         }
 
         private isSkinGeometry(geometry: any) {
@@ -137,6 +143,8 @@ namespace Converters {
                 return false;
             }
         }
+
+        // Static geometry
 
         private parseStaticGeometries(): List<Mesh> {
 
@@ -267,6 +275,8 @@ namespace Converters {
                 }
             }
         }
+
+        // Skin geometry
 
         private parseSkinGeometries(): List<PartedSkinModel> {
 
