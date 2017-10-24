@@ -110,6 +110,11 @@ class RenderShader {
         }
     }
 
+    addVertexAttribPointerOffset(offset: number) {
+
+        this.vertexAttribPointerOffset += offset;
+    }
+
     setProjectionMatrix(matrix: Mat4, gl: WebGLRenderingContext) {
 
         gl.uniformMatrix4fv(this.uPMatrix, false, matrix);
