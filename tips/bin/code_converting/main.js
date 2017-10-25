@@ -11,7 +11,7 @@ var CodeConverter;
             data = xhr.response;
         });
         var ui_elem = document.getElementById('ui');
-        var p_elem = document.createElement("p");
+        var p_elem = document.createElement('p');
         ui_elem.appendChild(p_elem);
         var button = document.createElement('button');
         button.type = 'button';
@@ -51,8 +51,8 @@ var CodeConverter;
             var text = token.Text.replace(/\</g, '&lang;').replace(/\>/g, '&rang;');
             if (token.isLineEnd()) {
                 lineTexts.push('↓');
-                result.push(lineTexts.join(""));
-                lineTexts = [];
+                result.push(lineTexts.join(''));
+                lineTexts = [' '];
                 if (i == tokens.length - 1) {
                     break;
                 }
@@ -61,11 +61,11 @@ var CodeConverter;
                 lineTexts.push(text);
             }
             else {
-                //line.push(token.LineNumber + " " + TokenType[token.Type] + " " + token.Text);
+                //line.push(token.LineNumber + ' ' + TokenType[token.Type] + ' ' + token.Text);
                 lineTexts.push(text);
             }
             if (i == tokens.length - 1) {
-                result.push(lineTexts.join(""));
+                result.push(lineTexts.join(''));
             }
         }
     }
@@ -99,6 +99,7 @@ var CodeConverter;
             var tokens = CodeConverter.TextTokenCollection.create();
             ListAddRange(tokens, line.indentTokens);
             ListAddRange(tokens, line.tokens);
+            ListAddRange(tokens, line.followingTokens);
             convertTokensToHTML(result, tokens, ' ');
         }
     }

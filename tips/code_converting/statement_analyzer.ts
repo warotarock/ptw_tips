@@ -181,9 +181,22 @@ namespace CodeConverter.StatementAnalyzer {
             }
         }
 
-        SetInnerStatementToCurrentStatement(statements: List<CodeStatement>) {
+        AppendInnerStatementResult(innerResult: AnalyzerResult) {
 
-            this.CurrentStatement.InnerStatements = statements;
+            this.CurrentStatement.InnerStatements = innerResult.Statements;
+
+            // Append remaining tokens
+            if (innerResult.CurrentStatement.Type == StatementType.None
+                && innerResult.CurrentStatement.StatementLines != null) {
+
+                for (let line of innerResult.CurrentStatement.StatementLines) {
+
+                    for (let token of line.indentTokens) {
+
+                        this.AppendIndentToken(token);
+                    }
+                }
+            }
         }
 
         FlushCurrentStatementTokens() {
@@ -370,15 +383,15 @@ namespace CodeConverter.StatementAnalyzer {
 
                 // Block End
                 if (token.isSeperatorOf('}')) {
-                    // TODO: ブロックの終わりがここで検出されるが、この時点でほとんどの場合は改行とインデントがCurrentStatementに入っている。
+                    // TODO: ブロックの終わりがここで検出されるが、この時点でほとんどの場合インデントがCurrentStatementに入っている。
                     //しかしこのまま関数を抜けると、CurrentStatementが確定されていない。
-                    //関数を抜けた先ではここでのresultはinnerResultで、innerResult.statementsだけが確定される。なので改行とインデントが消えてしまう。
+                    //関数を抜けた先ではここでのresultはinnerResultで、innerResult.statementsだけが確定される。なのでインデントが消えてしまう。
                     break;
                 }
                 // Whitespaces
                 else if (token.isBlank()) {
 
-                    this.processContinueingWhitespaces(result, tokens, state);
+                    this.processContinueingBlankTokens(result, tokens, state);
                 }
                 // Start of a syntax
                 else {
@@ -876,22 +889,27 @@ namespace CodeConverter.StatementAnalyzer {
             // Process following tokens right side of {
             this.processFollowingTokens(result, tokens, state);
 
+            result.FlushCurrentStatementTokens();
+
             // Process inner statements
             var innerState = state.cloneForInnerState();
             var innerResult = new AnalyzerResult();
             this.analyzeStatementsRecursive(scopeLevel, innerResult, tokens, innerState);
 
             // Set inner statement result
-            result.SetInnerStatementToCurrentStatement(innerResult.Statements);
+            result.AppendInnerStatementResult(innerResult);
 
             state.CurrentIndex = innerState.CurrentIndex;
 
             // }
-            result.FlushCurrentStatementTokens();
             result.AppendToken(tokens[state.CurrentIndex]);
+            state.CurrentIndex++;
+
+            // Process following tokens right side of }
+            this.processFollowingTokens(result, tokens, state);
+
             result.FlushStatement();
 
-            state.CurrentIndex++;
 
             return true;
         }
@@ -902,6 +920,8 @@ namespace CodeConverter.StatementAnalyzer {
 
             // Process following tokens right side of {
             this.processFollowingTokens(result, tokens, state);
+
+            result.FlushCurrentStatementTokens();
 
             // Parse array members
             var innerResult = new AnalyzerResult();
@@ -942,10 +962,9 @@ namespace CodeConverter.StatementAnalyzer {
             }
 
             // Set inner statement result
-            result.SetInnerStatementToCurrentStatement(innerResult.Statements);
+            result.AppendInnerStatementResult(innerResult);
 
             // }
-            result.FlushCurrentStatementTokens();
             result.AppendToken(tokens[state.CurrentIndex]);
             state.CurrentIndex++;
 
@@ -1358,6 +1377,8 @@ namespace CodeConverter.StatementAnalyzer {
             // Process following tokens right side of {
             this.processFollowingTokens(result, tokens, state);
 
+            result.FlushCurrentStatementTokens();
+
             // Process bolock-inner statements till block end. It will process multiple statement.
             var innerState = state.cloneForInnerState();
             var innerResult = new AnalyzerResult();
@@ -1386,7 +1407,7 @@ namespace CodeConverter.StatementAnalyzer {
                 // Whitespaces
                 else if (token.isBlank()) {
 
-                    this.processContinueingWhitespaces(innerResult, tokens, innerState);
+                    this.processContinueingBlankTokens(innerResult, tokens, innerState);
                 }
                 // Continue searching
                 else {
@@ -1400,17 +1421,19 @@ namespace CodeConverter.StatementAnalyzer {
             }
 
             // Set block-inner statement result
-            result.SetInnerStatementToCurrentStatement(innerResult.Statements);
+            result.AppendInnerStatementResult(innerResult);
 
             state.CurrentIndex = innerState.CurrentIndex;
 
             // }
             if (!isImplicitBlock) {
 
-                result.FlushCurrentStatementTokens();
                 result.AppendToken(tokens[state.CurrentIndex]);
                 state.CurrentIndex++;
             }
+
+            // Process following tokens right side of }
+            this.processFollowingTokens(result, tokens, state);
 
             return true;
         }
@@ -1835,7 +1858,7 @@ namespace CodeConverter.StatementAnalyzer {
             state.LastIndex = state.CurrentIndex;
         }
 
-        private processContinueingWhitespaces(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
+        private processContinueingBlankTokens(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
 
             let currentIndex = state.CurrentIndex;
 
@@ -1866,6 +1889,7 @@ namespace CodeConverter.StatementAnalyzer {
                     result.AppendToken(token);
                 }
 
+                result.SetCurrentStatementType(StatementType.WhiteSpaces);
                 result.FlushStatement();
             }
 

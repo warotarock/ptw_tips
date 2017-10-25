@@ -17,7 +17,7 @@ namespace CodeConverter {
         );
 
         let ui_elem = document.getElementById('ui');
-        let p_elem = document.createElement("p");
+        let p_elem = document.createElement('p');
         ui_elem.appendChild(p_elem);
 
         let button = document.createElement('button');
@@ -70,8 +70,8 @@ namespace CodeConverter {
 
             if (token.isLineEnd()) {
                 lineTexts.push('↓');
-                result.push(lineTexts.join(""));
-                lineTexts = [];
+                result.push(lineTexts.join(''));
+                lineTexts = [' '];
 
                 if (i == tokens.length - 1) {
                     break;
@@ -81,12 +81,12 @@ namespace CodeConverter {
                 lineTexts.push(text);
             }
             else {
-                //line.push(token.LineNumber + " " + TokenType[token.Type] + " " + token.Text);
+                //line.push(token.LineNumber + ' ' + TokenType[token.Type] + ' ' + token.Text);
                 lineTexts.push(text);
             }
 
             if (i == tokens.length - 1) {
-                result.push(lineTexts.join(""));
+                result.push(lineTexts.join(''));
             }
         }
     }
@@ -136,6 +136,7 @@ namespace CodeConverter {
             let tokens = TextTokenCollection.create();
             ListAddRange(tokens, line.indentTokens);
             ListAddRange(tokens, line.tokens);
+            ListAddRange(tokens, line.followingTokens);
 
             convertTokensToHTML(result, tokens, ' ');
         }
