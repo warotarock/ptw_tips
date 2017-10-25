@@ -32,20 +32,20 @@ Collada形式(.dae)のファイルからモデル情報を抽出し、json形式
 
 daeファイル内のモデル情報はBlenderのMeshとArmatureを元にしてdaeファイルの構造に変換され出力されています。さらに、Three.jsのColladaLoaderはファイルを解析し、Three.jsのジオメトリの形式に変換します。
 
-以下にColladaLoaderの返すオブジェクトの構造を簡易的に示します。このオブジェクトがサンプルプログラムの入力データとなります。
+以下にColladaLoaderの返すオブジェクトのおおまかな構造を示します。ここで\{ \}はオブジェクト、[]は配列を表しています。このオブジェクトがサンプルプログラムの入力データとなります。
 
 ```
 (ColladaLoaderの返すオブジェクト)
-  dae
-    geometries
-      mesh
-        geometry3js
-          vertices      頂点の座標
-          faces         面の頂点インデクス
-          faceVertexUvs 面の頂点UV
-          bones         ボーン情報
-          skinIndices   頂点ごとの関連するボーン(ボーンの最大数は４つまででx, y, z, wにボーンのインデクスが保存されています)
-          skinWeights   頂点ごとの関連するボーンのウェイト値(同上)
+  dae{}
+    geometries{}
+      mesh{}
+        geometry3js{}
+          vertices[]      頂点の座標
+          faces[]         面の頂点インデクス
+          faceVertexUvs[] 面の頂点UV
+          bones[]         ボーン情報
+          skinIndices[]   頂点ごとの関連するボーン(ボーンの最大数は４つまででx, y, z, wにボーンのインデクスが保存されています)
+          skinWeights[]   頂点ごとの関連するボーンのウェイト値(同上)
 ```
 
 
@@ -85,33 +85,35 @@ daeファイル内のモデル情報はBlenderのMeshとArmatureを元にしてd
 |12|ボーン４上の頂点法線 x, y, z|float * 3   |
 |13|UV座標 u, v                 |float * 2 * UVマップの数|
 
-以下に出力するファイル全体の構造を簡易的に示します。
+### 出力ファイルの構造
+
+以下に出力するJSONファイルの構造を示します。ここで\{ \}はオブジェクト、[]は配列を表しています。
 
 ```
-(JSON root)
-  skin_models
-    SkinningModel
-      images          画像のファイル名のリスト
+(JSON root{})
+  skin_models{}
+    (SkinningModel{})
+      images[]        画像のファイル名のリスト
     
-      bones           ボーン情報のリスト
-        (SkinningModelBoneData)
+      bones[]         ボーン情報のリスト
+        (SkinningModelBoneData{})
           name          ボーンの名前
           parent        親ボーンのインデクス
-          matrix        ボーン行列
+          matrix[]      ボーン行列
     
-      parts           パーツ情報のリスト
-        (SkinningModelPartData)
+      parts[]         パーツ情報のリスト
+        (SkinningModelPartData{})
           bone          パーツのボーンのインデクス(最大４つまで)
           material      マテリアルのインデクス
           vertexStride  １頂点のサイズ(float型の個数)
-          vertex        頂点データ(インターリーブ配列)
-          index         面の頂点インデクス
+          vertex[]      頂点データ(インターリーブ配列)
+          index[]       面の頂点インデクス
 ```
 
 
 ## サンプルプログラム
 
-### 処理の流れ (詳細)
+### 処理の流れ (概略)
 
 
 
