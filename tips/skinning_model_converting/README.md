@@ -113,9 +113,49 @@ daeファイル内のモデル情報はBlenderのMeshとArmatureを元にしてd
 
 ## サンプルプログラム
 
-### 処理の流れ (概略)
+### プログラム構成
 
+![プログラムの構成](basic_model_converting_fig001.png)
 
+サンプルプログラムは画面のロード時に実行されます。メイン処理はMainクラスのexecute関数です。メイン処理ではまずThree.jsのColladaLoaderのload関数でファイルを読み込み、コンバート処理の各ステップを実行します。
+
+### コンバート処理の流れ１ (ファイルのパースまで)
+
+ここではファイルのパースの段階で行う処理の流れを説明します。なお、パーツ分割済みモデルデータの作成処理についてはソースコードを参照してください。
+
+Main.execute関数
+
+1. ColladaLoaderによるdaeファイルのロード
+2. ロード終了イベント
+    1. *パースを実行(ThreeJSColladaParser.parse関数)*
+    2. 必要データの抽出と再構成の実行(Main.convert関数)
+    3. 出力の実行(Main.output関数)
+
+*ThreeJSColladaParser.parse関数*
+
+1. 結果オブジェクト(SceneData)の作成
+2. すべての固定モデルのパース ([モデルデータの作成](./basic_model_converting/))を参照してください
+3. すべてのスキンモデルのパース (parseSkinGeometries関数)
+4. ループ：(ロード結果のオブジェクト).dae.geometries
+5. 　スキンモデルでなければスキップ (isSkinGeometry関数で判定)
+6. 　*スキンモデルのパース (parseSkinGeometry関数)*
+7. 　結果オブジェクトに固定モデルを追加
+8. ループ終了
+9. 結果オブジェクトを返却
+
+*ThreeJSColladaParser.parseSkinGeometries関数*
+
+1. geometry3jsから頂点データを抽出
+2. geometry3jsから面データを抽出
+3. 面データのテクスチャ座標情報を頂点データにコピー
+4. geometry3jsからボーンデータを抽出
+5. パーツ分割済みモデルデータの作成
+6. モデル名（メッシュ名）の抽出
+7. パーツ分割済みモデルデータを返却
+
+### コンバート処理の流れ２ (必要データの抽出と再構成)
+
+### コンバート処理の流れ３ (出力)
 
 ## 使用外部ライブラリ
 

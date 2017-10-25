@@ -307,11 +307,11 @@ namespace Converters {
 
             var faces = this.parseFaces(geometry3js);
 
-            var bones = this.parseBones(geometry3js);
-
             this.overwriteVertexUV(faces, vertices);
 
-            var partedSkinnigModel = this.parsePartedSkinData(geometry3js, faces, vertices, bones);
+            var bones = this.parseBones(geometry3js);
+
+            var partedSkinnigModel = this.createPartedSkinData(geometry3js, faces, vertices, bones);
 
             var meshSufixIndex = geometryName.lastIndexOf('-mesh');
             partedSkinnigModel.name = geometryName.substr(0, meshSufixIndex);
@@ -388,13 +388,13 @@ namespace Converters {
             }
         }
 
-        private parsePartedSkinData(geometry3js: any, faces: List<MeshFace>, vertices: List<MeshVertex>, bones: List<SkinningBone>): PartedSkinModel {
+        private createPartedSkinData(geometry3js: any, faces: List<MeshFace>, vertices: List<MeshVertex>, bones: List<SkinningBone>): PartedSkinModel {
 
             if (geometry3js.skinIndices == undefined || geometry3js.skinIndices == null) {
                 return null;
             }
 
-            // get material-bone keyed groups per a face
+            // get material-bone keyed groups from faces and vertices
             var skinningFaceGoups = this.parsePartedSkinData_GetFaceGroups(geometry3js, faces, vertices);
 
             var vertexIndexTable = new Array(vertices.length);
