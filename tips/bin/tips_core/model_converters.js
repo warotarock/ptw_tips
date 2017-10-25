@@ -119,19 +119,19 @@ var Converters;
         return SceneData;
     }());
     Converters.SceneData = SceneData;
-    // Converter
-    var ThreeJSColladaConverterHelper = (function () {
-        function ThreeJSColladaConverterHelper() {
+    // Converter / Parser
+    var ThreeJSColladaParser = (function () {
+        function ThreeJSColladaParser() {
             this.collada = null;
         }
-        ThreeJSColladaConverterHelper.prototype.parse = function (threeJSCollada) {
+        ThreeJSColladaParser.prototype.parse = function (threeJSCollada) {
             this.collada = threeJSCollada;
             var sceneData = new SceneData();
             sceneData.staticMeshes = this.parseStaticGeometries();
             sceneData.skinModels = this.parseSkinGeometries();
             return sceneData;
         };
-        ThreeJSColladaConverterHelper.prototype.isSkinGeometry = function (geometry) {
+        ThreeJSColladaParser.prototype.isSkinGeometry = function (geometry) {
             if (geometry.mesh
                 && geometry.mesh.geometry3js
                 && geometry.mesh.geometry3js.bones !== undefined) {
@@ -142,7 +142,7 @@ var Converters;
             }
         };
         // Static geometry
-        ThreeJSColladaConverterHelper.prototype.parseStaticGeometries = function () {
+        ThreeJSColladaParser.prototype.parseStaticGeometries = function () {
             var geometries = this.collada.dae.geometries;
             var result = new List();
             for (var geometryName in geometries) {
@@ -155,7 +155,7 @@ var Converters;
             }
             return result;
         };
-        ThreeJSColladaConverterHelper.prototype.parseStaticGeometry = function (geometryName, geometry) {
+        ThreeJSColladaParser.prototype.parseStaticGeometry = function (geometryName, geometry) {
             var geometry3js = geometry.mesh.geometry3js;
             var vertices = this.parseVertices(geometry3js);
             var faces = this.parseFaces(geometry3js);
@@ -168,7 +168,7 @@ var Converters;
             result.faces = faces;
             return result;
         };
-        ThreeJSColladaConverterHelper.prototype.parseVertices = function (geometry3js) {
+        ThreeJSColladaParser.prototype.parseVertices = function (geometry3js) {
             var vertices = new List();
             for (var i = 0; i < geometry3js.vertices.length; i++) {
                 var vartexData = geometry3js.vertices[i];
@@ -180,7 +180,7 @@ var Converters;
             }
             return vertices;
         };
-        ThreeJSColladaConverterHelper.prototype.parseFaces = function (geometry3js) {
+        ThreeJSColladaParser.prototype.parseFaces = function (geometry3js) {
             var faces = new List();
             for (var i = 0; i < geometry3js.faces.length; i++) {
                 var faceData = geometry3js.faces[i];
@@ -217,7 +217,7 @@ var Converters;
             }
             return faces;
         };
-        ThreeJSColladaConverterHelper.prototype.overwriteVertexUV = function (faces, vertices) {
+        ThreeJSColladaParser.prototype.overwriteVertexUV = function (faces, vertices) {
             // overwrite vretex texture coord data by face data (may be conflicted...)
             for (var i = 0; i < faces.length; i++) {
                 var face = faces[i];
@@ -237,7 +237,7 @@ var Converters;
             }
         };
         // Skin geometry
-        ThreeJSColladaConverterHelper.prototype.parseSkinGeometries = function () {
+        ThreeJSColladaParser.prototype.parseSkinGeometries = function () {
             var geometries = this.collada.dae.geometries;
             var result = new List();
             for (var geometryName in geometries) {
@@ -250,7 +250,7 @@ var Converters;
             }
             return result;
         };
-        ThreeJSColladaConverterHelper.prototype.parseSkinGeometry = function (geometryName, geometry) {
+        ThreeJSColladaParser.prototype.parseSkinGeometry = function (geometryName, geometry) {
             var geometry3js = geometry.mesh.geometry3js;
             var vertices = this.parseVertices(geometry3js);
             var faces = this.parseFaces(geometry3js);
@@ -261,7 +261,7 @@ var Converters;
             partedSkinnigModel.name = geometryName.substr(0, meshSufixIndex);
             return partedSkinnigModel;
         };
-        ThreeJSColladaConverterHelper.prototype.parseBones = function (geometry3js) {
+        ThreeJSColladaParser.prototype.parseBones = function (geometry3js) {
             var tempVec3 = vec3.create();
             var result = new List();
             for (var i = 0; i < geometry3js.bones.length; i++) {
@@ -297,7 +297,7 @@ var Converters;
                 .ToArray();
             return result;
         };
-        ThreeJSColladaConverterHelper.prototype.normalizeMat4 = function (mat) {
+        ThreeJSColladaParser.prototype.normalizeMat4 = function (mat) {
             this.normalizeMat4Part(mat, 0);
             this.normalizeMat4Part(mat, 4);
             this.normalizeMat4Part(mat, 8);
@@ -305,7 +305,7 @@ var Converters;
             mat[13] = 0.0;
             mat[14] = 0.0;
         };
-        ThreeJSColladaConverterHelper.prototype.normalizeMat4Part = function (mat, offset) {
+        ThreeJSColladaParser.prototype.normalizeMat4Part = function (mat, offset) {
             var length = Math.sqrt(mat[offset + 0] * mat[offset + 0] + mat[offset + 1] * mat[offset + 1] + mat[offset + 2] * mat[offset + 2]);
             if (length > 0) {
                 mat[offset + 0] /= length;
@@ -313,7 +313,7 @@ var Converters;
                 mat[offset + 2] /= length;
             }
         };
-        ThreeJSColladaConverterHelper.prototype.parsePartedSkinData = function (geometry3js, faces, vertices, bones) {
+        ThreeJSColladaParser.prototype.parsePartedSkinData = function (geometry3js, faces, vertices, bones) {
             if (geometry3js.skinIndices == undefined || geometry3js.skinIndices == null) {
                 return null;
             }
@@ -424,7 +424,7 @@ var Converters;
             result.parts = parts;
             return result;
         };
-        ThreeJSColladaConverterHelper.prototype.parsePartedSkinData_GetFaceGroups = function (geometry3js, faces, vertices) {
+        ThreeJSColladaParser.prototype.parsePartedSkinData_GetFaceGroups = function (geometry3js, faces, vertices) {
             // add weight data to vertex and face data
             for (var i = 0; i < faces.length; i++) {
                 var face = faces[i];
@@ -553,7 +553,7 @@ var Converters;
                 .ToArray();
             return faceGoups;
         };
-        return ThreeJSColladaConverterHelper;
+        return ThreeJSColladaParser;
     }());
-    Converters.ThreeJSColladaConverterHelper = ThreeJSColladaConverterHelper;
+    Converters.ThreeJSColladaParser = ThreeJSColladaParser;
 })(Converters || (Converters = {}));

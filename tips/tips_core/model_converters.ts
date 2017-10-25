@@ -113,11 +113,11 @@ namespace Converters {
         skinModels: List<PartedSkinModel> = null;
     }
 
-    // Converter
+    // Converter / Parser
 
-    export class ThreeJSColladaConverterHelper {
+    export class ThreeJSColladaParser {
 
-        collada: any = null;
+        private collada: any = null;
 
         parse(threeJSCollada: any): SceneData {
 
