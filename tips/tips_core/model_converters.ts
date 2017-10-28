@@ -3,6 +3,12 @@ namespace Converters {
 
     // Data types
 
+    export class BoneIndexWeight {
+
+        index: int = 0;
+        weight: float = 0.0;
+    }
+
     export class MeshVertex {
 
         position: Vec3 = vec3.create();
@@ -11,25 +17,21 @@ namespace Converters {
         boneWeights: List<BoneIndexWeight> = null;
     }
 
-    export class BoneIndexWeight {
-
-        index: int = 0;
-        weight: float = 0.0;
-    }
-
     export class MeshFace {
 
         vertexIndeces: List<int> = null;
         vertexNormals: List<Vec3> = null;
         texcoords: List<List<Vec2>> = null;
         faceNormal: Vec3 = vec3.create();
+
         materialName: string = null;
         materialIndex: int = null;
+
         boneCount: int = 0;
         sortingIndeces: List<int> = null;
     }
 
-    export class Mesh {
+    export class StaticMeshModel {
 
         name: string = null;
         vertices: List<MeshVertex> = null;
@@ -49,7 +51,7 @@ namespace Converters {
         texcoords: List<Vec2> = null;
     }
 
-    export class SkinModelPart {
+    export class SkinMeshPart {
 
         materialIndex: int = -1;
         boneIndices: List<int> = null;
@@ -57,26 +59,28 @@ namespace Converters {
         faces: List<MeshFace> = null;
     }
 
-    export class SkinningBone {
+    export class SkinMeshBone {
 
         name: string = null;
-        parent: SkinningBone = null;
+        parent: SkinMeshBone = null;
         originalBoneIndex: int = -1;
+
         nestLevel: int = -1;
+
         localMatrix: Mat4 = mat4.create();
         worldMatrix: Mat4 = mat4.create();
         worldInvMatrix: Mat4 = mat4.create();
         worldInvNormalMatrix: Mat4 = mat4.create();
     }
 
-    export class PartedSkinModel {
+    export class PartedSkinMeshModel {
 
         name: string = null;
-        bones: List<SkinningBone> = null;
-        parts: List<SkinModelPart> = null;
+        bones: List<SkinMeshBone> = null;
+        parts: List<SkinMeshPart> = null;
     }
 
-    class SkinningFaceGroup {
+    class SkinFaceGroup {
 
         key: string;
         materialIndex: int;
@@ -109,8 +113,8 @@ namespace Converters {
 
     export class SceneData {
 
-        staticMeshes: List<Mesh> = null;
-        skinModels: List<PartedSkinModel> = null;
+        staticMeshModels: List<StaticMeshModel> = null;
+        skinMeshModels: List<PartedSkinMeshModel> = null;
     }
 
     // Converter / Parser
@@ -125,8 +129,8 @@ namespace Converters {
 
             let sceneData = new SceneData();
 
-            sceneData.staticMeshes = this.parseStaticGeometries();
-            sceneData.skinModels = this.parseSkinGeometries();
+            sceneData.staticMeshModels = this.parseStaticGeometries();
+            sceneData.skinMeshModels = this.parseSkinGeometries();
 
             return sceneData;
         }
@@ -146,11 +150,11 @@ namespace Converters {
 
         // Static geometry
 
-        private parseStaticGeometries(): List<Mesh> {
+        private parseStaticGeometries(): List<StaticMeshModel> {
 
             var geometries = this.collada.dae.geometries;
 
-            var result = new List<Mesh>();
+            var result = new List<StaticMeshModel>();
             for (var geometryName in geometries) {
                 var geometry = geometries[geometryName];
 
@@ -166,20 +170,22 @@ namespace Converters {
             return result;
         }
 
-        private parseStaticGeometry(geometryName: string, geometry: any): Mesh {
+        private parseStaticGeometry(geometryName: string, geometry: any): StaticMeshModel {
 
             var geometry3js = geometry.mesh.geometry3js;
 
-            var vertices = this.parseVertices(geometry3js);
+            // Extract mesh data
+            var vertices = this.extractVertices(geometry3js);
 
-            var faces = this.parseFaces(geometry3js);
+            var faces = this.extractFaces(geometry3js);
 
             this.overwriteVertexUV(faces, vertices);
 
             var meshSufixIndex = geometryName.lastIndexOf('-mesh');
             var meshName = geometryName.substr(0, meshSufixIndex);
 
-            var result = new Mesh();
+            // Build a static mesh model
+            var result = new StaticMeshModel();
             result.name = meshName;
             result.vertices = vertices;
             result.faces = faces;
@@ -187,7 +193,7 @@ namespace Converters {
             return result;
         }
 
-        private parseVertices(geometry3js: any): List<MeshVertex> {
+        private extractVertices(geometry3js: any): List<MeshVertex> {
 
             var vertices = new List<MeshVertex>();
             for (var i = 0; i < geometry3js.vertices.length; i++) {
@@ -204,7 +210,7 @@ namespace Converters {
             return vertices;
         }
 
-        private parseFaces(geometry3js: any): List<MeshFace> {
+        private extractFaces(geometry3js: any): List<MeshFace> {
 
             var faces = new List<MeshFace>();
 
@@ -278,11 +284,11 @@ namespace Converters {
 
         // Skin geometry
 
-        private parseSkinGeometries(): List<PartedSkinModel> {
+        private parseSkinGeometries(): List<PartedSkinMeshModel> {
 
             var geometries = this.collada.dae.geometries;
 
-            var result = new List<PartedSkinModel>();
+            var result = new List<PartedSkinMeshModel>();
 
             for (var geometryName in geometries) {
                 var geometry = geometries[geometryName];
@@ -299,36 +305,42 @@ namespace Converters {
             return result;
         }
 
-        private parseSkinGeometry(geometryName: string, geometry: any): PartedSkinModel {
+        private parseSkinGeometry(geometryName: string, geometry: any): PartedSkinMeshModel {
 
             var geometry3js = geometry.mesh.geometry3js;
 
-            var vertices = this.parseVertices(geometry3js);
+            // Extract mesh data
+            var vertices = this.extractVertices(geometry3js);
 
-            var faces = this.parseFaces(geometry3js);
+            var faces = this.extractFaces(geometry3js);
 
             this.overwriteVertexUV(faces, vertices);
 
-            var bones = this.parseBones(geometry3js);
+            var bones = this.extractBones(geometry3js);
 
-            var partedSkinnigModel = this.createPartedSkinData(geometry3js, faces, vertices, bones);
+            var faceGroups = this.collectFaceGroups(geometry3js, vertices, faces);
 
             var meshSufixIndex = geometryName.lastIndexOf('-mesh');
-            partedSkinnigModel.name = geometryName.substr(0, meshSufixIndex);
+            var meshName = geometryName.substr(0, meshSufixIndex);
 
-            return partedSkinnigModel;
+            // Build a parted skin mesh model
+            var skinMeshModel = this.buildPartedSkinMeshModel(faceGroups, vertices, faces, bones);
+
+            skinMeshModel.name = meshName;
+
+            return skinMeshModel;
         }
 
-        private parseBones(geometry3js: any): List<SkinningBone> {
+        private extractBones(geometry3js: any): List<SkinMeshBone> {
 
             var tempVec3 = vec3.create();
 
-            var result = new List<SkinningBone>();
+            var result = new List<SkinMeshBone>();
 
             for (var i = 0; i < geometry3js.bones.length; i++) {
                 var bone = geometry3js.bones[i];
 
-                var skiningBone = new SkinningBone();
+                var skiningBone = new SkinMeshBone();
                 skiningBone.name = bone.name.replace(/_/g, '.');
                 skiningBone.originalBoneIndex = i;
                 mat4.copy(skiningBone.localMatrix, bone.matrix.elements);
@@ -388,21 +400,173 @@ namespace Converters {
             }
         }
 
-        private createPartedSkinData(geometry3js: any, faces: List<MeshFace>, vertices: List<MeshVertex>, bones: List<SkinningBone>): PartedSkinModel {
+        private collectFaceGroups(geometry3js: any, vertices: List<MeshVertex>, faces: List<MeshFace>): List<SkinFaceGroup> {
 
             if (geometry3js.skinIndices == undefined || geometry3js.skinIndices == null) {
                 return null;
             }
 
-            // get material-bone keyed groups from faces and vertices
-            var skinningFaceGoups = this.parsePartedSkinData_GetFaceGroups(geometry3js, faces, vertices);
+            // add weight data to vertex and face data
+            for (var i = 0; i < faces.length; i++) {
+                var face = faces[i];
+
+                face.sortingIndeces = new List<int>();
+
+                for (var k = 0; k < face.vertexIndeces.length; k++) {
+
+                    var vertexIndex = face.vertexIndeces[k]
+                    var vertex = vertices[vertexIndex];
+                    var skinIndex = geometry3js.skinIndices[vertexIndex];
+                    var skinWeight = geometry3js.skinWeights[vertexIndex];
+
+                    vertex.boneWeights = new List<BoneIndexWeight>();
+
+                    var boneWeight = new BoneIndexWeight();
+                    boneWeight.index = skinIndex.x;
+                    boneWeight.weight = skinWeight.x;
+                    vertex.boneWeights.push(boneWeight);
+                    face.sortingIndeces.push(boneWeight.index);
+
+                    if (skinIndex.y > 0) {
+                        boneWeight = new BoneIndexWeight();
+                        boneWeight.index = skinIndex.y;
+                        boneWeight.weight = skinWeight.y;
+                        vertex.boneWeights.push(boneWeight);
+                        face.sortingIndeces.push(boneWeight.index);
+                    }
+
+                    if (skinIndex.z > 0) {
+                        boneWeight = new BoneIndexWeight();
+                        boneWeight.index = skinIndex.z;
+                        boneWeight.weight = skinWeight.z;
+                        vertex.boneWeights.push(boneWeight);
+                        face.sortingIndeces.push(boneWeight.index);
+                    }
+
+                    if (skinIndex.w > 0) {
+                        boneWeight = new BoneIndexWeight();
+                        boneWeight.index = skinIndex.w;
+                        boneWeight.weight = skinWeight.w;
+                        vertex.boneWeights.push(boneWeight);
+                        face.sortingIndeces.push(boneWeight.index);
+                    }
+                }
+
+                face.sortingIndeces = Enumerable.From(face.sortingIndeces)
+                    .Distinct()
+                    .OrderBy()
+                    .ToArray();
+
+                face.boneCount = face.sortingIndeces.length;
+
+                if (face.boneCount > 4) {
+                    console.log("more than 4 bone count detected.");
+                }
+            }
+
+            // grouping by bone and material
+            var faceGoups: List<SkinFaceGroup> = Enumerable.From(faces)
+                .GroupBy(face => getFaceGroupKey(face.materialIndex, face.sortingIndeces))
+                .Select(group => ({
+                    key: group.Key(),
+                    boneCount: group.source[0].boneCount,
+                    boneIndices: group.source[0].sortingIndeces,
+                    materialIndex: group.source[0].materialIndex,
+                    faces: group.source,
+                    combined: false
+                }))
+                .OrderBy(group => group.key)
+                .ToArray();
+
+            // compress all one-bone groups
+            for (var i = 0; i < faceGoups.length; i++) {
+                var group = faceGoups[i];
+
+                if (group.boneCount != 1) {
+                    continue;
+                }
+                else {
+                    var compress_to_group: SkinFaceGroup = null;
+                    var newBone = false;
+
+                    // search another group wihich same bone have
+                    for (var k = 0; k < faceGoups.length; k++) {
+                        var toGroup = faceGoups[k];
+                        if (k != i && toGroup.materialIndex == group.materialIndex && toGroup.boneCount >= 2) {
+                            for (var m = 0; m < toGroup.boneIndices.length; m++) {
+                                if (toGroup.boneIndices[m] == group.boneIndices[0]) {
+                                    compress_to_group = toGroup;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    // search another one bone group
+                    // or search three bone group
+                    if (compress_to_group == null) {
+                        for (var k = 0; k < faceGoups.length; k++) {
+                            var toGroup = faceGoups[k];
+                            if (k != i && toGroup.materialIndex == group.materialIndex && toGroup.boneCount == 1) {
+                                compress_to_group = toGroup;
+                                newBone = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (compress_to_group == null) {
+                        for (var k = 0; k < faceGoups.length; k++) {
+                            var toGroup = faceGoups[k];
+                            if (k != i && toGroup.materialIndex == group.materialIndex && toGroup.boneCount == 3) {
+                                compress_to_group = toGroup;
+                                newBone = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (compress_to_group != null) {
+
+                        if (newBone) {
+                            compress_to_group.boneIndices.push(group.boneIndices[0]);
+                            compress_to_group.boneCount++;
+                        }
+
+                        compress_to_group.key = getFaceGroupKey(compress_to_group.materialIndex, compress_to_group.boneIndices);
+
+                        // combine mesh
+                        compress_to_group.faces = compress_to_group.faces.concat(group.faces);
+
+                        group.combined = true;
+                    }
+                }
+            }
+
+            // adjust boneIndices array size
+            for (var i = 0; i < faceGoups.length; i++) {
+                var group = faceGoups[i];
+                if (group.boneIndices.length == 1 || group.boneIndices.length == 3) {
+                    group.boneIndices.push(-1);
+                }
+            }
+
+            // filter and ordering
+            faceGoups = Enumerable.From(faceGoups)
+                .Where(group => !group.combined)
+                .OrderBy(group => group.key)
+                .ToArray();
+
+            return faceGoups;
+        }
+
+        private buildPartedSkinMeshModel(faceGoups: List<SkinFaceGroup>, vertices: List<MeshVertex>, faces: List<MeshFace>, bones: List<SkinMeshBone>): PartedSkinMeshModel {
 
             var vertexIndexTable = new Array(vertices.length);
 
             // create a part data for each groups
-            var parts = new List<SkinModelPart>();
-            for (var i = 0; i < skinningFaceGoups.length; i++) {
-                var group = skinningFaceGoups[i];
+            var parts = new List<SkinMeshPart>();
+            for (var i = 0; i < faceGoups.length; i++) {
+                var group = faceGoups[i];
 
                 // assign new vertex index in the part
                 var new_vertex_count = 0;
@@ -479,7 +643,7 @@ namespace Converters {
                 }
 
                 // create part
-                var part = new SkinModelPart();
+                var part = new SkinMeshPart();
                 part.boneIndices = group.boneIndices;
                 part.materialIndex = group.materialIndex;
                 part.vertices = part_vertices;
@@ -526,166 +690,11 @@ namespace Converters {
             }
 
             // create a model
-            var result = new PartedSkinModel();
+            var result = new PartedSkinMeshModel();
             result.bones = bones;
             result.parts = parts;
 
             return result;
-        }
-
-        private parsePartedSkinData_GetFaceGroups(geometry3js: any, faces: List<MeshFace>, vertices: List<MeshVertex>) {
-
-            // add weight data to vertex and face data
-            for (var i = 0; i < faces.length; i++) {
-                var face = faces[i];
-
-                face.sortingIndeces = new List<int>();
-
-                for (var k = 0; k < face.vertexIndeces.length; k++) {
-
-                    var vertexIndex = face.vertexIndeces[k]
-                    var vertex = vertices[vertexIndex];
-                    var skinIndex = geometry3js.skinIndices[vertexIndex];
-                    var skinWeight = geometry3js.skinWeights[vertexIndex];
-
-                    vertex.boneWeights = new List<BoneIndexWeight>();
-
-                    var boneWeight = new BoneIndexWeight();
-                    boneWeight.index = skinIndex.x;
-                    boneWeight.weight = skinWeight.x;
-                    vertex.boneWeights.push(boneWeight);
-                    face.sortingIndeces.push(boneWeight.index);
-
-                    if (skinIndex.y > 0) {
-                        boneWeight = new BoneIndexWeight();
-                        boneWeight.index = skinIndex.y;
-                        boneWeight.weight = skinWeight.y;
-                        vertex.boneWeights.push(boneWeight);
-                        face.sortingIndeces.push(boneWeight.index);
-                    }
-
-                    if (skinIndex.z > 0) {
-                        boneWeight = new BoneIndexWeight();
-                        boneWeight.index = skinIndex.z;
-                        boneWeight.weight = skinWeight.z;
-                        vertex.boneWeights.push(boneWeight);
-                        face.sortingIndeces.push(boneWeight.index);
-                    }
-
-                    if (skinIndex.w > 0) {
-                        boneWeight = new BoneIndexWeight();
-                        boneWeight.index = skinIndex.w;
-                        boneWeight.weight = skinWeight.w;
-                        vertex.boneWeights.push(boneWeight);
-                        face.sortingIndeces.push(boneWeight.index);
-                    }
-                }
-
-                face.sortingIndeces = Enumerable.From(face.sortingIndeces)
-                    .Distinct()
-                    .OrderBy()
-                    .ToArray();
-
-                face.boneCount = face.sortingIndeces.length;
-
-                if (face.boneCount > 4) {
-                    console.log("more than 4 bone count detected.");
-                }
-            }
-
-            // grouping by bone and material
-            var faceGoups: List<SkinningFaceGroup> = Enumerable.From(faces)
-                .GroupBy(face => getFaceGroupKey(face.materialIndex, face.sortingIndeces))
-                .Select(group => ({
-                    key: group.Key(),
-                    boneCount: group.source[0].boneCount,
-                    boneIndices: group.source[0].sortingIndeces,
-                    materialIndex: group.source[0].materialIndex,
-                    faces: group.source,
-                    combined: false
-                }))
-                .OrderBy(group => group.key)
-                .ToArray();
-
-            // compress all one-bone groups
-            for (var i = 0; i < faceGoups.length; i++) {
-                var group = faceGoups[i];
-
-                if (group.boneCount != 1) {
-                    continue;
-                }
-                else {
-                    var compress_to_group: SkinningFaceGroup = null;
-                    var newBone = false;
-
-                    // search another group wihich same bone have
-                    for (var k = 0; k < faceGoups.length; k++) {
-                        var toGroup = faceGoups[k];
-                        if (k != i && toGroup.materialIndex == group.materialIndex && toGroup.boneCount >= 2) {
-                            for (var m = 0; m < toGroup.boneIndices.length; m++) {
-                                if (toGroup.boneIndices[m] == group.boneIndices[0]) {
-                                    compress_to_group = toGroup;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    // search another one bone group
-                    // or search three bone group
-                    if (compress_to_group == null) {
-                        for (var k = 0; k < faceGoups.length; k++) {
-                            var toGroup = faceGoups[k];
-                            if (k != i && toGroup.materialIndex == group.materialIndex && toGroup.boneCount == 1) {
-                                compress_to_group = toGroup;
-                                newBone = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (compress_to_group == null) {
-                        for (var k = 0; k < faceGoups.length; k++) {
-                            var toGroup = faceGoups[k];
-                            if (k != i && toGroup.materialIndex == group.materialIndex && toGroup.boneCount == 3) {
-                                compress_to_group = toGroup;
-                                newBone = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (compress_to_group != null) {
-
-                        if (newBone) {
-                            compress_to_group.boneIndices.push(group.boneIndices[0]);
-                            compress_to_group.boneCount++;
-                        }
-
-                        compress_to_group.key = getFaceGroupKey(compress_to_group.materialIndex, compress_to_group.boneIndices);
-
-                        // combine mesh
-                        compress_to_group.faces = compress_to_group.faces.concat(group.faces);
-
-                        group.combined = true;
-                    }
-                }
-            }
-
-            // adjust boneIndices array size
-            for (var i = 0; i < faceGoups.length; i++) {
-                var group = faceGoups[i];
-                if (group.boneIndices.length == 1 || group.boneIndices.length == 3) {
-                    group.boneIndices.push(-1);
-                }
-            }
-
-            // filter and ordering
-            faceGoups = Enumerable.From(faceGoups)
-                .Where(group => !group.combined)
-                .OrderBy(group => group.key)
-                .ToArray();
-
-            return faceGoups;
         }
     }
 }

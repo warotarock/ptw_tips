@@ -1,20 +1,19 @@
 
-namespace SkinningModelDrawing {
+namespace SkinModelDrawing {
 
     // Model data types used this sample
-    interface SkinningModelData {
-        images: List<string>;
-        bones: List<SkinningModelBoneData>;
-        parts: List<SkinningModelPartData>;
+    interface SkinModelData {
+        bones: List<SkinModelBoneData>;
+        parts: List<SkinModelPartData>;
     }
 
-    interface SkinningModelBoneData {
+    interface SkinModelBoneData {
         name: string;
         parent: int;
         matrix: List<float>;
     }
 
-    interface SkinningModelPartData {
+    interface SkinModelPartData {
         bone: List<int>;
         material: int;
         vertexStride: int;
@@ -24,8 +23,8 @@ namespace SkinningModelDrawing {
         renderModel: RenderModel;
     }
 
-    class SkinningModel {
-        data: SkinningModelData = null;
+    class SkinModel {
+        data: SkinModelData = null;
         loaded = false;
         initialized = false;
     }
@@ -38,7 +37,7 @@ namespace SkinningModelDrawing {
         render = new WebGLRender();
         bone2Shader = new Bone2Shader();
         bone4Shader = new Bone4Shader();
-        modelResource = new SkinningModel();
+        modelResource = new SkinModel();
         imageResources = new List<RenderImage>();
 
         eyeLocation = vec3.create();
@@ -68,8 +67,8 @@ namespace SkinningModelDrawing {
             this.render.initializeShader(this.bone2Shader);
             this.render.initializeShader(this.bone4Shader);
 
-            this.modelResource = new SkinningModel();
-            this.loadModel(this.modelResource, '../temp/sample_skinning_model.json', 'SkinModel1');
+            this.modelResource = new SkinModel();
+            this.loadModel(this.modelResource, '../temp/sample_skin_model.json', 'SkinModel1');
 
             var image = new RenderImage();
             this.loadTexture(image, './texture.png');
@@ -81,7 +80,7 @@ namespace SkinningModelDrawing {
             // Waiting for data
             if (!this.modelResource.initialized) {
                 if (this.modelResource.loaded) {
-                    this.initializeSkinningModelBuffer(this.modelResource);
+                    this.initializeSkinModelBuffer(this.modelResource);
                     this.modelResource.initialized = true;
                 }
                 else {
@@ -121,13 +120,13 @@ namespace SkinningModelDrawing {
             this.render.setCulling(false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
 
-            this.drawSkinningModel(this.modelMatrix, this.modelResource);
+            this.drawSkinModel(this.modelMatrix, this.modelResource);
         }
 
-        private calcBoneMatrix(out: List<Mat4>, skinningModel: SkinningModel) {
+        private calcBoneMatrix(out: List<Mat4>, skinModel: SkinModel) {
 
-            for (var i = 0; i < skinningModel.data.bones.length; i++) {
-                var bone = skinningModel.data.bones[i];
+            for (var i = 0; i < skinModel.data.bones.length; i++) {
+                var bone = skinModel.data.bones[i];
 
                 if (bone.parent == -1) {
                     // root parent
@@ -143,7 +142,7 @@ namespace SkinningModelDrawing {
             }
         }
 
-        private drawSkinningModel(modelMatrix: Mat4, skinningModel: SkinningModel) {
+        private drawSkinModel(modelMatrix: Mat4, skinModel: SkinModel) {
 
             // calc base matrix (model-view matrix)
             mat4.multiply(this.modelViewMatrix, this.viewMatrix, this.modelMatrix);
@@ -158,8 +157,8 @@ namespace SkinningModelDrawing {
             this.render.setProjectionMatrix(this.projectionMatrix);
 
             // drawing for each part
-            var bones = skinningModel.data.bones;
-            var parts = skinningModel.data.parts;
+            var bones = skinModel.data.bones;
+            var parts = skinModel.data.parts;
 
             for (var i = 0; i < parts.length; i++) {
                 var part = parts[i];
@@ -203,7 +202,7 @@ namespace SkinningModelDrawing {
             resultImage.imageData.src = url;
         }
 
-        private loadModel(resultModel: SkinningModel, url: string, modelName: string) {
+        private loadModel(resultModel: SkinModel, url: string, modelName: string) {
 
             var xhr = new XMLHttpRequest();
             xhr.open('GET', url);
@@ -229,11 +228,11 @@ namespace SkinningModelDrawing {
 
         }
 
-        private initializeSkinningModelBuffer(skinningModel: SkinningModel) {
+        private initializeSkinModelBuffer(skinModel: SkinModel) {
 
             // create buffers for each part
-            for (var i = 0; i < skinningModel.data.parts.length; i++) {
-                var part = skinningModel.data.parts[i];
+            for (var i = 0; i < skinModel.data.parts.length; i++) {
+                var part = skinModel.data.parts[i];
 
                 var renderModel = new RenderModel();
                 this.render.initializeModelBuffer(renderModel, part.vertex, part.index, 4 * part.vertexStride); // 4 (=size of float)
@@ -243,7 +242,7 @@ namespace SkinningModelDrawing {
 
             // create bone matrix
             this.boneMatrixList = new List<Mat4>();
-            for (var i = 0; i < skinningModel.data.bones.length; i++) {
+            for (var i = 0; i < skinModel.data.bones.length; i++) {
                 this.boneMatrixList.push(mat4.create());
             }
         }

@@ -1,6 +1,14 @@
 var Converters;
 (function (Converters) {
     // Data types
+    var BoneIndexWeight = (function () {
+        function BoneIndexWeight() {
+            this.index = 0;
+            this.weight = 0.0;
+        }
+        return BoneIndexWeight;
+    }());
+    Converters.BoneIndexWeight = BoneIndexWeight;
     var MeshVertex = (function () {
         function MeshVertex() {
             this.position = vec3.create();
@@ -11,14 +19,6 @@ var Converters;
         return MeshVertex;
     }());
     Converters.MeshVertex = MeshVertex;
-    var BoneIndexWeight = (function () {
-        function BoneIndexWeight() {
-            this.index = 0;
-            this.weight = 0.0;
-        }
-        return BoneIndexWeight;
-    }());
-    Converters.BoneIndexWeight = BoneIndexWeight;
     var MeshFace = (function () {
         function MeshFace() {
             this.vertexIndeces = null;
@@ -33,15 +33,15 @@ var Converters;
         return MeshFace;
     }());
     Converters.MeshFace = MeshFace;
-    var Mesh = (function () {
-        function Mesh() {
+    var StaticMeshModel = (function () {
+        function StaticMeshModel() {
             this.name = null;
             this.vertices = null;
             this.faces = null;
         }
-        return Mesh;
+        return StaticMeshModel;
     }());
-    Converters.Mesh = Mesh;
+    Converters.StaticMeshModel = StaticMeshModel;
     var SkinVertexPosition = (function () {
         function SkinVertexPosition() {
             this.position = vec3.create();
@@ -58,18 +58,18 @@ var Converters;
         return SkinVertex;
     }());
     Converters.SkinVertex = SkinVertex;
-    var SkinModelPart = (function () {
-        function SkinModelPart() {
+    var SkinMeshPart = (function () {
+        function SkinMeshPart() {
             this.materialIndex = -1;
             this.boneIndices = null;
             this.vertices = null;
             this.faces = null;
         }
-        return SkinModelPart;
+        return SkinMeshPart;
     }());
-    Converters.SkinModelPart = SkinModelPart;
-    var SkinningBone = (function () {
-        function SkinningBone() {
+    Converters.SkinMeshPart = SkinMeshPart;
+    var SkinMeshBone = (function () {
+        function SkinMeshBone() {
             this.name = null;
             this.parent = null;
             this.originalBoneIndex = -1;
@@ -79,22 +79,22 @@ var Converters;
             this.worldInvMatrix = mat4.create();
             this.worldInvNormalMatrix = mat4.create();
         }
-        return SkinningBone;
+        return SkinMeshBone;
     }());
-    Converters.SkinningBone = SkinningBone;
-    var PartedSkinModel = (function () {
-        function PartedSkinModel() {
+    Converters.SkinMeshBone = SkinMeshBone;
+    var PartedSkinMeshModel = (function () {
+        function PartedSkinMeshModel() {
             this.name = null;
             this.bones = null;
             this.parts = null;
         }
-        return PartedSkinModel;
+        return PartedSkinMeshModel;
     }());
-    Converters.PartedSkinModel = PartedSkinModel;
-    var SkinningFaceGroup = (function () {
-        function SkinningFaceGroup() {
+    Converters.PartedSkinMeshModel = PartedSkinMeshModel;
+    var SkinFaceGroup = (function () {
+        function SkinFaceGroup() {
         }
-        return SkinningFaceGroup;
+        return SkinFaceGroup;
     }());
     function padding(index) {
         if (index == -1) {
@@ -113,8 +113,8 @@ var Converters;
     }
     var SceneData = (function () {
         function SceneData() {
-            this.staticMeshes = null;
-            this.skinModels = null;
+            this.staticMeshModels = null;
+            this.skinMeshModels = null;
         }
         return SceneData;
     }());
@@ -127,8 +127,8 @@ var Converters;
         ThreeJSColladaParser.prototype.parse = function (threeJSCollada) {
             this.collada = threeJSCollada;
             var sceneData = new SceneData();
-            sceneData.staticMeshes = this.parseStaticGeometries();
-            sceneData.skinModels = this.parseSkinGeometries();
+            sceneData.staticMeshModels = this.parseStaticGeometries();
+            sceneData.skinMeshModels = this.parseSkinGeometries();
             return sceneData;
         };
         ThreeJSColladaParser.prototype.isSkinGeometry = function (geometry) {
@@ -157,18 +157,20 @@ var Converters;
         };
         ThreeJSColladaParser.prototype.parseStaticGeometry = function (geometryName, geometry) {
             var geometry3js = geometry.mesh.geometry3js;
-            var vertices = this.parseVertices(geometry3js);
-            var faces = this.parseFaces(geometry3js);
+            // Extract mesh data
+            var vertices = this.extractVertices(geometry3js);
+            var faces = this.extractFaces(geometry3js);
             this.overwriteVertexUV(faces, vertices);
             var meshSufixIndex = geometryName.lastIndexOf('-mesh');
             var meshName = geometryName.substr(0, meshSufixIndex);
-            var result = new Mesh();
+            // Build a static mesh model
+            var result = new StaticMeshModel();
             result.name = meshName;
             result.vertices = vertices;
             result.faces = faces;
             return result;
         };
-        ThreeJSColladaParser.prototype.parseVertices = function (geometry3js) {
+        ThreeJSColladaParser.prototype.extractVertices = function (geometry3js) {
             var vertices = new List();
             for (var i = 0; i < geometry3js.vertices.length; i++) {
                 var vartexData = geometry3js.vertices[i];
@@ -180,7 +182,7 @@ var Converters;
             }
             return vertices;
         };
-        ThreeJSColladaParser.prototype.parseFaces = function (geometry3js) {
+        ThreeJSColladaParser.prototype.extractFaces = function (geometry3js) {
             var faces = new List();
             for (var i = 0; i < geometry3js.faces.length; i++) {
                 var faceData = geometry3js.faces[i];
@@ -252,21 +254,25 @@ var Converters;
         };
         ThreeJSColladaParser.prototype.parseSkinGeometry = function (geometryName, geometry) {
             var geometry3js = geometry.mesh.geometry3js;
-            var vertices = this.parseVertices(geometry3js);
-            var faces = this.parseFaces(geometry3js);
+            // Extract mesh data
+            var vertices = this.extractVertices(geometry3js);
+            var faces = this.extractFaces(geometry3js);
             this.overwriteVertexUV(faces, vertices);
-            var bones = this.parseBones(geometry3js);
-            var partedSkinnigModel = this.createPartedSkinData(geometry3js, faces, vertices, bones);
+            var bones = this.extractBones(geometry3js);
+            var faceGroups = this.collectFaceGroups(geometry3js, vertices, faces);
             var meshSufixIndex = geometryName.lastIndexOf('-mesh');
-            partedSkinnigModel.name = geometryName.substr(0, meshSufixIndex);
-            return partedSkinnigModel;
+            var meshName = geometryName.substr(0, meshSufixIndex);
+            // Build a parted skin mesh model
+            var skinMeshModel = this.buildPartedSkinMeshModel(faceGroups, vertices, faces, bones);
+            skinMeshModel.name = meshName;
+            return skinMeshModel;
         };
-        ThreeJSColladaParser.prototype.parseBones = function (geometry3js) {
+        ThreeJSColladaParser.prototype.extractBones = function (geometry3js) {
             var tempVec3 = vec3.create();
             var result = new List();
             for (var i = 0; i < geometry3js.bones.length; i++) {
                 var bone = geometry3js.bones[i];
-                var skiningBone = new SkinningBone();
+                var skiningBone = new SkinMeshBone();
                 skiningBone.name = bone.name.replace(/_/g, '.');
                 skiningBone.originalBoneIndex = i;
                 mat4.copy(skiningBone.localMatrix, bone.matrix.elements);
@@ -313,118 +319,10 @@ var Converters;
                 mat[offset + 2] /= length;
             }
         };
-        ThreeJSColladaParser.prototype.createPartedSkinData = function (geometry3js, faces, vertices, bones) {
+        ThreeJSColladaParser.prototype.collectFaceGroups = function (geometry3js, vertices, faces) {
             if (geometry3js.skinIndices == undefined || geometry3js.skinIndices == null) {
                 return null;
             }
-            // get material-bone keyed groups from faces and vertices
-            var skinningFaceGoups = this.parsePartedSkinData_GetFaceGroups(geometry3js, faces, vertices);
-            var vertexIndexTable = new Array(vertices.length);
-            // create a part data for each groups
-            var parts = new List();
-            for (var i = 0; i < skinningFaceGoups.length; i++) {
-                var group = skinningFaceGoups[i];
-                // assign new vertex index in the part
-                var new_vertex_count = 0;
-                for (var k = 0; k < vertexIndexTable.length; k++) {
-                    vertexIndexTable[k] = -1;
-                }
-                for (var k = 0; k < group.faces.length; k++) {
-                    var face = group.faces[k];
-                    for (var m = 0; m < face.vertexIndeces.length; m++) {
-                        var vertexIndex = face.vertexIndeces[m];
-                        if (vertexIndexTable[vertexIndex] == -1) {
-                            vertexIndexTable[vertexIndex] = new_vertex_count;
-                            new_vertex_count++;
-                        }
-                    }
-                }
-                // create vertices
-                var part_vertices = new List(new_vertex_count);
-                for (var k = 0; k < vertexIndexTable.length; k++) {
-                    if (vertexIndexTable[k] != -1) {
-                        var src_vertex = vertices[k];
-                        var skinVertex = new SkinVertex();
-                        skinVertex.texcoords = src_vertex.texcoords;
-                        skinVertex.positions = new List();
-                        for (var m = 0; m < group.boneIndices.length; m++) {
-                            var boneIndex = group.boneIndices[m];
-                            if (boneIndex == -1) {
-                                continue;
-                            }
-                            var vpos = new SkinVertexPosition();
-                            vec3.copy(vpos.position, src_vertex.position);
-                            vec3.copy(vpos.normal, src_vertex.normal);
-                            vpos.boneWeight = 0.0;
-                            for (var n = 0; n < src_vertex.boneWeights.length; n++) {
-                                if (src_vertex.boneWeights[n].index == boneIndex) {
-                                    vpos.boneWeight = src_vertex.boneWeights[n].weight;
-                                    break;
-                                }
-                            }
-                            skinVertex.positions.push(vpos);
-                        }
-                        part_vertices[vertexIndexTable[k]] = skinVertex;
-                    }
-                }
-                // create faces
-                var part_faces = new List();
-                for (var k = 0; k < group.faces.length; k++) {
-                    var face = group.faces[k];
-                    var skinFace = new MeshFace();
-                    skinFace.vertexIndeces = Enumerable.From(face.vertexIndeces)
-                        .Select(function (index) { return vertexIndexTable[index]; })
-                        .ToArray();
-                    skinFace.vertexNormals = face.vertexNormals;
-                    skinFace.texcoords = face.texcoords;
-                    vec3.copy(skinFace.faceNormal, face.faceNormal);
-                    skinFace.materialName = face.materialName;
-                    skinFace.materialIndex = face.materialIndex;
-                    part_faces.push(skinFace);
-                }
-                // create part
-                var part = new SkinModelPart();
-                part.boneIndices = group.boneIndices;
-                part.materialIndex = group.materialIndex;
-                part.vertices = part_vertices;
-                part.faces = part_faces;
-                parts.push(part);
-            }
-            // replace bone index to re-ordered one
-            var boneIndexTable = [];
-            for (var i = 0; i < bones.length; i++) {
-                boneIndexTable[bones[i].originalBoneIndex] = i;
-            }
-            for (var i = 0; i < parts.length; i++) {
-                var part = parts[i];
-                for (var k = 0; k < part.boneIndices.length; k++) {
-                    if (part.boneIndices[k] != -1) {
-                        part.boneIndices[k] = boneIndexTable[part.boneIndices[k]];
-                    }
-                }
-            }
-            // transform vertex positions into bone local
-            for (var i = 0; i < parts.length; i++) {
-                var part = parts[i];
-                for (var k = 0; k < part.vertices.length; k++) {
-                    var vertex = part.vertices[k];
-                    for (var m = 0; m < vertex.positions.length; m++) {
-                        var vpos = vertex.positions[m];
-                        var boneIndex = part.boneIndices[m];
-                        var bone = bones[boneIndex];
-                        vec3.transformMat4(vpos.position, vpos.position, bone.worldInvMatrix);
-                        vec3.transformMat4(vpos.normal, vpos.normal, bone.worldInvNormalMatrix);
-                        vec3.normalize(vpos.normal, vpos.normal);
-                    }
-                }
-            }
-            // create a model
-            var result = new PartedSkinModel();
-            result.bones = bones;
-            result.parts = parts;
-            return result;
-        };
-        ThreeJSColladaParser.prototype.parsePartedSkinData_GetFaceGroups = function (geometry3js, faces, vertices) {
             // add weight data to vertex and face data
             for (var i = 0; i < faces.length; i++) {
                 var face = faces[i];
@@ -552,6 +450,112 @@ var Converters;
                 .OrderBy(function (group) { return group.key; })
                 .ToArray();
             return faceGoups;
+        };
+        ThreeJSColladaParser.prototype.buildPartedSkinMeshModel = function (faceGoups, vertices, faces, bones) {
+            var vertexIndexTable = new Array(vertices.length);
+            // create a part data for each groups
+            var parts = new List();
+            for (var i = 0; i < faceGoups.length; i++) {
+                var group = faceGoups[i];
+                // assign new vertex index in the part
+                var new_vertex_count = 0;
+                for (var k = 0; k < vertexIndexTable.length; k++) {
+                    vertexIndexTable[k] = -1;
+                }
+                for (var k = 0; k < group.faces.length; k++) {
+                    var face = group.faces[k];
+                    for (var m = 0; m < face.vertexIndeces.length; m++) {
+                        var vertexIndex = face.vertexIndeces[m];
+                        if (vertexIndexTable[vertexIndex] == -1) {
+                            vertexIndexTable[vertexIndex] = new_vertex_count;
+                            new_vertex_count++;
+                        }
+                    }
+                }
+                // create vertices
+                var part_vertices = new List(new_vertex_count);
+                for (var k = 0; k < vertexIndexTable.length; k++) {
+                    if (vertexIndexTable[k] != -1) {
+                        var src_vertex = vertices[k];
+                        var skinVertex = new SkinVertex();
+                        skinVertex.texcoords = src_vertex.texcoords;
+                        skinVertex.positions = new List();
+                        for (var m = 0; m < group.boneIndices.length; m++) {
+                            var boneIndex = group.boneIndices[m];
+                            if (boneIndex == -1) {
+                                continue;
+                            }
+                            var vpos = new SkinVertexPosition();
+                            vec3.copy(vpos.position, src_vertex.position);
+                            vec3.copy(vpos.normal, src_vertex.normal);
+                            vpos.boneWeight = 0.0;
+                            for (var n = 0; n < src_vertex.boneWeights.length; n++) {
+                                if (src_vertex.boneWeights[n].index == boneIndex) {
+                                    vpos.boneWeight = src_vertex.boneWeights[n].weight;
+                                    break;
+                                }
+                            }
+                            skinVertex.positions.push(vpos);
+                        }
+                        part_vertices[vertexIndexTable[k]] = skinVertex;
+                    }
+                }
+                // create faces
+                var part_faces = new List();
+                for (var k = 0; k < group.faces.length; k++) {
+                    var face = group.faces[k];
+                    var skinFace = new MeshFace();
+                    skinFace.vertexIndeces = Enumerable.From(face.vertexIndeces)
+                        .Select(function (index) { return vertexIndexTable[index]; })
+                        .ToArray();
+                    skinFace.vertexNormals = face.vertexNormals;
+                    skinFace.texcoords = face.texcoords;
+                    vec3.copy(skinFace.faceNormal, face.faceNormal);
+                    skinFace.materialName = face.materialName;
+                    skinFace.materialIndex = face.materialIndex;
+                    part_faces.push(skinFace);
+                }
+                // create part
+                var part = new SkinMeshPart();
+                part.boneIndices = group.boneIndices;
+                part.materialIndex = group.materialIndex;
+                part.vertices = part_vertices;
+                part.faces = part_faces;
+                parts.push(part);
+            }
+            // replace bone index to re-ordered one
+            var boneIndexTable = [];
+            for (var i = 0; i < bones.length; i++) {
+                boneIndexTable[bones[i].originalBoneIndex] = i;
+            }
+            for (var i = 0; i < parts.length; i++) {
+                var part = parts[i];
+                for (var k = 0; k < part.boneIndices.length; k++) {
+                    if (part.boneIndices[k] != -1) {
+                        part.boneIndices[k] = boneIndexTable[part.boneIndices[k]];
+                    }
+                }
+            }
+            // transform vertex positions into bone local
+            for (var i = 0; i < parts.length; i++) {
+                var part = parts[i];
+                for (var k = 0; k < part.vertices.length; k++) {
+                    var vertex = part.vertices[k];
+                    for (var m = 0; m < vertex.positions.length; m++) {
+                        var vpos = vertex.positions[m];
+                        var boneIndex = part.boneIndices[m];
+                        var bone = bones[boneIndex];
+                        vec3.transformMat4(vpos.position, vpos.position, bone.worldInvMatrix);
+                        vec3.transformMat4(vpos.normal, vpos.normal, bone.worldInvNormalMatrix);
+                        vec3.normalize(vpos.normal, vpos.normal);
+                    }
+                }
+            }
+            // create a model
+            var result = new PartedSkinMeshModel();
+            result.bones = bones;
+            result.parts = parts;
+            return result;
         };
         return ThreeJSColladaParser;
     }());

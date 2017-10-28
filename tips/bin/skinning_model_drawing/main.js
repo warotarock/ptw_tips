@@ -8,15 +8,15 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var SkinningModelDrawing;
-(function (SkinningModelDrawing) {
-    var SkinningModel = (function () {
-        function SkinningModel() {
+var SkinModelDrawing;
+(function (SkinModelDrawing) {
+    var SkinModel = (function () {
+        function SkinModel() {
             this.data = null;
             this.loaded = false;
             this.initialized = false;
         }
-        return SkinningModel;
+        return SkinModel;
     }());
     var Main = (function () {
         function Main() {
@@ -25,7 +25,7 @@ var SkinningModelDrawing;
             this.render = new WebGLRender();
             this.bone2Shader = new Bone2Shader();
             this.bone4Shader = new Bone4Shader();
-            this.modelResource = new SkinningModel();
+            this.modelResource = new SkinModel();
             this.imageResources = new List();
             this.eyeLocation = vec3.create();
             this.lookatLocation = vec3.create();
@@ -47,8 +47,8 @@ var SkinningModelDrawing;
             }
             this.render.initializeShader(this.bone2Shader);
             this.render.initializeShader(this.bone4Shader);
-            this.modelResource = new SkinningModel();
-            this.loadModel(this.modelResource, '../temp/sample_skinning_model.json', 'SkinModel1');
+            this.modelResource = new SkinModel();
+            this.loadModel(this.modelResource, '../temp/sample_skin_model.json', 'SkinModel1');
             var image = new RenderImage();
             this.loadTexture(image, './texture.png');
             this.imageResources.push(image);
@@ -57,7 +57,7 @@ var SkinningModelDrawing;
             // Waiting for data
             if (!this.modelResource.initialized) {
                 if (this.modelResource.loaded) {
-                    this.initializeSkinningModelBuffer(this.modelResource);
+                    this.initializeSkinModelBuffer(this.modelResource);
                     this.modelResource.initialized = true;
                 }
                 else {
@@ -86,11 +86,11 @@ var SkinningModelDrawing;
             this.render.setDepthTest(true);
             this.render.setCulling(false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
-            this.drawSkinningModel(this.modelMatrix, this.modelResource);
+            this.drawSkinModel(this.modelMatrix, this.modelResource);
         };
-        Main.prototype.calcBoneMatrix = function (out, skinningModel) {
-            for (var i = 0; i < skinningModel.data.bones.length; i++) {
-                var bone = skinningModel.data.bones[i];
+        Main.prototype.calcBoneMatrix = function (out, skinModel) {
+            for (var i = 0; i < skinModel.data.bones.length; i++) {
+                var bone = skinModel.data.bones[i];
                 if (bone.parent == -1) {
                     // root parent
                     mat4.copy(out[i], bone.matrix);
@@ -103,7 +103,7 @@ var SkinningModelDrawing;
                 }
             }
         };
-        Main.prototype.drawSkinningModel = function (modelMatrix, skinningModel) {
+        Main.prototype.drawSkinModel = function (modelMatrix, skinModel) {
             // calc base matrix (model-view matrix)
             mat4.multiply(this.modelViewMatrix, this.viewMatrix, this.modelMatrix);
             // set parameter not dependent on parts
@@ -114,8 +114,8 @@ var SkinningModelDrawing;
             this.render.setModelViewMatrix(this.modelViewMatrix);
             this.render.setProjectionMatrix(this.projectionMatrix);
             // drawing for each part
-            var bones = skinningModel.data.bones;
-            var parts = skinningModel.data.parts;
+            var bones = skinModel.data.bones;
+            var parts = skinModel.data.parts;
             for (var i = 0; i < parts.length; i++) {
                 var part = parts[i];
                 // select shader
@@ -164,17 +164,17 @@ var SkinningModelDrawing;
             });
             xhr.send();
         };
-        Main.prototype.initializeSkinningModelBuffer = function (skinningModel) {
+        Main.prototype.initializeSkinModelBuffer = function (skinModel) {
             // create buffers for each part
-            for (var i = 0; i < skinningModel.data.parts.length; i++) {
-                var part = skinningModel.data.parts[i];
+            for (var i = 0; i < skinModel.data.parts.length; i++) {
+                var part = skinModel.data.parts[i];
                 var renderModel = new RenderModel();
                 this.render.initializeModelBuffer(renderModel, part.vertex, part.index, 4 * part.vertexStride); // 4 (=size of float)
                 part.renderModel = renderModel;
             }
             // create bone matrix
             this.boneMatrixList = new List();
-            for (var i = 0; i < skinningModel.data.bones.length; i++) {
+            for (var i = 0; i < skinModel.data.bones.length; i++) {
                 this.boneMatrixList.push(mat4.create());
             }
         };
@@ -264,7 +264,7 @@ var SkinningModelDrawing;
         };
         return Bone2Shader;
     }(RenderShader));
-    SkinningModelDrawing.Bone2Shader = Bone2Shader;
+    SkinModelDrawing.Bone2Shader = Bone2Shader;
     var Bone4Shader = (function (_super) {
         __extends(Bone4Shader, _super);
         function Bone4Shader() {
@@ -330,7 +330,7 @@ var SkinningModelDrawing;
         };
         return Bone4Shader;
     }(Bone2Shader));
-    SkinningModelDrawing.Bone4Shader = Bone4Shader;
+    SkinModelDrawing.Bone4Shader = Bone4Shader;
     var _Main;
     window.onload = function () {
         var canvas = document.getElementById('canvas');
@@ -348,4 +348,4 @@ var SkinningModelDrawing;
         }
         setTimeout(run, 1000 / 30);
     }
-})(SkinningModelDrawing || (SkinningModelDrawing = {}));
+})(SkinModelDrawing || (SkinModelDrawing = {}));

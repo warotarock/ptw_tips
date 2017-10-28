@@ -2,19 +2,13 @@
 var fs = require('fs');
 var path = require('path');
 
-namespace SkinningModelConverting {
+namespace SkinModelConverting {
 
     declare var THREE: any;
 
     // Data types
 
-    class MeshInfo {
-        name: string = null;
-        conversionName: string = null;
-        imageList = new List<string>();
-    }
-
-    class ConvertedSkinningModelPart {
+    class ConvertedSkinModelPart {
         materialIndex: int;
         boneIndices: List<int>;
         vertexStride: int;
@@ -22,11 +16,10 @@ namespace SkinningModelConverting {
         indices: List<int>;
     }
 
-    class ConvertedSkinningModel {
+    class ConvertedSkinModel {
         name: string;
-        images: List<string>;
-        bones: List<Converters.SkinningBone>;
-        parts: List<ConvertedSkinningModelPart>;
+        bones: List<Converters.SkinMeshBone>;
+        parts: List<ConvertedSkinModelPart>;
     }
 
     // Main
@@ -35,7 +28,7 @@ namespace SkinningModelConverting {
 
         execute() {
 
-            var fileName = 'sample_skinning_model.dae';
+            var fileName = 'sample_skin_model.dae';
             var blendFileName = this.getExtensionChangedFileName(fileName, 'blend');
             var outFileName = this.getExtensionChangedFileName('../temp/' + fileName, 'json');
 
@@ -50,36 +43,23 @@ namespace SkinningModelConverting {
                     var parser = new Converters.ThreeJSColladaParser();
                     let sceneData = parser.parse(threeJSCollada);
 
-                    // Additional information from .blend
-                    var request = new XMLHttpRequest();
-                    request.open('GET', blendFileName, true);
-                    request.responseType = 'arraybuffer';
-                    request.addEventListener('load',
-                        (e: Event) => {
+                    // Converting
+                    var convetedModels = this.convert(sceneData);
 
-                            var blendFile = BlendFileReader.readBlendFile(request.response);
-                            var meshInfos = this.getMeshInfoFromBlend(blendFile);
+                    // Output
+                    this.output(convetedModels, outFileName);
 
-                            // Converting
-                            var convetedModels = this.convert(sceneData, meshInfos);
-
-                            // Output
-                            this.output(convetedModels, outFileName);
-
-                            document.getElementById('content').innerHTML = 'Out put done ' + outFileName;
-                        }
-                    );
-                    request.send();
+                    document.getElementById('content').innerHTML = 'Out put done ' + outFileName;
                 }
             );
         }
 
-        convert(sceneData: Converters.SceneData, meshInfos: Dictionary<MeshInfo>): List<ConvertedSkinningModel> {
+        convert(sceneData: Converters.SceneData): List<ConvertedSkinModel> {
 
-            var convetedModels = new List<ConvertedSkinningModel>();
+            var convetedModels = new List<ConvertedSkinModel>();
 
-            for (var modelIndex = 0; modelIndex < sceneData.skinModels.length; modelIndex++) {
-                var skinModel = sceneData.skinModels[modelIndex];
+            for (var modelIndex = 0; modelIndex < sceneData.skinMeshModels.length; modelIndex++) {
+                var skinModel = sceneData.skinMeshModels[modelIndex];
 
                 var sortedParts = Enumerable.From(skinModel.parts)
                     .OrderBy(part => part.boneIndices.length)
@@ -89,10 +69,21 @@ namespace SkinningModelConverting {
                     .ThenBy(part => part.boneIndices.length > 3 ? part.boneIndices[3] : 9999)
                     .ToArray();
 
-                var convetedParts = new List<ConvertedSkinningModelPart>();
+                var convetedParts = new List<ConvertedSkinModelPart>();
 
                 for (var partIndex = 0; partIndex < sortedParts.length; partIndex++) {
                     var skinPart = sortedParts[partIndex];
+
+                    var boneIndices = [];
+                    for (var boneIndex = 0; boneIndex < skinPart.boneIndices.length; boneIndex++) {
+
+                        if (skinPart.boneIndices[boneIndex] == -1) {
+                            break;
+                        }
+                        else {
+                            boneIndices.push(skinPart.boneIndices[boneIndex]);
+                        }
+                    }
 
                     var vertices = [];
                     for (var vertexIndex = 0; vertexIndex < skinPart.vertices.length; vertexIndex++) {
@@ -114,6 +105,7 @@ namespace SkinningModelConverting {
 
                         if (skinVertex.positions.length == 1 || skinVertex.positions.length == 3) {
 
+                            // Insert position and normal for dummy bone
                             vertices.push(0.0);
 
                             vertices.push(0.0);
@@ -141,23 +133,15 @@ namespace SkinningModelConverting {
                         }
                     }
 
-                    var boneIndices = [];
-                    for (var boneIndex = 0; boneIndex < skinPart.boneIndices.length; boneIndex++) {
-
-                        if (skinPart.boneIndices[boneIndex] == -1) {
-                            break;
-                        }
-                        else {
-                            boneIndices.push(skinPart.boneIndices[boneIndex]);
-                        }
-                    }
-
                     var vertexCount = (skinVertex.positions.length <= 2 ? 2 : 4);
+                    var uvMapCount = skinPart.vertices[0].texcoords.length;
+
+                    var vertexStride = ((1 + 3 + 3) * vertexCount) + (2 * uvMapCount);
 
                     convetedParts.push({
                         materialIndex: skinPart.materialIndex,
                         boneIndices: boneIndices,
-                        vertexStride: ((1 + 3 + 3) * vertexCount) + (2 * skinPart.vertices[0].texcoords.length),
+                        vertexStride: vertexStride,
                         vertices: vertices,
                         indices: indices
                     });
@@ -165,7 +149,6 @@ namespace SkinningModelConverting {
 
                 convetedModels.push({
                     name: skinModel.name,
-                    images: meshInfos[skinModel.name].imageList,
                     bones: skinModel.bones,
                     parts: convetedParts
                 });
@@ -174,7 +157,7 @@ namespace SkinningModelConverting {
             return convetedModels;
         }
 
-        output(skinningModels: List<ConvertedSkinningModel>, outFileName: string) {
+        output(skinModels: List<ConvertedSkinModel>, outFileName: string) {
 
             var tab1 = '  ';
             var tab2 = '    ';
@@ -186,44 +169,28 @@ namespace SkinningModelConverting {
 
             out.push(tab1 + '\"skin_models\": {')
 
-            for (var modelIndex = 0; modelIndex < skinningModels.length; modelIndex++) {
-                var skinningModel = skinningModels[modelIndex];
+            for (var modelIndex = 0; modelIndex < skinModels.length; modelIndex++) {
+                var skinModel = skinModels[modelIndex];
 
-                out.push(tab2 + '\"' + skinningModel.name + '\": {');
-
-                // images
-                var imagesText = [];
-                imagesText.push(tab3 + '\"images\": [');
-                for (var imageIndex = 0; imageIndex < skinningModel.images.length; imageIndex++) {
-                    var imageName = skinningModel.images[imageIndex];
-
-                    if (imageName.length > 2 && imageName.substr(0, 2) == '//') {
-                        imageName = imageName.substr(2);
-                    }
-                    imageName = path.basename(imageName);
-
-                    imagesText.push('\"' + imageName + '\"' + (imageIndex < skinningModel.images.length - 1 ? ', ' : ''));
-                }
-                imagesText.push('],');
-                out.push(imagesText.join(''));
+                out.push(tab2 + '\"' + skinModel.name + '\": {');
 
                 // bones
                 out.push(tab3 + '\"bones\": [');
-                for (var boneIndex = 0; boneIndex < skinningModel.bones.length; boneIndex++) {
-                    var bone = skinningModel.bones[boneIndex];
+                for (var boneIndex = 0; boneIndex < skinModel.bones.length; boneIndex++) {
+                    var bone = skinModel.bones[boneIndex];
 
                     out.push(tab4 + '{' +
                         '\"name\": \"' + bone.name + '\"' +
-                        ', \"parent\": ' + this.getBoneParentIndex(skinningModel.bones, bone.parent) +
+                        ', \"parent\": ' + this.getBoneParentIndex(skinModel.bones, bone.parent) +
                         ', \"matrix\": ' + JSON.stringify(this.floatArrayToArray(bone.localMatrix), this.jsonStringifyReplacer) +
-                        '}' + (boneIndex < skinningModel.bones.length - 1 ? ',' : ''));
+                        '}' + (boneIndex < skinModel.bones.length - 1 ? ',' : ''));
                 }
                 out.push(tab3 + '],');
 
                 // parts
                 out.push(tab3 + '\"parts\": [');
-                for (var partIndex = 0; partIndex < skinningModel.parts.length; partIndex++) {
-                    var convetedPart = skinningModel.parts[partIndex];
+                for (var partIndex = 0; partIndex < skinModel.parts.length; partIndex++) {
+                    var convetedPart = skinModel.parts[partIndex];
 
                     out.push(tab4 + '{');
                     out.push(tab4 + '  \"bone\": ' + JSON.stringify(convetedPart.boneIndices, this.jsonStringifyReplacer));
@@ -231,11 +198,11 @@ namespace SkinningModelConverting {
                     out.push(tab4 + '  , \"vertexStride\": ' + convetedPart.vertexStride);
                     out.push(tab4 + '  , \"vertex\": ' + JSON.stringify(convetedPart.vertices, this.jsonStringifyReplacer));
                     out.push(tab4 + '  , \"index\": ' + JSON.stringify(convetedPart.indices));
-                    out.push(tab4 + '}' + (partIndex < skinningModel.parts.length - 1 ? ',' : ''));
+                    out.push(tab4 + '}' + (partIndex < skinModel.parts.length - 1 ? ',' : ''));
                 }
                 out.push(tab3 + ']');
 
-                out.push(tab2 + '}' + (modelIndex < skinningModels.length - 1 ? ',' : ''));
+                out.push(tab2 + '}' + (modelIndex < skinModels.length - 1 ? ',' : ''));
             }
 
             out.push(tab1 + '}')
@@ -272,61 +239,7 @@ namespace SkinningModelConverting {
             return result;
         }
 
-        getMeshInfoFromBlend(blendFile: BlendFileReader.ReadBlendFileResult): Dictionary<MeshInfo> {
-
-            var bheadDictionary = new Dictionary<BlendFileReader.BHead>();
-            Enumerable.From(blendFile.bheadList)
-                .ForEach(bhead => bheadDictionary[bhead.old] = bhead);
-
-            var mesh_TypeInfo = blendFile.dna.getStructureTypeInfo('Mesh');
-            var mesh_BHeads = Enumerable.From(blendFile.bheadList)
-                .Where(bh => bh.SDNAnr == mesh_TypeInfo.sdnaIndex)
-                .ToArray();
-
-            var result = new Dictionary<MeshInfo>();
-
-            // search image file path by: mesh -> list of material -> material -> list of texture -> texture -> image -> file path
-            for (var i = 0; i < mesh_BHeads.length; i++) {
-                var mesh_bhead = mesh_BHeads[i];
-                var mesh_dataset = blendFile.dna.createDataSetFromBHead(mesh_bhead);
-                var totcol = mesh_dataset.totcol;
-
-                var meshInfo = new MeshInfo();
-                meshInfo.name = (mesh_dataset.id.name).substring(2);
-                meshInfo.conversionName = meshInfo.name.replace('.', '_');
-
-                if (mesh_dataset.mat != 0) {
-                    var material_array_bhead = bheadDictionary[mesh_dataset.mat];
-                    var material_array_dataset = blendFile.dna.createDataSetFromBHead(material_array_bhead);
-
-                    for (var m = 0; m < totcol; m++) {
-                        var material_bhead = bheadDictionary[material_array_dataset[m]];
-                        var material_dataset = blendFile.dna.createDataSetFromBHead(material_bhead);
-
-                        var mtex: List<long> = material_dataset.mtex;
-                        for (var k = 0; k < mtex.length; k++) {
-                            if (mtex[k] != 0) {
-                                var mtex_bhead = bheadDictionary[mtex[k]];
-                                var mtex_dataset = blendFile.dna.createDataSetFromBHead(mtex_bhead);
-
-                                if (mtex_dataset.tex != 0) {
-                                    var tex_dataset = blendFile.dna.createDataSetFromBHead(bheadDictionary[mtex_dataset.tex]);
-                                    var image_dataset = blendFile.dna.createDataSetFromBHead(bheadDictionary[tex_dataset.ima]);
-
-                                    meshInfo.imageList.push(image_dataset.name);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                result[meshInfo.conversionName] = meshInfo;
-            }
-
-            return result;
-        }
-
-        getBoneParentIndex(boneList: List<Converters.SkinningBone>, parent: Converters.SkinningBone) {
+        getBoneParentIndex(boneList: List<Converters.SkinMeshBone>, parent: Converters.SkinMeshBone) {
 
             if (parent == null) {
                 return -1;

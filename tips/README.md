@@ -5,10 +5,10 @@
 - [TypeScriptによる基本的なWebGLプログラミング](./basic_webgl_ts/) - Basic TypeScript-WebGL programming
 - [モデルデータの作成](./basic_model_converting/) - Basic model converting
 - [モデルの描画](./basic_model_drawing/) - Basic model drawing
-- [オブジェクトアニメーションデータの作成](./object_animation_converting/) - Object animation converting
-- [オブジェクトアニメーションの再生](./object_animation_drawing/) - Object Animation Drawing
-- [スキンモデルデータの作成](./skinning_model_converting/) - Skinning model data converting
-- [スキンモデルとアニメーションの再生](./skinning_model_drawing/) - Skinning Model Drawing
+- [スキンモデルデータの作成](./skinning_model_converting/) - Skin model data converting
+- [スキンモデルの描画](./skinning_model_drawing/) - Skin model drawing
+- [アニメーションデータの作成](./object_animation_converting/) - Object and bone animation converting
+- [スキンモデルとアニメーションの再生](./object_animation_drawing/) - Skin model and animation playing
 <br />
 
 ### ２．補助技術
