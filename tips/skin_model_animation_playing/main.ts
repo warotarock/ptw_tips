@@ -1,5 +1,5 @@
 
-namespace SkinModelDrawing {
+namespace SkinModelAnimationPlaying {
 
     // Model data types used this sample
     interface SkinModelData {
@@ -28,6 +28,11 @@ namespace SkinModelDrawing {
         loaded = false;
     }
 
+    class AnimationData {
+        data: Dictionary<IPOObjectAnimation> = null;
+        loaded = false;
+    }
+
     class Main {
 
         logicalScreenWidth = 640.0;
@@ -39,6 +44,10 @@ namespace SkinModelDrawing {
         skinModel = new SkinModel();
         images = new List<RenderImage>();
 
+        animationData = new AnimationData();
+        objectAnimation: IPOObjectAnimation = null;
+        boneAnimation: IPOBoneAnimation = null;
+
         eyeLocation = vec3.create();
         lookatLocation = vec3.create();
         upVector = vec3.create();
@@ -47,10 +56,19 @@ namespace SkinModelDrawing {
         viewMatrix = mat4.create();
         modelViewMatrix = mat4.create();
         projectionMatrix = mat4.create();
+
+        boneAnimationBuffer: BoneAnimationBuffer = null;
+        boneMatrixBuffer: BoneAnimationMatrixBuffer = null;
         boneMatrix = mat4.create();
 
-        boneMatrixList = new List<Mat4>();
-        animationTime = 0.0;
+        animationSolver = new AnimationSolver();
+
+        modelLocation = vec3.create();
+        modelRotation = vec3.create();
+        modelScaling = vec3.create();
+
+        objectAnimationTime = 0.0;
+        boneAnimationTime = 0.0;
 
         isLoaded = false;
 
@@ -66,15 +84,17 @@ namespace SkinModelDrawing {
             this.render.initializeShader(this.bone2Shader);
             this.render.initializeShader(this.bone4Shader);
 
+            var image = new RenderImage();
+            this.loadTexture(image, '../skinning_model_converting/texture.png');
+            this.images.push(image);
+
             this.skinModel = new SkinModel();
             this.loadSkinModel(this.skinModel, '../temp/sample_skin_model.json', 'SkinModel1');
 
-            var image = new RenderImage();
-            this.loadTexture(image, './texture.png');
-            this.images.push(image);
+            this.loadAnimation(this.animationData, '../temp/sample_skin_animation.json');
         }
 
-        processLading() {
+        processLoading() {
 
             // Waiting for data
             if (this.images[0].texture == null) {
@@ -85,59 +105,85 @@ namespace SkinModelDrawing {
                 return;
             }
 
+            if (!this.animationData.loaded) {
+                return;
+            }
+
             // Loading finished
             this.initializeSkinModelBuffer(this.skinModel);
+
+            this.boneAnimation = this.animationData.data['ArmatureAction'];
+            this.objectAnimation = this.animationData.data['ArmatureAction']['Object'];
+
+            this.boneAnimationBuffer = this.animationSolver.createBoneAnimationBuffer(this.skinModel.data.bones);
+            this.boneMatrixBuffer = this.animationSolver.createBoneMatrixBuffer(this.skinModel.data.bones);
 
             this.isLoaded = true;
         }
 
         run() {
 
-            this.animationTime += 1.0;
+            let solver = this.animationSolver;
 
-            vec3.set(this.eyeLocation, 6.0, 0.0, 2.0);
-            vec3.set(this.lookatLocation, 0.0, 0.0, 1.5);
+            this.objectAnimationTime += 0.8;
+            if (this.objectAnimationTime >= 80.0) {
+
+                this.objectAnimationTime -= 80.0;
+            }
+
+            this.boneAnimationTime += 0.8;
+            if (this.boneAnimationTime >= 40.0) {
+
+                this.boneAnimationTime -= 40.0;
+            }
+
+            // Camera position
+            vec3.set(this.eyeLocation, 9.2, -4.2, 5.3);
+            vec3.set(this.lookatLocation, 0.0, 0.0, 1.0);
             vec3.set(this.upVector, 0.0, 0.0, 1.0);
 
-            this.calcBoneMatrix(this.boneMatrixList, this.skinModel);
+            // Object animation
+            vec3.set(this.modelLocation
+                , solver.getIPOCurveValueIfNotNull(this.objectAnimation.locationX, this.objectAnimationTime, 0.0)
+                , solver.getIPOCurveValueIfNotNull(this.objectAnimation.locationY, this.objectAnimationTime, 0.0)
+                , solver.getIPOCurveValueIfNotNull(this.objectAnimation.locationZ, this.objectAnimationTime, 0.0));
+
+            vec3.set(this.modelRotation
+                , solver.getIPOCurveValueIfNotNull(this.objectAnimation.rotationX, this.objectAnimationTime, 0.0)
+                , solver.getIPOCurveValueIfNotNull(this.objectAnimation.rotationY, this.objectAnimationTime, 0.0)
+                , solver.getIPOCurveValueIfNotNull(this.objectAnimation.rotationZ, this.objectAnimationTime, 0.0));
+
+            vec3.set(this.modelScaling
+                , solver.getIPOCurveValueIfNotNull(this.objectAnimation.scalingX, this.objectAnimationTime, 1.0)
+                , solver.getIPOCurveValueIfNotNull(this.objectAnimation.scalingY, this.objectAnimationTime, 1.0)
+                , solver.getIPOCurveValueIfNotNull(this.objectAnimation.scalingZ, this.objectAnimationTime, 1.0));
 
             mat4.identity(this.modelMatrix);
-            mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.animationTime * 0.01);
+            mat4.translate(this.modelMatrix, this.modelMatrix, this.modelLocation);
+            mat4.rotateX(this.modelMatrix, this.modelMatrix, this.modelRotation[0]);
+            mat4.rotateY(this.modelMatrix, this.modelMatrix, this.modelRotation[1]);
+            mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.modelRotation[2]);
+            mat4.scale(this.modelMatrix, this.modelMatrix, this.modelScaling);
+
+            // Bone animation
+            this.animationSolver.calcBoneAnimation(this.boneAnimationBuffer, this.skinModel.data.bones, this.boneAnimation, this.boneAnimationTime);
+            this.animationSolver.calcBoneMatrix(this.boneMatrixBuffer, this.skinModel.data.bones, this.boneAnimationBuffer);
         }
 
         draw() {
 
             var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
-            mat4.perspective(this.projectionMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 50.0);
+            mat4.perspective(this.projectionMatrix, 30.0 * Math.PI / 180, aspect, 0.1, 100.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
 
-            this.render.setDepthTest(true);
+            this.render.setDepthTest(true)
             this.render.setCulling(false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
 
-            this.drawSkinModel(this.modelMatrix, this.skinModel, this.boneMatrixList);
+            this.drawSkinModel(this.modelMatrix, this.skinModel, this.images, this.boneMatrixBuffer);
         }
 
-        private calcBoneMatrix(result: List<Mat4>, skinModel: SkinModel) {
-
-            for (var i = 0; i < skinModel.data.bones.length; i++) {
-                var bone = skinModel.data.bones[i];
-
-                if (bone.parent == -1) {
-                    // root parent
-                    mat4.copy(result[i], bone.matrix);
-                }
-                else {
-                    // child
-                    mat4.multiply(result[i], result[bone.parent], bone.matrix);
-
-                    // sample motion
-                    mat4.rotateX(result[i], result[i], Math.cos(this.animationTime * 0.05));
-                }
-            }
-        }
-
-        private drawSkinModel(modelMatrix: Mat4, skinModel: SkinModel, boneMatrixList: List<Mat4>) {
+        private drawSkinModel(modelMatrix: Mat4, skinModel: SkinModel, images: List<RenderImage>, matrixBuffer: BoneAnimationMatrixBuffer) {
 
             // calc base matrix (model-view matrix)
             mat4.multiply(this.modelViewMatrix, this.viewMatrix, this.modelMatrix);
@@ -170,12 +216,12 @@ namespace SkinModelDrawing {
 
                 // set bone matrix
                 for (var boneIndex = 0; boneIndex < part.bone.length; boneIndex++) {
-                    mat4.copy(this.boneMatrix, boneMatrixList[part.bone[boneIndex]]);
+                    mat4.copy(this.boneMatrix, matrixBuffer.animatedBoneMatrixList[part.bone[boneIndex]]);
                     shader.setBoneMatrix(boneIndex, this.boneMatrix, this.render.gl);
                 }
 
                 // draw
-                this.render.setBuffers(part.renderModel, this.images);
+                this.render.setBuffers(part.renderModel, images);
 
                 this.render.setDepthTest(true)
                 this.render.setCulling(false);
@@ -234,12 +280,34 @@ namespace SkinModelDrawing {
 
                 part.renderModel = renderModel;
             }
+        }
 
-            // create bone matrix
-            this.boneMatrixList = new List<Mat4>();
-            for (var i = 0; i < skinModel.data.bones.length; i++) {
-                this.boneMatrixList.push(mat4.create());
-            }
+        private loadAnimation(animationData: AnimationData, url: string) {
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', url);
+            xhr.responseType = 'json';
+
+            xhr.addEventListener('load',
+                (e: Event) => {
+
+                    var data: any;
+                    if (xhr.responseType == 'json') {
+                        data = xhr.response;
+                    }
+                    else {
+                        data = JSON.parse(xhr.response);
+                    }
+
+                    for (let key in data) {
+                        animationData.data = data;
+                    }
+
+                    animationData.loaded = true;
+                }
+            );
+
+            xhr.send();
         }
     }
 
@@ -468,7 +536,7 @@ namespace SkinModelDrawing {
             _Main.draw();
         }
         else {
-            _Main.processLading();
+            _Main.processLoading();
         }
 
         setTimeout(run, 1000 / 30);

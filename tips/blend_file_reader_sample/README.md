@@ -1,4 +1,4 @@
-# Blendファイルからのデータ抽出 - BlendFileReader.ts sample
+# .blendファイルからのデータ抽出 - BlendFileReader.ts sample
 
 ## 概要
 BlendFileReader.tsによる.blendファイルの解析のサンプルです。

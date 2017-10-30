@@ -1,13 +1,13 @@
 var fs = require('fs');
-var ObjectAnimationConverter;
-(function (ObjectAnimationConverter) {
+var SkinModelAnimationConverting;
+(function (SkinModelAnimationConverting) {
     var Main = (function () {
         function Main() {
         }
         Main.prototype.execute = function () {
             var _this = this;
-            var fileName = 'sample_obj_animation.blend';
-            var outFileName = this.getExtensionChangedFileName('../temp/' + fileName, 'json');
+            var fileName = '../skinning_model_converting/sample_skin_model.blend';
+            var outFileName = '../temp/sample_skin_animation.json';
             document.getElementById('content').innerHTML = 'Out put will be located ' + outFileName;
             var request = new XMLHttpRequest();
             request.open('GET', fileName, true);
@@ -59,7 +59,7 @@ var ObjectAnimationConverter;
                             [bezt.vec[6], bezt.vec[7], bezt.vec[8]]
                         ]);
                     }
-                    var isBoneAction = StringIsNullOrEmpty(this.getCurveName(bActionGroup_DataSet.name, fCurve_DataSet.array_index));
+                    var isBoneAction = this.isBoneAction(bActionGroup_DataSet.name);
                     var groupName;
                     var channelName;
                     if (isBoneAction) {
@@ -68,12 +68,12 @@ var ObjectAnimationConverter;
                             lastGroupName = groupName;
                             channelIndex = 0;
                         }
-                        channelName = this.getBoneCurveName(channelIndex);
+                        channelName = this.getBoneAnimationCurveName(channelIndex);
                         channelIndex++;
                     }
                     else {
                         groupName = "Object";
-                        channelName = this.getCurveName(bActionGroup_DataSet.name, fCurve_DataSet.array_index);
+                        channelName = this.getObjectAnimationCurveName(bActionGroup_DataSet.name, fCurve_DataSet.array_index);
                     }
                     var curve = {
                         group: groupName.replace(/_/g, '.'),
@@ -133,7 +133,11 @@ var ObjectAnimationConverter;
                 }
             });
         };
-        Main.prototype.getCurveName = function (actionGroupName, array_index) {
+        Main.prototype.isBoneAction = function (actionGroupName) {
+            var convertedName = this.getObjectAnimationCurveName(actionGroupName, 0);
+            return StringIsNullOrEmpty(convertedName);
+        };
+        Main.prototype.getObjectAnimationCurveName = function (actionGroupName, array_index) {
             if (actionGroupName == "Location") {
                 if (array_index == 0) {
                     return "locationX";
@@ -169,7 +173,7 @@ var ObjectAnimationConverter;
             }
             return null;
         };
-        Main.prototype.getBoneCurveName = function (array_index) {
+        Main.prototype.getBoneAnimationCurveName = function (array_index) {
             if (array_index == 0) {
                 return "quatW";
             }
@@ -216,4 +220,4 @@ var ObjectAnimationConverter;
         var main = new Main();
         main.execute();
     };
-})(ObjectAnimationConverter || (ObjectAnimationConverter = {}));
+})(SkinModelAnimationConverting || (SkinModelAnimationConverting = {}));

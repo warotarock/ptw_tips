@@ -5,10 +5,10 @@
 - [TypeScriptによる基本的なWebGLプログラミング](./basic_webgl_ts/) - Basic TypeScript-WebGL programming
 - [モデルデータの作成](./basic_model_converting/) - Basic model converting
 - [モデルの描画](./basic_model_drawing/) - Basic model drawing
-- [スキンモデルデータの作成](./skinning_model_converting/) - Skin model data converting
+- [スキンモデルデータの作成](./skinning_model_converting/) - Skin model converting
 - [スキンモデルの描画](./skinning_model_drawing/) - Skin model drawing
-- [アニメーションデータの作成](./object_animation_converting/) - Object and bone animation converting
-- [スキンモデルとアニメーションの再生](./object_animation_drawing/) - Skin model and animation playing
+- [スキンモデルのアニメーションデータの作成](./skin_model_animation_converting/) - Skin model animation converting
+- [スキンモデルのアニメーションの再生](./skin_model_animation_playing/) - Skin model animation playing
 <br />
 
 ### ２．補助技術
@@ -16,7 +16,7 @@
 - [オブジェクト・プーリング（メモリ管理手法）](./object_pooling/) - Object pooling (for memory management)
 - コーディングによるアニメーションのための補助関数（予定）
 - IPOによる滑らかな補間（予定）
-- [Blendファイルからのデータ抽出](./blend_file_reader_sample/) - BlendFileReader.ts sample
+- [.blendファイルからのデータ抽出](./blend_file_reader_sample/) - BlendFileReader.ts sample
 <br />
 
 ### ３．汎用サブシステム

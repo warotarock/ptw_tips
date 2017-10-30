@@ -8,14 +8,21 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var SkinModelDrawing;
-(function (SkinModelDrawing) {
+var SkinModelAnimationPlaying;
+(function (SkinModelAnimationPlaying) {
     var SkinModel = (function () {
         function SkinModel() {
             this.data = null;
             this.loaded = false;
         }
         return SkinModel;
+    }());
+    var AnimationData = (function () {
+        function AnimationData() {
+            this.data = null;
+            this.loaded = false;
+        }
+        return AnimationData;
     }());
     var Main = (function () {
         function Main() {
@@ -26,6 +33,9 @@ var SkinModelDrawing;
             this.bone4Shader = new Bone4Shader();
             this.skinModel = new SkinModel();
             this.images = new List();
+            this.animationData = new AnimationData();
+            this.objectAnimation = null;
+            this.boneAnimation = null;
             this.eyeLocation = vec3.create();
             this.lookatLocation = vec3.create();
             this.upVector = vec3.create();
@@ -33,9 +43,15 @@ var SkinModelDrawing;
             this.viewMatrix = mat4.create();
             this.modelViewMatrix = mat4.create();
             this.projectionMatrix = mat4.create();
+            this.boneAnimationBuffer = null;
+            this.boneMatrixBuffer = null;
             this.boneMatrix = mat4.create();
-            this.boneMatrixList = new List();
-            this.animationTime = 0.0;
+            this.animationSolver = new AnimationSolver();
+            this.modelLocation = vec3.create();
+            this.modelRotation = vec3.create();
+            this.modelScaling = vec3.create();
+            this.objectAnimationTime = 0.0;
+            this.boneAnimationTime = 0.0;
             this.isLoaded = false;
         }
         Main.prototype.initialize = function (canvas) {
@@ -46,13 +62,14 @@ var SkinModelDrawing;
             }
             this.render.initializeShader(this.bone2Shader);
             this.render.initializeShader(this.bone4Shader);
+            var image = new RenderImage();
+            this.loadTexture(image, '../skinning_model_converting/texture.png');
+            this.images.push(image);
             this.skinModel = new SkinModel();
             this.loadSkinModel(this.skinModel, '../temp/sample_skin_model.json', 'SkinModel1');
-            var image = new RenderImage();
-            this.loadTexture(image, './texture.png');
-            this.images.push(image);
+            this.loadAnimation(this.animationData, '../temp/sample_skin_animation.json');
         };
-        Main.prototype.processLading = function () {
+        Main.prototype.processLoading = function () {
             // Waiting for data
             if (this.images[0].texture == null) {
                 return;
@@ -60,44 +77,55 @@ var SkinModelDrawing;
             if (!this.skinModel.loaded) {
                 return;
             }
+            if (!this.animationData.loaded) {
+                return;
+            }
             // Loading finished
             this.initializeSkinModelBuffer(this.skinModel);
+            this.boneAnimation = this.animationData.data['ArmatureAction'];
+            this.objectAnimation = this.animationData.data['ArmatureAction']['Object'];
+            this.boneAnimationBuffer = this.animationSolver.createBoneAnimationBuffer(this.skinModel.data.bones);
+            this.boneMatrixBuffer = this.animationSolver.createBoneMatrixBuffer(this.skinModel.data.bones);
             this.isLoaded = true;
         };
         Main.prototype.run = function () {
-            this.animationTime += 1.0;
-            vec3.set(this.eyeLocation, 6.0, 0.0, 2.0);
-            vec3.set(this.lookatLocation, 0.0, 0.0, 1.5);
+            var solver = this.animationSolver;
+            this.objectAnimationTime += 0.8;
+            if (this.objectAnimationTime >= 80.0) {
+                this.objectAnimationTime -= 80.0;
+            }
+            this.boneAnimationTime += 0.8;
+            if (this.boneAnimationTime >= 40.0) {
+                this.boneAnimationTime -= 40.0;
+            }
+            // Camera position
+            vec3.set(this.eyeLocation, 9.2, -4.2, 5.3);
+            vec3.set(this.lookatLocation, 0.0, 0.0, 1.0);
             vec3.set(this.upVector, 0.0, 0.0, 1.0);
-            this.calcBoneMatrix(this.boneMatrixList, this.skinModel);
+            // Object animation
+            vec3.set(this.modelLocation, solver.getIPOCurveValueIfNotNull(this.objectAnimation.locationX, this.objectAnimationTime, 0.0), solver.getIPOCurveValueIfNotNull(this.objectAnimation.locationY, this.objectAnimationTime, 0.0), solver.getIPOCurveValueIfNotNull(this.objectAnimation.locationZ, this.objectAnimationTime, 0.0));
+            vec3.set(this.modelRotation, solver.getIPOCurveValueIfNotNull(this.objectAnimation.rotationX, this.objectAnimationTime, 0.0), solver.getIPOCurveValueIfNotNull(this.objectAnimation.rotationY, this.objectAnimationTime, 0.0), solver.getIPOCurveValueIfNotNull(this.objectAnimation.rotationZ, this.objectAnimationTime, 0.0));
+            vec3.set(this.modelScaling, solver.getIPOCurveValueIfNotNull(this.objectAnimation.scalingX, this.objectAnimationTime, 1.0), solver.getIPOCurveValueIfNotNull(this.objectAnimation.scalingY, this.objectAnimationTime, 1.0), solver.getIPOCurveValueIfNotNull(this.objectAnimation.scalingZ, this.objectAnimationTime, 1.0));
             mat4.identity(this.modelMatrix);
-            mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.animationTime * 0.01);
+            mat4.translate(this.modelMatrix, this.modelMatrix, this.modelLocation);
+            mat4.rotateX(this.modelMatrix, this.modelMatrix, this.modelRotation[0]);
+            mat4.rotateY(this.modelMatrix, this.modelMatrix, this.modelRotation[1]);
+            mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.modelRotation[2]);
+            mat4.scale(this.modelMatrix, this.modelMatrix, this.modelScaling);
+            // Bone animation
+            this.animationSolver.calcBoneAnimation(this.boneAnimationBuffer, this.skinModel.data.bones, this.boneAnimation, this.boneAnimationTime);
+            this.animationSolver.calcBoneMatrix(this.boneMatrixBuffer, this.skinModel.data.bones, this.boneAnimationBuffer);
         };
         Main.prototype.draw = function () {
             var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
-            mat4.perspective(this.projectionMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 50.0);
+            mat4.perspective(this.projectionMatrix, 30.0 * Math.PI / 180, aspect, 0.1, 100.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
             this.render.setDepthTest(true);
             this.render.setCulling(false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
-            this.drawSkinModel(this.modelMatrix, this.skinModel, this.boneMatrixList);
+            this.drawSkinModel(this.modelMatrix, this.skinModel, this.images, this.boneMatrixBuffer);
         };
-        Main.prototype.calcBoneMatrix = function (result, skinModel) {
-            for (var i = 0; i < skinModel.data.bones.length; i++) {
-                var bone = skinModel.data.bones[i];
-                if (bone.parent == -1) {
-                    // root parent
-                    mat4.copy(result[i], bone.matrix);
-                }
-                else {
-                    // child
-                    mat4.multiply(result[i], result[bone.parent], bone.matrix);
-                    // sample motion
-                    mat4.rotateX(result[i], result[i], Math.cos(this.animationTime * 0.05));
-                }
-            }
-        };
-        Main.prototype.drawSkinModel = function (modelMatrix, skinModel, boneMatrixList) {
+        Main.prototype.drawSkinModel = function (modelMatrix, skinModel, images, matrixBuffer) {
             // calc base matrix (model-view matrix)
             mat4.multiply(this.modelViewMatrix, this.viewMatrix, this.modelMatrix);
             // set parameter not dependent on parts
@@ -123,11 +151,11 @@ var SkinModelDrawing;
                 this.render.setShader(shader);
                 // set bone matrix
                 for (var boneIndex = 0; boneIndex < part.bone.length; boneIndex++) {
-                    mat4.copy(this.boneMatrix, boneMatrixList[part.bone[boneIndex]]);
+                    mat4.copy(this.boneMatrix, matrixBuffer.animatedBoneMatrixList[part.bone[boneIndex]]);
                     shader.setBoneMatrix(boneIndex, this.boneMatrix, this.render.gl);
                 }
                 // draw
-                this.render.setBuffers(part.renderModel, this.images);
+                this.render.setBuffers(part.renderModel, images);
                 this.render.setDepthTest(true);
                 this.render.setCulling(false);
                 this.render.drawElements(part.renderModel);
@@ -166,11 +194,25 @@ var SkinModelDrawing;
                 this.render.initializeModelBuffer(renderModel, part.vertex, part.index, 4 * part.vertexStride); // 4 (=size of float)
                 part.renderModel = renderModel;
             }
-            // create bone matrix
-            this.boneMatrixList = new List();
-            for (var i = 0; i < skinModel.data.bones.length; i++) {
-                this.boneMatrixList.push(mat4.create());
-            }
+        };
+        Main.prototype.loadAnimation = function (animationData, url) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', url);
+            xhr.responseType = 'json';
+            xhr.addEventListener('load', function (e) {
+                var data;
+                if (xhr.responseType == 'json') {
+                    data = xhr.response;
+                }
+                else {
+                    data = JSON.parse(xhr.response);
+                }
+                for (var key in data) {
+                    animationData.data = data;
+                }
+                animationData.loaded = true;
+            });
+            xhr.send();
         };
         return Main;
     }());
@@ -258,7 +300,7 @@ var SkinModelDrawing;
         };
         return Bone2Shader;
     }(RenderShader));
-    SkinModelDrawing.Bone2Shader = Bone2Shader;
+    SkinModelAnimationPlaying.Bone2Shader = Bone2Shader;
     var Bone4Shader = (function (_super) {
         __extends(Bone4Shader, _super);
         function Bone4Shader() {
@@ -324,7 +366,7 @@ var SkinModelDrawing;
         };
         return Bone4Shader;
     }(Bone2Shader));
-    SkinModelDrawing.Bone4Shader = Bone4Shader;
+    SkinModelAnimationPlaying.Bone4Shader = Bone4Shader;
     var _Main;
     window.onload = function () {
         var canvas = document.getElementById('canvas');
@@ -338,8 +380,8 @@ var SkinModelDrawing;
             _Main.draw();
         }
         else {
-            _Main.processLading();
+            _Main.processLoading();
         }
         setTimeout(run, 1000 / 30);
     }
-})(SkinModelDrawing || (SkinModelDrawing = {}));
+})(SkinModelAnimationPlaying || (SkinModelAnimationPlaying = {}));

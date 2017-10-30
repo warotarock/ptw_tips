@@ -30,29 +30,6 @@ namespace ObjectAnimationConverter {
             request.send();
         }
 
-        getExtensionChangedFileName(fileName: string, newExtension) {
-
-            return (fileName.match(/(.*)(?:\.([^.]+$))/))[1] + '.' + newExtension;
-        }
-
-        jsonStringifyReplacer(key: string, value: any): any {
-
-            if (typeof value === 'number') {
-                return Number(value.toFixed(4));
-            }
-            else {
-                return value;
-            }
-        }
-
-        floatArrayToArray(array: Float32Array) {
-            var result = [];
-            for (var i = 0; i < array.length; i++) {
-                result.push(array[i]);
-            }
-            return result;
-        }
-
         convert(blendFile: BlendFileReader.ReadBlendFileResult): Dictionary<any> {
 
             var bheadDictionary = new Dictionary<BlendFileReader.BHead>();
@@ -126,11 +103,6 @@ namespace ObjectAnimationConverter {
                         channel: channelName,
                         array_index: fCurve_DataSet.array_index,
                         points: points
-                        //selected: (fCurve_DataSet.flag & 0x02) != 0,
-                        //active: (fCurve_DataSet.flag & 0x04) != 0,
-                        //locked: (fCurve_DataSet.flag & 0x08) != 0,
-                        //mute: (fCurve_DataSet.flag & 0x10) != 0,
-                        //modifire: (fCurve_DataSet.flag & 0x100) != 0
                     };
                     animation.curves.push(curve);
 
@@ -266,6 +238,29 @@ namespace ObjectAnimationConverter {
             else if (array_index == 6) {
                 return "locZ";
             }
+        }
+
+        getExtensionChangedFileName(fileName: string, newExtension) {
+
+            return (fileName.match(/(.*)(?:\.([^.]+$))/))[1] + '.' + newExtension;
+        }
+
+        jsonStringifyReplacer(key: string, value: any): any {
+
+            if (typeof value === 'number') {
+                return Number(value.toFixed(4));
+            }
+            else {
+                return value;
+            }
+        }
+
+        floatArrayToArray(array: Float32Array) {
+            var result = [];
+            for (var i = 0; i < array.length; i++) {
+                result.push(array[i]);
+            }
+            return result;
         }
     }
 

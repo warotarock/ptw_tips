@@ -141,7 +141,7 @@ namespace BasicModelConverting {
             });
         }
 
-        getExtensionChangedFileName(fileName: string, newExtension) {
+        getExtensionChangedFileName(fileName: string, newExtension): string {
 
             return (fileName.match(/(.*)(?:\.([^.]+$))/))[1] + '.' + newExtension;
         }

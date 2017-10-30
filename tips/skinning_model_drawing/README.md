@@ -1,24 +1,22 @@
-# スキンモデルとアニメーションの再生 - Skinning model drawing
+# スキンモデルの描画 - Skin model drawing
 
 ## 概要
-
-※作成途中です
 
 スキンモデルの描画処理です。
 ここで使用するモデルデータは[スキンモデルデータの作成](./skinning_model_converting/)で作成したものです。
 
-このサンプルではボーンのアニメーションは計算で生成しています。アニメーションデータはありません。
+なお、このサンプルではボーンのアニメーションは計算で生成しています。アニメーションデータはありません。
 
 ソースコード
 
 - [サンプルプログラム（main.ts）](./main.ts)  
 - [アニメーション（animation.ts）](../tips_core/animation.ts)  
 
-![](skinning_model_drawing_fig001.png)
-
 デモの実行
 
 - [Live Demo](https://warotarock.github.io/ptw_tips/tips/skinning_model_drawing/)
+
+![](skinning_model_drawing_fig001.png)
 
 
 ## スキンモデルの描画処理
@@ -69,6 +67,7 @@
 
 ## 関連情報
 
-- [オブジェクトアニメーションの再生](./object_animation_drawing/)
 - [スキンモデルデータの作成](./skinning_model_converting/)
+- [スキンモデルのアニメーションデータの作成](./skin_model_animation_converting/)
+- [スキンモデルのアニメーションの再生](../skin_model_animation_playing/)
 
