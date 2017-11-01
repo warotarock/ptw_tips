@@ -76,7 +76,7 @@
             var bHead = blendFile.bheadList[i];
             if (bHead.SDNAnr == material_TypeInfo.sdnaIndex) {
 
-                var dataset: any = blendFile.dna.createDataSetFromBHead(bHead);
+                var dataset: any = blendFile.dna.createDataSet(bHead);
 
                 var out = 'Material ' + getAddressText(bHead.old) + ' (' + bhead.nr.toString() + ')' + '<br/>'
                     + '&emsp;name: ' + dataset.id.name + '<br/>'
@@ -94,7 +94,7 @@
             var bHead = blendFile.bheadList[i];
             if (bHead.SDNAnr == object_TypeInfo.sdnaIndex) {
 
-                var dataset: any = blendFile.dna.createDataSetFromBHead(bHead);
+                var dataset: any = blendFile.dna.createDataSet(bHead);
 
                 var out = 'Object ' + getAddressText(bHead.old) + ' (' + bhead.nr.toString() + ')' + '<br/>'
                     + '&emsp;name: ' + dataset.id.name + '<br/>'

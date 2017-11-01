@@ -86,8 +86,6 @@ namespace SkinModelDrawing {
             }
 
             // Loading finished
-            this.initializeSkinModelBuffer(this.skinModel);
-
             this.isLoaded = true;
         }
 
@@ -152,7 +150,6 @@ namespace SkinModelDrawing {
             this.render.setProjectionMatrix(this.projectionMatrix);
 
             // drawing for each part
-            var bones = skinModel.data.bones;
             var parts = skinModel.data.parts;
 
             for (var i = 0; i < parts.length; i++) {
@@ -216,6 +213,8 @@ namespace SkinModelDrawing {
 
                     resultModel.data = data['skin_models'][modelName];
                     resultModel.loaded = true;
+
+                    this.initializeSkinModelBuffer(resultModel);
                 }
             );
 

@@ -1,9 +1,15 @@
-# スキンモデルのアニメーションデータの作成 - Skin model animation converting
+# スキンモデルのアニメーションデータの作成 - Skin model animation data converting
 
 ## 概要
-Blenderのオブジェクトアニメーションのコンバート処理です。
+Blenderのオブジェクトアニメーションのコンバート処理です。.blendファイルを解析してFCurveの内容を取得し、ファイルに出力します。.blendファイルの解析にはBlendFileReader.tsを使用します。
 
 出力はFCurveの内容をほぼそのまま出力したものになります。
+
+ソースコード
+
+- [サンプルプログラム（main.ts）](./main.ts)  
+- [BlendFileReader.ts（blend_file_reader.ts）](../tips_core/blend_file_reader.ts)  
+
 
 ## 関連情報
 

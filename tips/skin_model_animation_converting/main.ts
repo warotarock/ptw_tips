@@ -1,7 +1,27 @@
 ﻿
-var fs = require('fs');
-
 namespace SkinModelAnimationConverting {
+
+    var fs = (typeof(require) != 'undefined') ? require('fs') : {
+        writeFile(fileName, text) {
+            document.getElementById('content').innerHTML = text;
+        }
+    };
+
+    // Data types
+
+    class ConverteIPOCurve {
+
+        group: string;
+        channel: string;
+        array_index: int;
+        points: IPOBezTripleList;
+    }
+
+    class ConverteAnimationData {
+
+        name: string;
+        curves: List<ConverteIPOCurve>;
+    }
 
     class Main {
 
@@ -10,7 +30,7 @@ namespace SkinModelAnimationConverting {
             var fileName = '../skinning_model_converting/sample_skin_model.blend';
             var outFileName = '../temp/sample_skin_animation.json';
 
-            document.getElementById('content').innerHTML = 'Out put will be located ' + outFileName;
+            document.getElementById('message').innerHTML = 'Out put will be located ' + outFileName;
 
             var request = new XMLHttpRequest();
             request.open('GET', fileName, true);
@@ -24,13 +44,13 @@ namespace SkinModelAnimationConverting {
                     var convetedData = this.convert(blendFile);
                     this.output(convetedData, outFileName);
 
-                    document.getElementById('content').innerHTML = 'Out put done ' + outFileName;
+                    document.getElementById('message').innerHTML = 'Out put done ' + outFileName;
                 }
             );
             request.send();
         }
 
-        convert(blendFile: BlendFileReader.ReadBlendFileResult): Dictionary<any> {
+        convert(blendFile: BlendFileReader.ReadBlendFileResult): List<ConverteAnimationData> {
 
             var bheadDictionary = new Dictionary<BlendFileReader.BHead>();
             Enumerable.From(blendFile.bheadList)
@@ -46,31 +66,31 @@ namespace SkinModelAnimationConverting {
             // for each bAction
             for (var i = 0; i < bAction_BHeads.length; i++) {
                 var bAction_BHead = bAction_BHeads[i];
-                var bAction_DataSet = blendFile.dna.createDataSetFromBHead(bAction_BHead);
+                var bAction = blendFile.dna.createDataSet(bAction_BHead);
 
-                var animation = {
-                    name: bAction_DataSet.id.name.substr(2),
-                    curves: []
-                };
+                var animation = new ConverteAnimationData();
+                animation.name = bAction.id.name.substr(2);
+                animation.curves = new List<ConverteIPOCurve>();
 
                 var lastGroupName = null;
                 var channelIndex = 0;
 
                 // for each fCurve in bAction
-                var fCurve_Address = bAction_DataSet.curves.first;
+                var fCurve_Address = bAction.curves.first;
                 while (true) {
+
                     var fCurve_BHead = bheadDictionary[fCurve_Address];
-                    var fCurve_DataSet = blendFile.dna.createDataSetFromBHead(fCurve_BHead);
+                    var fCurve = blendFile.dna.createDataSet(fCurve_BHead);
 
-                    var bActionGroup_BHead = bheadDictionary[fCurve_DataSet.grp];
-                    var bActionGroup_DataSet = blendFile.dna.createDataSetFromBHead(bActionGroup_BHead);
+                    var bActionGroup_BHead = bheadDictionary[fCurve.grp];
+                    var bActionGroup = blendFile.dna.createDataSet(bActionGroup_BHead);
 
-                    var bezTriple_Bhead = bheadDictionary[fCurve_DataSet.bezt];
-                    var bezTriple_DataSet = blendFile.dna.createDataSetFromBHead(bezTriple_Bhead);
+                    var bezTriple_Bhead = bheadDictionary[fCurve.bezt];
+                    var bezTriple = blendFile.dna.createDataSet(bezTriple_Bhead);
 
                     var points = [];
-                    for (var k = 0; k < bezTriple_DataSet.elementCount; k++) {
-                        var bezt = bezTriple_DataSet[k];
+                    for (var k = 0; k < bezTriple.elementCount; k++) {
+                        var bezt = bezTriple[k];
 
                         points.push(
                             [
@@ -81,14 +101,15 @@ namespace SkinModelAnimationConverting {
                         );
                     }
 
-                    var isBoneAction = this.isBoneAction(bActionGroup_DataSet.name,);
+                    var isBoneAction = this.isBoneAction(bActionGroup.name);
 
                     var groupName: string;
                     var channelName: string;
                     if (isBoneAction) {
 
-                        groupName = bActionGroup_DataSet.name
+                        groupName = bActionGroup.name
                         if (lastGroupName != groupName) {
+
                             lastGroupName = groupName;
                             channelIndex = 0;
                         }
@@ -98,22 +119,24 @@ namespace SkinModelAnimationConverting {
                     else {
 
                         groupName = "Object";
-                        channelName = this.getObjectAnimationCurveName(bActionGroup_DataSet.name, fCurve_DataSet.array_index);
+                        channelName = this.getObjectAnimationCurveName(bActionGroup.name, fCurve.array_index);
                     }
 
-                    var curve = {
-                        group: groupName.replace(/_/g, '.'),
-                        channel: channelName,
-                        array_index: fCurve_DataSet.array_index,
-                        points: points
-                    };
+                    var curve = new ConverteIPOCurve();
+
+                    curve.group = groupName.replace(/_/g, '.');
+                    curve.channel = channelName;
+                    curve.array_index = fCurve.array_index;
+                    curve.points = points;
                     animation.curves.push(curve);
 
-                    if (fCurve_Address == bAction_DataSet.curves.last) {
+                    if (fCurve_Address == bAction.curves.last) {
+
                         break;
                     }
                     else {
-                        fCurve_Address = fCurve_DataSet.next;
+
+                        fCurve_Address = fCurve.next;
                     }
                 }
 
@@ -123,7 +146,7 @@ namespace SkinModelAnimationConverting {
             return result;
         }
 
-        output(convetedData: List<any>, outFileName: string) {
+        output(convetedData: List<ConverteAnimationData>, outFileName: string) {
 
             var out = [];
 

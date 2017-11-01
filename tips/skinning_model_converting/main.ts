@@ -1,10 +1,13 @@
 ﻿
-var fs = require('fs');
-var path = require('path');
-
 namespace SkinModelConverting {
 
     declare var THREE: any;
+
+    var fs = (typeof (require) != 'undefined') ? require('fs') : {
+        writeFile(fileName, text) {
+            document.getElementById('content').innerHTML = text;
+        }
+    };
 
     // Data types
 
@@ -32,7 +35,7 @@ namespace SkinModelConverting {
             var blendFileName = this.getExtensionChangedFileName(fileName, 'blend');
             var outFileName = this.getExtensionChangedFileName('../temp/' + fileName, 'json');
 
-            document.getElementById('content').innerHTML = 'Out put will be located ' + outFileName;
+            document.getElementById('message').innerHTML = 'Out put will be located ' + outFileName;
 
             // Parsing by collada loader
             var collada_loader = new THREE.ColladaLoader();
@@ -49,7 +52,7 @@ namespace SkinModelConverting {
                     // Output
                     this.output(convetedModels, outFileName);
 
-                    document.getElementById('content').innerHTML = 'Out put done ' + outFileName;
+                    document.getElementById('message').innerHTML = 'Out put done ' + outFileName;
                 }
             );
         }
@@ -216,7 +219,7 @@ namespace SkinModelConverting {
             });
         }
 
-        getExtensionChangedFileName(fileName: string, newExtension) {
+        getExtensionChangedFileName(fileName: string, newExtension): string {
 
             return (fileName.match(/(.*)(?:\.([^.]+$))/))[1] + '.' + newExtension;
         }
@@ -231,7 +234,8 @@ namespace SkinModelConverting {
             }
         }
 
-        floatArrayToArray(array: Float32Array | number[]) {
+        floatArrayToArray(array: Float32Array | number[]): List<float> {
+
             var result = [];
             for (var i = 0; i < array.length; i++) {
                 result.push(array[i]);

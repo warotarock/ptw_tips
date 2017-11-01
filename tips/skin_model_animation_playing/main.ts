@@ -110,8 +110,6 @@ namespace SkinModelAnimationPlaying {
             }
 
             // Loading finished
-            this.initializeSkinModelBuffer(this.skinModel);
-
             this.boneAnimation = this.animationData.data['ArmatureAction'];
             this.objectAnimation = this.animationData.data['ArmatureAction']['Object'];
 
@@ -262,6 +260,8 @@ namespace SkinModelAnimationPlaying {
 
                     resultModel.data = data['skin_models'][modelName];
                     resultModel.loaded = true;
+
+                    this.initializeSkinModelBuffer(resultModel);
                 }
             );
 

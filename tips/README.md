@@ -3,11 +3,11 @@
 
 ### １．基盤技術
 - [TypeScriptによる基本的なWebGLプログラミング](./basic_webgl_ts/) - Basic TypeScript-WebGL programming
-- [モデルデータの作成](./basic_model_converting/) - Basic model converting
+- [モデルデータの作成](./basic_model_converting/) - Basic model data converting
 - [モデルの描画](./basic_model_drawing/) - Basic model drawing
-- [スキンモデルデータの作成](./skinning_model_converting/) - Skin model converting
+- [スキンモデルデータの作成](./skinning_model_converting/) - Skin model data converting
 - [スキンモデルの描画](./skinning_model_drawing/) - Skin model drawing
-- [スキンモデルのアニメーションデータの作成](./skin_model_animation_converting/) - Skin model animation converting
+- [スキンモデルのアニメーションデータの作成](./skin_model_animation_converting/) - Skin model animation data converting
 - [スキンモデルのアニメーションの再生](./skin_model_animation_playing/) - Skin model animation playing
 <br />
 
@@ -22,7 +22,7 @@
 ### ３．汎用サブシステム
 - [入力管理](./input_management/) - Input management
 - [サウンド管理](./sound_management/) - Sound management
-- [キャンバス描画](./canvas_drawing/) - Canvas drawing (for text drawing)
+- [キャンバス描画](./canvas_drawing/) - Canvas drawing (mainly for text drawing)
 <br />
 
 ### ４．ゲーム用サブシステム

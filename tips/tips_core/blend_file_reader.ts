@@ -672,7 +672,7 @@ namespace BlendFileReader {
             return this.structureTypeInfoList[sdnaIndex];
         }
 
-        createDataSetFromBHead(bHead: BHead): SDNADataSet | any {
+        createDataSet(bHead: BHead): SDNADataSet | any {
 
             var typeInfo = this.getStructureTypeInfoByID(bHead.SDNAnr)
 

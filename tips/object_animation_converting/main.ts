@@ -46,10 +46,10 @@ namespace ObjectAnimationConverter {
             // for each bAction
             for (var i = 0; i < bAction_BHeads.length; i++) {
                 var bAction_BHead = bAction_BHeads[i];
-                var bAction_DataSet = blendFile.dna.createDataSetFromBHead(bAction_BHead);
+                var bAction = blendFile.dna.createDataSet(bAction_BHead);
 
                 var animation = {
-                    name: bAction_DataSet.id.name.substr(2),
+                    name: bAction.id.name.substr(2),
                     curves: []
                 };
 
@@ -57,20 +57,20 @@ namespace ObjectAnimationConverter {
                 var channelIndex = 0;
 
                 // for each fCurve in bAction
-                var fCurve_Address = bAction_DataSet.curves.first;
+                var fCurve_Address = bAction.curves.first;
                 while (true) {
                     var fCurve_BHead = bheadDictionary[fCurve_Address];
-                    var fCurve_DataSet = blendFile.dna.createDataSetFromBHead(fCurve_BHead);
+                    var fCurve = blendFile.dna.createDataSet(fCurve_BHead);
 
-                    var bActionGroup_BHead = bheadDictionary[fCurve_DataSet.grp];
-                    var bActionGroup_DataSet = blendFile.dna.createDataSetFromBHead(bActionGroup_BHead);
+                    var bActionGroup_BHead = bheadDictionary[fCurve.grp];
+                    var bActionGroup = blendFile.dna.createDataSet(bActionGroup_BHead);
 
-                    var bezTriple_Bhead = bheadDictionary[fCurve_DataSet.bezt];
-                    var bezTriple_DataSet = blendFile.dna.createDataSetFromBHead(bezTriple_Bhead);
+                    var bezTriple_Bhead = bheadDictionary[fCurve.bezt];
+                    var bezTriple = blendFile.dna.createDataSet(bezTriple_Bhead);
 
                     var points = [];
-                    for (var k = 0; k < bezTriple_DataSet.elementCount; k++) {
-                        var bezt = bezTriple_DataSet[k];
+                    for (var k = 0; k < bezTriple.elementCount; k++) {
+                        var bezt = bezTriple[k];
                         points.push(
                             [
                                 [bezt.vec[0], bezt.vec[1], bezt.vec[2]],
@@ -80,12 +80,12 @@ namespace ObjectAnimationConverter {
                         );
                     }
 
-                    var isBoneAction = StringIsNullOrEmpty(this.getCurveName(bActionGroup_DataSet.name, fCurve_DataSet.array_index));
+                    var isBoneAction = StringIsNullOrEmpty(this.getCurveName(bActionGroup.name, fCurve.array_index));
 
                     var groupName: string;
                     var channelName: string;
                     if (isBoneAction) {
-                        groupName = bActionGroup_DataSet.name
+                        groupName = bActionGroup.name
                         if (lastGroupName != groupName) {
                             lastGroupName = groupName;
                             channelIndex = 0;
@@ -95,22 +95,22 @@ namespace ObjectAnimationConverter {
                     }
                     else {
                         groupName = "Object";
-                        channelName = this.getCurveName(bActionGroup_DataSet.name, fCurve_DataSet.array_index);
+                        channelName = this.getCurveName(bActionGroup.name, fCurve.array_index);
                     }
 
                     var curve = {
                         group: groupName.replace(/_/g, '.'),
                         channel: channelName,
-                        array_index: fCurve_DataSet.array_index,
+                        array_index: fCurve.array_index,
                         points: points
                     };
                     animation.curves.push(curve);
 
-                    if (fCurve_Address == bAction_DataSet.curves.last) {
+                    if (fCurve_Address == bAction.curves.last) {
                         break;
                     }
                     else {
-                        fCurve_Address = fCurve_DataSet.next;
+                        fCurve_Address = fCurve.next;
                     }
                 }
 

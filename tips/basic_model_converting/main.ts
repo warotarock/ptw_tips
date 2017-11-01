@@ -1,9 +1,13 @@
 ﻿
-var fs = require('fs');
-
 namespace BasicModelConverting {
 
     declare var THREE: any;
+
+    var fs = (typeof (require) != 'undefined') ? require('fs') : {
+        writeFile(fileName, text) {
+            document.getElementById('content').innerHTML = text;
+        }
+    };
 
     // Data types
 
@@ -23,7 +27,7 @@ namespace BasicModelConverting {
             var fileName = 'sample_basic_model.dae';
             var outFileName = this.getExtensionChangedFileName('../temp/' + fileName, 'json');
 
-            document.getElementById('content').innerHTML = 'Out put will be located ' + outFileName;
+            document.getElementById('message').innerHTML = 'Out put will be located ' + outFileName;
 
             var collada_loader = new THREE.ColladaLoader();
 
@@ -41,7 +45,7 @@ namespace BasicModelConverting {
                     // Output
                     this.output(convetedModels, outFileName);
 
-                    document.getElementById('content').innerHTML = 'Out put done ' + outFileName;
+                    document.getElementById('message').innerHTML = 'Out put done ' + outFileName;
                 }
             );
 
