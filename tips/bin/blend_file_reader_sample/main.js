@@ -51,7 +51,7 @@ var BlendFileReaderSample;
         for (var i = 0; i < blendFile.bheadList.length; i++) {
             var bHead = blendFile.bheadList[i];
             if (bHead.SDNAnr == material_TypeInfo.sdnaIndex) {
-                var dataset = blendFile.dna.createDataSetFromBHead(bHead);
+                var dataset = blendFile.dna.createDataSet(bHead);
                 var out = 'Material ' + getAddressText(bHead.old) + ' (' + bhead.nr.toString() + ')' + '<br/>'
                     + '&emsp;name: ' + dataset.id.name + '<br/>'
                     + '&emsp;r: ' + dataset.r.toFixed(4) + '<br/>'
@@ -64,7 +64,7 @@ var BlendFileReaderSample;
         for (var i = 0; i < blendFile.bheadList.length; i++) {
             var bHead = blendFile.bheadList[i];
             if (bHead.SDNAnr == object_TypeInfo.sdnaIndex) {
-                var dataset = blendFile.dna.createDataSetFromBHead(bHead);
+                var dataset = blendFile.dna.createDataSet(bHead);
                 var out = 'Object ' + getAddressText(bHead.old) + ' (' + bhead.nr.toString() + ')' + '<br/>'
                     + '&emsp;name: ' + dataset.id.name + '<br/>'
                     + '&emsp;loc: (' + dataset.loc[0].toFixed(4)

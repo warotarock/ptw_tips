@@ -61,7 +61,6 @@ var SkinModelDrawing;
                 return;
             }
             // Loading finished
-            this.initializeSkinModelBuffer(this.skinModel);
             this.isLoaded = true;
         };
         Main.prototype.run = function () {
@@ -108,7 +107,6 @@ var SkinModelDrawing;
             this.render.setModelViewMatrix(this.modelViewMatrix);
             this.render.setProjectionMatrix(this.projectionMatrix);
             // drawing for each part
-            var bones = skinModel.data.bones;
             var parts = skinModel.data.parts;
             for (var i = 0; i < parts.length; i++) {
                 var part = parts[i];
@@ -142,6 +140,7 @@ var SkinModelDrawing;
             resultImage.imageData.src = url;
         };
         Main.prototype.loadSkinModel = function (resultModel, url, modelName) {
+            var _this = this;
             var xhr = new XMLHttpRequest();
             xhr.open('GET', url);
             xhr.responseType = 'json';
@@ -155,6 +154,7 @@ var SkinModelDrawing;
                 }
                 resultModel.data = data['skin_models'][modelName];
                 resultModel.loaded = true;
+                _this.initializeSkinModelBuffer(resultModel);
             });
             xhr.send();
         };

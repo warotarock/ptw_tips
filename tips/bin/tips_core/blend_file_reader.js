@@ -486,7 +486,7 @@ var BlendFileReader;
         DNA.prototype.getStructureTypeInfoByID = function (sdnaIndex) {
             return this.structureTypeInfoList[sdnaIndex];
         };
-        DNA.prototype.createDataSetFromBHead = function (bHead) {
+        DNA.prototype.createDataSet = function (bHead) {
             var typeInfo = this.getStructureTypeInfoByID(bHead.SDNAnr);
             var dataSet = this.createDataSetFromTypeInfo(typeInfo, bHead, 0);
             // accessor like array in a data block

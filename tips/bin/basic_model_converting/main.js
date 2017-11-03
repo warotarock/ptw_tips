@@ -1,6 +1,10 @@
-var fs = require('fs');
 var BasicModelConverting;
 (function (BasicModelConverting) {
+    var fs = (typeof (require) != 'undefined') ? require('fs') : {
+        writeFile: function (fileName, text) {
+            document.getElementById('content').innerHTML = text;
+        }
+    };
     // Data types
     var ConvertedModel = (function () {
         function ConvertedModel() {
@@ -15,7 +19,7 @@ var BasicModelConverting;
             var _this = this;
             var fileName = 'sample_basic_model.dae';
             var outFileName = this.getExtensionChangedFileName('../temp/' + fileName, 'json');
-            document.getElementById('content').innerHTML = 'Out put will be located ' + outFileName;
+            document.getElementById('message').innerHTML = 'Out put will be located ' + outFileName;
             var collada_loader = new THREE.ColladaLoader();
             // Parsing by collada loader
             collada_loader.load(fileName, function (threeJSCollada) {
@@ -25,7 +29,7 @@ var BasicModelConverting;
                 var convetedModels = _this.convert(sceneData.staticMeshModels);
                 // Output
                 _this.output(convetedModels, outFileName);
-                document.getElementById('content').innerHTML = 'Out put done ' + outFileName;
+                document.getElementById('message').innerHTML = 'Out put done ' + outFileName;
             });
         };
         Main.prototype.convert = function (staticMeshes) {

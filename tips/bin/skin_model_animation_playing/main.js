@@ -67,7 +67,7 @@ var SkinModelAnimationPlaying;
             this.images.push(image);
             this.skinModel = new SkinModel();
             this.loadSkinModel(this.skinModel, '../temp/sample_skin_model.json', 'SkinModel1');
-            this.loadAnimation(this.animationData, '../temp/sample_skin_animation.json');
+            this.loadAnimation(this.animationData, '../temp/sample_skin_model_animation.json');
         };
         Main.prototype.processLoading = function () {
             // Waiting for data
@@ -81,7 +81,6 @@ var SkinModelAnimationPlaying;
                 return;
             }
             // Loading finished
-            this.initializeSkinModelBuffer(this.skinModel);
             this.boneAnimation = this.animationData.data['ArmatureAction'];
             this.objectAnimation = this.animationData.data['ArmatureAction']['Object'];
             this.boneAnimationBuffer = this.animationSolver.createBoneAnimationBuffer(this.skinModel.data.bones);
@@ -170,6 +169,7 @@ var SkinModelAnimationPlaying;
             resultImage.imageData.src = url;
         };
         Main.prototype.loadSkinModel = function (resultModel, url, modelName) {
+            var _this = this;
             var xhr = new XMLHttpRequest();
             xhr.open('GET', url);
             xhr.responseType = 'json';
@@ -183,6 +183,7 @@ var SkinModelAnimationPlaying;
                 }
                 resultModel.data = data['skin_models'][modelName];
                 resultModel.loaded = true;
+                _this.initializeSkinModelBuffer(resultModel);
             });
             xhr.send();
         };
