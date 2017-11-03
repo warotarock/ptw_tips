@@ -246,6 +246,7 @@ class AnimationSolver {
         if (sectionIndex < ipoCurve.curve.length - 1) {
 
             if (ipoCurve.ipoType == IPOCurveIPOTypes.Bezier) {
+
                 ipoRate = this.calcBezierTimeInSection(
                     ipoCurve.curve[sectionIndex][1][0]
                     , ipoCurve.curve[sectionIndex][2][0]
@@ -260,6 +261,7 @@ class AnimationSolver {
                     , ipoRate);
             }
             else if (ipoCurve.ipoType == IPOCurveIPOTypes.Liner) {
+
                 ipoRate = timeInSection / (ipoCurve.curve[sectionIndex + 1][1][0] - ipoCurve.curve[sectionIndex][1][0]);
                 interpolatedValue = this.calcInterpolationLiner(
                     ipoCurve.curve[sectionIndex][1][1]

@@ -9,26 +9,51 @@ namespace SkinModelAnimationConverting {
 
     // Data types
 
-    class ConverteIPOCurve {
+    class FCurve {
 
-        group: string;
-        channel: string;
         array_index: int;
-        points: IPOBezTripleList;
+        points = new List<IPOBezTriple>();
     }
 
-    class ConverteAnimationData {
+    class ActionGroup {
 
         name: string;
-        curves: List<ConverteIPOCurve>;
+        curves = new List<FCurve>();
+    }
+
+    class Action {
+
+        name: string;
+        groups = List<ActionGroup>();
+    }
+
+    class ConvertedCurve {
+
+        name: string;
+        ipoType = 2;
+        lastTime = 0.0;
+        lastIndex = 0;
+        curve = new List<IPOBezTriple>();
+    }
+
+    class ConvertedCurveGroup {
+
+        name: string;
+        curves = new List<ConvertedCurve>();
+    }
+
+    class ConvertedAnimation {
+
+        name: string;
+        groups = new List<ConvertedCurveGroup>();
     }
 
     class Main {
 
         execute() {
 
-            var fileName = '../skinning_model_converting/sample_skin_model.blend';
-            var outFileName = '../temp/sample_skin_animation.json';
+            var fileName = 'sample_skin_model_animation.blend';
+            var outFileName = this.getExtensionChangedFileName('../temp/' + fileName, 'json');
 
             document.getElementById('message').innerHTML = 'Out put will be located ' + outFileName;
 
@@ -37,11 +62,17 @@ namespace SkinModelAnimationConverting {
             request.responseType = 'arraybuffer';
             request.addEventListener('load',
                 (e: Event) => {
+
                     // read a blend file
                     var blendFile = BlendFileReader.readBlendFile(request.response);
 
-                    // execute converting
-                    var convetedData = this.convert(blendFile);
+                    // Parsing
+                    let actions = this.parse(blendFile);
+
+                    // Converting
+                    var convetedData = this.convert(actions);
+
+                    // Output
                     this.output(convetedData, outFileName);
 
                     document.getElementById('message').innerHTML = 'Out put done ' + outFileName;
@@ -50,8 +81,9 @@ namespace SkinModelAnimationConverting {
             request.send();
         }
 
-        convert(blendFile: BlendFileReader.ReadBlendFileResult): List<ConverteAnimationData> {
+        parse(blendFile: BlendFileReader.ReadBlendFileResult): List<Action> {
 
+            // Gets all bAction
             var bheadDictionary = new Dictionary<BlendFileReader.BHead>();
             Enumerable.From(blendFile.bheadList)
                 .ForEach(bhead => bheadDictionary[bhead.old] = bhead);
@@ -61,30 +93,45 @@ namespace SkinModelAnimationConverting {
                 .Where(bh => bh.SDNAnr == bAction_TypeInfo.sdnaIndex)
                 .ToArray();
 
-            var result = new List<any>();
+            var actions = new List<Action>();
 
-            // for each bAction
+            // For each bAction
             for (var i = 0; i < bAction_BHeads.length; i++) {
                 var bAction_BHead = bAction_BHeads[i];
                 var bAction = blendFile.dna.createDataSet(bAction_BHead);
 
-                var animation = new ConverteAnimationData();
-                animation.name = bAction.id.name.substr(2);
-                animation.curves = new List<ConverteIPOCurve>();
+                var action = new Action();
+                action.name = bAction.id.name.substr(2);
 
-                var lastGroupName = null;
-                var channelIndex = 0;
+                var actionGroupDictionary = new Dictionary<ActionGroup>();
 
-                // for each fCurve in bAction
+                // For each FCurve in bAction, creates curves within each group
                 var fCurve_Address = bAction.curves.first;
                 while (true) {
 
                     var fCurve_BHead = bheadDictionary[fCurve_Address];
                     var fCurve = blendFile.dna.createDataSet(fCurve_BHead);
 
-                    var bActionGroup_BHead = bheadDictionary[fCurve.grp];
-                    var bActionGroup = blendFile.dna.createDataSet(bActionGroup_BHead);
+                    // Gets action group
+                    var actionGroup: ActionGroup;
+                    if (DictionaryContainsKey(actionGroupDictionary, fCurve.grp)) {
 
+                        actionGroup = actionGroupDictionary[fCurve.grp];
+                    }
+                    else {
+
+                        var bActionGroup_BHead = bheadDictionary[fCurve.grp];
+                        var bActionGroup = blendFile.dna.createDataSet(bActionGroup_BHead);
+
+                        actionGroup = new ActionGroup();
+                        actionGroup.name = bActionGroup.name;
+
+                        actionGroupDictionary[fCurve.grp] = actionGroup;
+
+                        action.groups.push(actionGroup);
+                    }
+
+                    // Gets bezTriples
                     var bezTriple_Bhead = bheadDictionary[fCurve.bezt];
                     var bezTriple = blendFile.dna.createDataSet(bezTriple_Bhead);
 
@@ -101,34 +148,12 @@ namespace SkinModelAnimationConverting {
                         );
                     }
 
-                    var isBoneAction = this.isBoneAction(bActionGroup.name);
-
-                    var groupName: string;
-                    var channelName: string;
-                    if (isBoneAction) {
-
-                        groupName = bActionGroup.name
-                        if (lastGroupName != groupName) {
-
-                            lastGroupName = groupName;
-                            channelIndex = 0;
-                        }
-                        channelName = this.getBoneAnimationCurveName(channelIndex);
-                        channelIndex++;
-                    }
-                    else {
-
-                        groupName = "Object";
-                        channelName = this.getObjectAnimationCurveName(bActionGroup.name, fCurve.array_index);
-                    }
-
-                    var curve = new ConverteIPOCurve();
-
-                    curve.group = groupName.replace(/_/g, '.');
-                    curve.channel = channelName;
+                    // Creates FCurve
+                    var curve = new FCurve();
                     curve.array_index = fCurve.array_index;
                     curve.points = points;
-                    animation.curves.push(curve);
+
+                    actionGroup.curves.push(curve);
 
                     if (fCurve_Address == bAction.curves.last) {
 
@@ -140,57 +165,113 @@ namespace SkinModelAnimationConverting {
                     }
                 }
 
-                result.push(animation);
+                actions.push(action);
             }
 
-            return result;
+            return actions;
         }
 
-        output(convetedData: List<ConverteAnimationData>, outFileName: string) {
+        convert(actions: List<Action>): List<ConvertedAnimation> {
+
+            var convertedAnimations = new List<ConvertedAnimation>();
+
+            // for each bAction
+            for (let action of actions) {
+
+                let animation = new ConvertedAnimation();
+                animation.name = action.name;
+
+                var orderedGroups = Enumerable.From(action.groups)
+                    .OrderBy(group => group.name)
+                    .ToArray();
+
+                let fCurveGroupDictionary = new Dictionary<ConvertedCurveGroup>();
+
+                for (let actionGroup of orderedGroups) {
+
+                    var isBoneAction = this.isBoneAction(actionGroup.name);
+
+                    let channelIndex = 0;
+
+                    for (let fCurve of actionGroup.curves) {
+
+                        // Converts group and curve name. Curves for object animation are collected into a group.
+                        var groupName: string;
+                        var curveName: string;
+                        if (isBoneAction) {
+
+                            groupName = actionGroup.name;
+                            curveName = this.getBoneAnimationCurveName(channelIndex);
+                            channelIndex++;
+                        }
+                        else {
+
+                            groupName = "Object";
+                            curveName = this.getObjectAnimationCurveName(actionGroup.name, fCurve.array_index);
+                        }
+
+                        let fCurveGroup: ConvertedCurveGroup;
+                        if (DictionaryContainsKey(fCurveGroupDictionary, groupName)) {
+
+                            fCurveGroup = fCurveGroupDictionary[groupName];
+                        }
+                        else {
+
+                            fCurveGroup = new ConvertedCurveGroup();
+                            fCurveGroup.name = groupName;
+
+                            fCurveGroupDictionary[groupName] = fCurveGroup;
+                        }
+
+                        var curve = new ConvertedCurve();
+                        curve.name = curveName;
+                        curve.curve = fCurve.points;
+
+                        fCurveGroup.curves.push(curve);
+                    }
+                }
+
+                for (let groupName in fCurveGroupDictionary) {
+                    let fCurveGroup = fCurveGroupDictionary[groupName];
+
+                    animation.groups.push(fCurveGroup);
+                }
+
+                convertedAnimations.push(animation);
+            }
+
+            return convertedAnimations;
+        }
+
+        output(animations: List<ConvertedAnimation>, outFileName: string) {
 
             var out = [];
 
             out.push("{");
 
-            for (var i = 0; i < convetedData.length; i++) {
-                var animation = convetedData[i];
+            for (var animationIndex = 0; animationIndex < animations.length; animationIndex++) {
+                let animation = animations[animationIndex];
 
                 out.push("  \"" + animation.name + "\": {");
 
-                var channelGroup = Enumerable.From(<List<any>>animation.curves)
-                    .GroupBy(curve => curve.group)
-                    .Select(group => ({
-                        name: group.Key(),
-                        curves: group.source
-                    }))
-                    .OrderBy(group => group.name)
-                    .ToArray();
-
-                for (var groupIndex = 0; groupIndex < channelGroup.length; groupIndex++) {
-                    var group = channelGroup[groupIndex];
+                for (var groupIndex = 0; groupIndex < animation.groups.length; groupIndex++) {
+                    var group = animation.groups[groupIndex];
 
                     out.push("    \"" + group.name + "\": {");
 
-                    for (var k = 0; k < group.curves.length; k++) {
-                        var curve = group.curves[k];
+                    for (var curveIndex = 0; curveIndex < group.curves.length; curveIndex++) {
+                        var curve = group.curves[curveIndex];
 
-                        var output_carve = {
-                            ipoType: 2,
-                            lastTime: 0.0,
-                            lastIndex: 0,
-                            curve: curve.points
-                        };
-
-                        out.push("      \"" + curve.channel + "\": "
-                            + JSON.stringify(output_carve, this.jsonStringifyReplacer)
-                            + (k < group.curves.length - 1 ? ',' : '')
+                        out.push("      \"" + curve.name + "\": "
+                            + JSON.stringify(curve, this.jsonStringifyReplacer)
+                            + (curveIndex < group.curves.length - 1 ? ',' : '')
                         );
                     }
 
-                    out.push("    }" + (groupIndex < channelGroup.length - 1 ? ',' : ''));
+                    out.push("    }" + (groupIndex < animation.groups.length - 1 ? ',' : ''));
                 }
 
-                out.push("  }" + (i < convetedData.length - 1 ? ',' : ''));
+                out.push("  }" + (animationIndex < animations.length - 1 ? ',' : ''));
             }
 
             out.push("}");
@@ -204,9 +285,9 @@ namespace SkinModelAnimationConverting {
 
         isBoneAction(actionGroupName: string) {
 
-            let convertedName = this.getObjectAnimationCurveName(actionGroupName, 0);
+            let curveName = this.getObjectAnimationCurveName(actionGroupName, 0);
 
-            return StringIsNullOrEmpty(convertedName);
+            return StringIsNullOrEmpty(curveName);
         }
 
         getObjectAnimationCurveName(actionGroupName: string, array_index: int): string {
