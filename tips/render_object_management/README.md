@@ -8,6 +8,10 @@
 - [サンプルプログラム（main.ts）](./main.ts)  
 - [描画オブジェクトマネージャ（game_render_object_manager.ts）](../tips_core/game_render_object_manager.ts)
 
+デモの実行
+
+- [Live Demo](https://warotarock.github.io/ptw_tips/tips/render_object_management/)
+
 
 ### 描画オブジェクト
 ３次元空間に配置されたなんらかのオブジェクトを描画するには、描画対象の位置や回転、スケーリングといった、いくつかの情報が必要となります。また、それらの情報を保持するための変数や座標変換行列の変数が必要になります。

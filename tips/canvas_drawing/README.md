@@ -10,6 +10,10 @@
 - [２Ｄ描画ラッパークラス（render2d.ts）](../tips_core/render2d.ts)
 - [キャンバス描画（canvas_drawer.ts）](../tips_core/canvas_drawer.ts)
 
+デモの実行
+
+- [Live Demo](https://warotarock.github.io/ptw_tips/tips/canvas_drawing/)
+
 ![](./canvas_drawing_fig001.png)
 
 

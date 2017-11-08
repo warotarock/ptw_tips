@@ -5,6 +5,10 @@ BlendFileReader.tsによる.blendファイルの解析のサンプルです。
 
 デモを実行すると、サンプル.blendファイルに含まれるDNAの情報、全てのデータブロックの情報、そしてオブジェクトなど一部のデータの解析結果がそれぞれ表示されます。
 
+デモの実行
+
+- [Live Demo](https://warotarock.github.io/ptw_tips/tips/blend_file_reader_sample/)
+
 ## BlendFileReader.ts
 Blenderのデータをゲーム等で利用するにはエクスポータや独自のPythonスクリプトでデータを出力するのが一般的です。しかし、.blendファイルを直接扱うという手段もあります。その場合、次のような利点があるといえるでしょう。
 

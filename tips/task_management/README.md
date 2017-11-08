@@ -8,6 +8,10 @@
 - [タスクマネージャ（game_task_manager.ts）](../tips_core/game_task_manager.ts)
 - [タスク実行環境変数（game_task_environment.ts）](../tips_core/game_task_environment.ts)
 
+デモの実行
+
+- [Live Demo](https://warotarock.github.io/ptw_tips/tips/task_management/)
+
 ![test](task_management_fig001.png)
 
 

@@ -1,9 +1,16 @@
-# スキンモデルのアニメーションデータの作成 - Skin model animation converting
+# オブジェクトアニメーションデータの作成 - Object animation converting
 
 ## 概要
+
+※削除予定です
+
 Blenderのオブジェクトアニメーションのコンバート処理です。
 
 出力はFCurveの内容をほぼそのまま出力したものになります。
+
+デモの実行
+
+- [Live Demo](https://warotarock.github.io/ptw_tips/tips/object_animation_converting/)
 
 ## 関連情報
 

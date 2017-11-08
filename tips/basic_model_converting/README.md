@@ -11,7 +11,11 @@ Collada形式(.dae)のファイルからモデル情報を抽出し、json形式
 ソースコード
 
 - [サンプルプログラム（main.ts）](./main.ts)  
-- [パース処理（model_converters.ts）](../tips_core/model_converters.ts)
+- [パース処理（model_converters.ts）](../tips_core/model_converters.ts)  
+
+デモの実行
+
+- [Live Demo](https://warotarock.github.io/ptw_tips/tips/basic_model_converting/)  
 <br />
 <br />
 

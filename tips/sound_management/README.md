@@ -11,6 +11,10 @@
 - [HTML5 Audioでの音声再生クラス（sound_html5_audio.ts）](../tips_core/sound_html5_audio.ts)
 - [HTML5 WebAudioでの音声再生クラス（sound_html5_webaudio.ts）](../tips_core/sound_html5_webaudio.ts)
 
+デモの実行
+
+- [Live Demo](https://warotarock.github.io/ptw_tips/tips/sound_management/)
+
 
 ## サウンド管理
 

@@ -8,6 +8,10 @@
 - [サンプルコード main.ts](./main.ts)
 - [リサイクル処理 recycling.ts](../tips_core/recycling.ts)
 
+デモの実行
+
+- [Live Demo](https://warotarock.github.io/ptw_tips/tips/object_pooling/)
+
 ![](object_pooling_fig001.png)
 
 ## オブジェクト・プーリング

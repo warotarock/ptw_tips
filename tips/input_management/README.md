@@ -12,7 +12,11 @@
 - [キーボード（input_keyborad.ts）](./input_keyborad.ts)
 - [ゲームパッド（input_gamepad.ts）](./input_gamepad.ts)
 
-![プログラムの構成](input_management_fig001.png)
+デモの実行
+
+- [Live Demo](https://warotarock.github.io/ptw_tips/tips/input_management/)
+
+![](input_management_fig001.png)
 
 ## 入力管理
 
