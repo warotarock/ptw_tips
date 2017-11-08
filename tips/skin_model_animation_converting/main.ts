@@ -7,8 +7,6 @@ namespace SkinModelAnimationConverting {
         }
     };
 
-    // Data types
-
     class FCurve {
 
         array_index: int;

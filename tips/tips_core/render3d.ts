@@ -110,9 +110,11 @@ class RenderShader {
         }
     }
 
-    addVertexAttribPointerOffset(offset: number) {
+    skipVertexAttribPointer(type: number, size: number, gl: WebGLRenderingContext) {
 
-        this.vertexAttribPointerOffset += offset;
+        if (type == gl.FLOAT || type == gl.INT) {
+            this.vertexAttribPointerOffset += 4 * size;
+        }
     }
 
     setProjectionMatrix(matrix: Mat4, gl: WebGLRenderingContext) {

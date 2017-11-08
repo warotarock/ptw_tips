@@ -26,6 +26,8 @@ var SkinModelDrawing;
             this.bone4Shader = new Bone4Shader();
             this.skinModel = new SkinModel();
             this.images = new List();
+            this.noColor = vec4.fromValues(0.0, 0.0, 0.0, 0.0);
+            this.redColor = vec4.fromValues(0.8, 0.0, 0.0, 1.0);
             this.eyeLocation = vec3.create();
             this.lookatLocation = vec3.create();
             this.upVector = vec3.create();
@@ -33,6 +35,7 @@ var SkinModelDrawing;
             this.viewMatrix = mat4.create();
             this.modelViewMatrix = mat4.create();
             this.projectionMatrix = mat4.create();
+            this.objectMatrix = mat4.create();
             this.boneMatrix = mat4.create();
             this.boneMatrixList = new List();
             this.animationTime = 0.0;
@@ -64,13 +67,16 @@ var SkinModelDrawing;
             this.isLoaded = true;
         };
         Main.prototype.run = function () {
+            // Animation time
             this.animationTime += 1.0;
+            // Camera position
             vec3.set(this.eyeLocation, 6.0, 0.0, 2.0);
             vec3.set(this.lookatLocation, 0.0, 0.0, 1.5);
             vec3.set(this.upVector, 0.0, 0.0, 1.0);
-            this.calcBoneMatrix(this.boneMatrixList, this.skinModel);
-            mat4.identity(this.modelMatrix);
-            mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.animationTime * 0.01);
+            // Object animation
+            this.calculateObjectMatrix(this.objectMatrix, this.animationTime);
+            // Bone animation
+            this.calculateBoneMatrix(this.boneMatrixList, this.skinModel);
         };
         Main.prototype.draw = function () {
             var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
@@ -79,26 +85,30 @@ var SkinModelDrawing;
             this.render.setDepthTest(true);
             this.render.setCulling(false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
-            this.drawSkinModel(this.modelMatrix, this.skinModel, this.boneMatrixList);
+            this.drawSkinModel(this.objectMatrix, this.skinModel, this.boneMatrixList);
         };
-        Main.prototype.calcBoneMatrix = function (result, skinModel) {
+        Main.prototype.calculateObjectMatrix = function (objectMatrix, animationTime) {
+            mat4.identity(objectMatrix);
+            mat4.rotateZ(objectMatrix, objectMatrix, animationTime * 0.01);
+        };
+        Main.prototype.calculateBoneMatrix = function (boneMatrixList, skinModel) {
             for (var i = 0; i < skinModel.data.bones.length; i++) {
                 var bone = skinModel.data.bones[i];
                 if (bone.parent == -1) {
                     // root parent
-                    mat4.copy(result[i], bone.matrix);
+                    mat4.copy(boneMatrixList[i], bone.matrix);
                 }
                 else {
                     // child
-                    mat4.multiply(result[i], result[bone.parent], bone.matrix);
+                    mat4.multiply(boneMatrixList[i], boneMatrixList[bone.parent], bone.matrix);
                     // sample motion
-                    mat4.rotateX(result[i], result[i], Math.cos(this.animationTime * 0.05));
+                    mat4.rotateX(boneMatrixList[i], boneMatrixList[i], Math.cos(this.animationTime * 0.05));
                 }
             }
         };
         Main.prototype.drawSkinModel = function (modelMatrix, skinModel, boneMatrixList) {
             // calc base matrix (model-view matrix)
-            mat4.multiply(this.modelViewMatrix, this.viewMatrix, this.modelMatrix);
+            mat4.multiply(this.modelViewMatrix, this.viewMatrix, modelMatrix);
             // set parameter not dependent on parts
             this.render.setShader(this.bone2Shader);
             this.render.setModelViewMatrix(this.modelViewMatrix);
@@ -123,6 +133,13 @@ var SkinModelDrawing;
                 for (var boneIndex = 0; boneIndex < part.bone.length; boneIndex++) {
                     mat4.copy(this.boneMatrix, boneMatrixList[part.bone[boneIndex]]);
                     shader.setBoneMatrix(boneIndex, this.boneMatrix, this.render.gl);
+                }
+                // set material
+                if (part.material == 0) {
+                    shader.setColor(this.noColor, this.render.gl);
+                }
+                else {
+                    shader.setColor(this.redColor, this.render.gl);
                 }
                 // draw
                 this.render.setBuffers(part.renderModel, this.images);
@@ -185,6 +202,7 @@ var SkinModelDrawing;
             _this.aWeight2 = -1;
             _this.aPosition2 = -1;
             _this.uBoneMatrixList = new List();
+            _this.uColor = null;
             return _this;
         }
         Bone2Shader.prototype.initializeVertexSourceCode = function () {
@@ -211,8 +229,10 @@ var SkinModelDrawing;
                 + this.floatPrecisionDefinitionCode
                 + 'varying vec2 vTexCoord;'
                 + 'uniform sampler2D uTexture0;'
+                + 'uniform vec4 uColor;'
                 + 'void main(void) {'
-                + '    gl_FragColor = texture2D(uTexture0, vTexCoord);'
+                + '    vec4 texColor = texture2D(uTexture0, vTexCoord);'
+                + '    gl_FragColor = vec4(mix(texColor.rgb, uColor.rgb, uColor.a), texColor.a);'
                 + '}';
         };
         Bone2Shader.prototype.initializeAttributes = function (gl) {
@@ -228,6 +248,7 @@ var SkinModelDrawing;
             this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix1', gl));
             this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix2', gl));
             this.uTexture0 = this.getUniformLocation('uTexture0', gl);
+            this.uColor = this.getUniformLocation('uColor', gl);
         };
         Bone2Shader.prototype.setBuffers = function (model, images, gl) {
             this.setBuffers_Bone2Shader(model, images, gl);
@@ -239,10 +260,10 @@ var SkinModelDrawing;
             this.resetVertexAttribPointerOffset();
             this.vertexAttribPointer(this.aWeight1, 1, gl.FLOAT, model.vertexDataStride, gl);
             this.vertexAttribPointer(this.aPosition1, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.addVertexAttribPointerOffset(4 * 3); // skip normal data
+            this.skipVertexAttribPointer(gl.FLOAT, 3, gl); // skip normal data
             this.vertexAttribPointer(this.aWeight2, 1, gl.FLOAT, model.vertexDataStride, gl);
             this.vertexAttribPointer(this.aPosition2, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.addVertexAttribPointerOffset(4 * 3); // skip normal data
+            this.skipVertexAttribPointer(gl.FLOAT, 3, gl); // skip normal data
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, images[0].texture);
@@ -255,6 +276,9 @@ var SkinModelDrawing;
         };
         Bone2Shader.prototype.setBoneMatrix = function (boneIndex, matrix, gl) {
             gl.uniformMatrix4fv(this.uBoneMatrixList[boneIndex], false, matrix);
+        };
+        Bone2Shader.prototype.setColor = function (color, gl) {
+            gl.uniform4fv(this.uColor, color);
         };
         return Bone2Shader;
     }(RenderShader));

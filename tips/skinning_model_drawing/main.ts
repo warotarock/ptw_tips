@@ -1,19 +1,8 @@
 
 namespace SkinModelDrawing {
 
-    // Model data types used this sample
-    interface SkinModelData {
-        bones: List<SkinModelBoneData>;
-        parts: List<SkinModelPartData>;
-    }
-
-    interface SkinModelBoneData {
-        name: string;
-        parent: int;
-        matrix: List<float>;
-    }
-
     interface SkinModelPartData {
+
         bone: List<int>;
         material: int;
         vertexStride: int;
@@ -23,7 +12,21 @@ namespace SkinModelDrawing {
         renderModel: RenderModel;
     }
 
+    interface SkinModelBoneData {
+
+        name: string;
+        parent: int;
+        matrix: List<float>;
+    }
+
+    interface SkinModelData {
+
+        bones: List<SkinModelBoneData>;
+        parts: List<SkinModelPartData>;
+    }
+
     class SkinModel {
+
         data: SkinModelData = null;
         loaded = false;
     }
@@ -38,6 +41,8 @@ namespace SkinModelDrawing {
         bone4Shader = new Bone4Shader();
         skinModel = new SkinModel();
         images = new List<RenderImage>();
+        noColor = vec4.fromValues(0.0, 0.0, 0.0, 0.0);
+        redColor = vec4.fromValues(0.8, 0.0, 0.0, 1.0);
 
         eyeLocation = vec3.create();
         lookatLocation = vec3.create();
@@ -47,9 +52,11 @@ namespace SkinModelDrawing {
         viewMatrix = mat4.create();
         modelViewMatrix = mat4.create();
         projectionMatrix = mat4.create();
-        boneMatrix = mat4.create();
 
+        objectMatrix = mat4.create();
+        boneMatrix = mat4.create();
         boneMatrixList = new List<Mat4>();
+
         animationTime = 0.0;
 
         isLoaded = false;
@@ -91,16 +98,19 @@ namespace SkinModelDrawing {
 
         run() {
 
+            // Animation time
             this.animationTime += 1.0;
 
+            // Camera position
             vec3.set(this.eyeLocation, 6.0, 0.0, 2.0);
             vec3.set(this.lookatLocation, 0.0, 0.0, 1.5);
             vec3.set(this.upVector, 0.0, 0.0, 1.0);
 
-            this.calcBoneMatrix(this.boneMatrixList, this.skinModel);
+            // Object animation
+            this.calculateObjectMatrix(this.objectMatrix, this.animationTime);
 
-            mat4.identity(this.modelMatrix);
-            mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.animationTime * 0.01);
+            // Bone animation
+            this.calculateBoneMatrix(this.boneMatrixList, this.skinModel);
         }
 
         draw() {
@@ -113,24 +123,30 @@ namespace SkinModelDrawing {
             this.render.setCulling(false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
 
-            this.drawSkinModel(this.modelMatrix, this.skinModel, this.boneMatrixList);
+            this.drawSkinModel(this.objectMatrix, this.skinModel, this.boneMatrixList);
         }
 
-        private calcBoneMatrix(result: List<Mat4>, skinModel: SkinModel) {
+        private calculateObjectMatrix(objectMatrix: Mat4, animationTime: float) {
+
+            mat4.identity(objectMatrix);
+            mat4.rotateZ(objectMatrix, objectMatrix, animationTime * 0.01);
+        }
+
+        private calculateBoneMatrix(boneMatrixList: List<Mat4>, skinModel: SkinModel) {
 
             for (var i = 0; i < skinModel.data.bones.length; i++) {
                 var bone = skinModel.data.bones[i];
 
                 if (bone.parent == -1) {
                     // root parent
-                    mat4.copy(result[i], bone.matrix);
+                    mat4.copy(boneMatrixList[i], bone.matrix);
                 }
                 else {
                     // child
-                    mat4.multiply(result[i], result[bone.parent], bone.matrix);
+                    mat4.multiply(boneMatrixList[i], boneMatrixList[bone.parent], bone.matrix);
 
                     // sample motion
-                    mat4.rotateX(result[i], result[i], Math.cos(this.animationTime * 0.05));
+                    mat4.rotateX(boneMatrixList[i], boneMatrixList[i], Math.cos(this.animationTime * 0.05));
                 }
             }
         }
@@ -138,7 +154,7 @@ namespace SkinModelDrawing {
         private drawSkinModel(modelMatrix: Mat4, skinModel: SkinModel, boneMatrixList: List<Mat4>) {
 
             // calc base matrix (model-view matrix)
-            mat4.multiply(this.modelViewMatrix, this.viewMatrix, this.modelMatrix);
+            mat4.multiply(this.modelViewMatrix, this.viewMatrix, modelMatrix);
 
             // set parameter not dependent on parts
             this.render.setShader(this.bone2Shader);
@@ -169,6 +185,14 @@ namespace SkinModelDrawing {
                 for (var boneIndex = 0; boneIndex < part.bone.length; boneIndex++) {
                     mat4.copy(this.boneMatrix, boneMatrixList[part.bone[boneIndex]]);
                     shader.setBoneMatrix(boneIndex, this.boneMatrix, this.render.gl);
+                }
+
+                // set material
+                if (part.material == 0) {
+                    shader.setColor(this.noColor, this.render.gl);
+                }
+                else {
+                    shader.setColor(this.redColor, this.render.gl);
                 }
 
                 // draw
@@ -256,6 +280,8 @@ namespace SkinModelDrawing {
 
         uBoneMatrixList = new List<WebGLUniformLocation>();
 
+        uColor: WebGLUniformLocation = null;
+
         initializeVertexSourceCode() {
 
             this.vertexShaderSourceCode = ''
@@ -294,9 +320,11 @@ namespace SkinModelDrawing {
                 + 'varying vec2 vTexCoord;'
 
                 + 'uniform sampler2D uTexture0;'
+                + 'uniform vec4 uColor;'
 
                 + 'void main(void) {'
-                + '    gl_FragColor = texture2D(uTexture0, vTexCoord);'
+                + '    vec4 texColor = texture2D(uTexture0, vTexCoord);'
+                + '    gl_FragColor = vec4(mix(texColor.rgb, uColor.rgb, uColor.a), texColor.a);'
                 + '}';
         }
 
@@ -320,6 +348,8 @@ namespace SkinModelDrawing {
             this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix2', gl));
 
             this.uTexture0 = this.getUniformLocation('uTexture0', gl);
+
+            this.uColor = this.getUniformLocation('uColor', gl);
         }
 
         setBuffers(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
@@ -337,11 +367,11 @@ namespace SkinModelDrawing {
 
             this.vertexAttribPointer(this.aWeight1, 1, gl.FLOAT, model.vertexDataStride, gl);
             this.vertexAttribPointer(this.aPosition1, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.addVertexAttribPointerOffset(4 * 3);// skip normal data
+            this.skipVertexAttribPointer(gl.FLOAT, 3, gl);// skip normal data
 
             this.vertexAttribPointer(this.aWeight2, 1, gl.FLOAT, model.vertexDataStride, gl);
             this.vertexAttribPointer(this.aPosition2, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.addVertexAttribPointerOffset(4 * 3);// skip normal data
+            this.skipVertexAttribPointer(gl.FLOAT, 3, gl);// skip normal data
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
 
@@ -359,6 +389,11 @@ namespace SkinModelDrawing {
 
         setBoneMatrix(boneIndex: int, matrix: Mat4, gl: WebGLRenderingContext) {
             gl.uniformMatrix4fv(this.uBoneMatrixList[boneIndex], false, matrix);
+        }
+
+        setColor(color: Vec4, gl: WebGLRenderingContext) {
+
+            gl.uniform4fv(this.uColor, color);
         }
     }
 

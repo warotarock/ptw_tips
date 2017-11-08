@@ -5,7 +5,6 @@ var SkinModelAnimationConverting;
             document.getElementById('content').innerHTML = text;
         }
     };
-    // Data types
     var FCurve = (function () {
         function FCurve() {
             this.points = new List();

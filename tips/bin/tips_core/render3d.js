@@ -79,8 +79,10 @@ var RenderShader = (function () {
             this.vertexAttribPointerOffset += 4 * size;
         }
     };
-    RenderShader.prototype.addVertexAttribPointerOffset = function (offset) {
-        this.vertexAttribPointerOffset += offset;
+    RenderShader.prototype.skipVertexAttribPointer = function (type, size, gl) {
+        if (type == gl.FLOAT || type == gl.INT) {
+            this.vertexAttribPointerOffset += 4 * size;
+        }
     };
     RenderShader.prototype.setProjectionMatrix = function (matrix, gl) {
         gl.uniformMatrix4fv(this.uPMatrix, false, matrix);

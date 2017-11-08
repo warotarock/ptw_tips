@@ -1,7 +1,6 @@
 
 namespace SkinModelAnimationPlaying {
 
-    // Model data types used this sample
     interface SkinModelData {
         bones: List<SkinModelBoneData>;
         parts: List<SkinModelPartData>;
@@ -43,6 +42,8 @@ namespace SkinModelAnimationPlaying {
         bone4Shader = new Bone4Shader();
         skinModel = new SkinModel();
         images = new List<RenderImage>();
+        noColor = vec4.fromValues(0.0, 0.0, 0.0, 0.0);
+        redColor = vec4.fromValues(0.8, 0.0, 0.0, 1.0);
 
         animationData = new AnimationData();
         objectAnimation: IPOObjectAnimation = null;
@@ -57,6 +58,7 @@ namespace SkinModelAnimationPlaying {
         modelViewMatrix = mat4.create();
         projectionMatrix = mat4.create();
 
+        objectMatrix = mat4.create();
         boneAnimationBuffer: BoneAnimationBuffer = null;
         boneMatrixBuffer: BoneAnimationMatrixBuffer = null;
         boneMatrix = mat4.create();
@@ -91,7 +93,7 @@ namespace SkinModelAnimationPlaying {
             this.skinModel = new SkinModel();
             this.loadSkinModel(this.skinModel, '../temp/sample_skin_model.json', 'SkinModel1');
 
-            this.loadAnimation(this.animationData, '../temp/sample_skin_animation.json');
+            this.loadAnimation(this.animationData, '../temp/sample_skin_model_animation.json');
         }
 
         processLoading() {
@@ -121,8 +123,7 @@ namespace SkinModelAnimationPlaying {
 
         run() {
 
-            let solver = this.animationSolver;
-
+            // Animation time
             this.objectAnimationTime += 0.8;
             if (this.objectAnimationTime >= 80.0) {
 
@@ -141,31 +142,10 @@ namespace SkinModelAnimationPlaying {
             vec3.set(this.upVector, 0.0, 0.0, 1.0);
 
             // Object animation
-            vec3.set(this.modelLocation
-                , solver.getIPOCurveValueIfNotNull(this.objectAnimation.locationX, this.objectAnimationTime, 0.0)
-                , solver.getIPOCurveValueIfNotNull(this.objectAnimation.locationY, this.objectAnimationTime, 0.0)
-                , solver.getIPOCurveValueIfNotNull(this.objectAnimation.locationZ, this.objectAnimationTime, 0.0));
-
-            vec3.set(this.modelRotation
-                , solver.getIPOCurveValueIfNotNull(this.objectAnimation.rotationX, this.objectAnimationTime, 0.0)
-                , solver.getIPOCurveValueIfNotNull(this.objectAnimation.rotationY, this.objectAnimationTime, 0.0)
-                , solver.getIPOCurveValueIfNotNull(this.objectAnimation.rotationZ, this.objectAnimationTime, 0.0));
-
-            vec3.set(this.modelScaling
-                , solver.getIPOCurveValueIfNotNull(this.objectAnimation.scalingX, this.objectAnimationTime, 1.0)
-                , solver.getIPOCurveValueIfNotNull(this.objectAnimation.scalingY, this.objectAnimationTime, 1.0)
-                , solver.getIPOCurveValueIfNotNull(this.objectAnimation.scalingZ, this.objectAnimationTime, 1.0));
-
-            mat4.identity(this.modelMatrix);
-            mat4.translate(this.modelMatrix, this.modelMatrix, this.modelLocation);
-            mat4.rotateX(this.modelMatrix, this.modelMatrix, this.modelRotation[0]);
-            mat4.rotateY(this.modelMatrix, this.modelMatrix, this.modelRotation[1]);
-            mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.modelRotation[2]);
-            mat4.scale(this.modelMatrix, this.modelMatrix, this.modelScaling);
+            this.calculateObjectMatrix(this.objectMatrix, this.objectAnimation, this.objectAnimationTime);
 
             // Bone animation
-            this.animationSolver.calcBoneAnimation(this.boneAnimationBuffer, this.skinModel.data.bones, this.boneAnimation, this.boneAnimationTime);
-            this.animationSolver.calcBoneMatrix(this.boneMatrixBuffer, this.skinModel.data.bones, this.boneAnimationBuffer);
+            this.calculateBoneMatrix(this.boneMatrixBuffer, this.boneAnimationBuffer, this.skinModel, this.boneAnimation, this.boneAnimationTime);
         }
 
         draw() {
@@ -178,13 +158,49 @@ namespace SkinModelAnimationPlaying {
             this.render.setCulling(false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
 
-            this.drawSkinModel(this.modelMatrix, this.skinModel, this.images, this.boneMatrixBuffer);
+            this.drawSkinModel(this.objectMatrix, this.skinModel, this.images, this.boneMatrixBuffer);
+        }
+
+        private calculateObjectMatrix(objectMatrix: Mat4, objectAnimation: IPOObjectAnimation, animationTime: float) {
+
+            let solver = this.animationSolver;
+
+            // Object animation
+            vec3.set(this.modelLocation
+                , solver.getIPOCurveValueIfNotNull(objectAnimation.locationX, animationTime, 0.0)
+                , solver.getIPOCurveValueIfNotNull(objectAnimation.locationY, animationTime, 0.0)
+                , solver.getIPOCurveValueIfNotNull(objectAnimation.locationZ, animationTime, 0.0));
+
+            vec3.set(this.modelRotation
+                , solver.getIPOCurveValueIfNotNull(objectAnimation.rotationX, animationTime, 0.0)
+                , solver.getIPOCurveValueIfNotNull(objectAnimation.rotationY, animationTime, 0.0)
+                , solver.getIPOCurveValueIfNotNull(objectAnimation.rotationZ, animationTime, 0.0));
+
+            vec3.set(this.modelScaling
+                , solver.getIPOCurveValueIfNotNull(objectAnimation.scalingX, animationTime, 1.0)
+                , solver.getIPOCurveValueIfNotNull(objectAnimation.scalingY, animationTime, 1.0)
+                , solver.getIPOCurveValueIfNotNull(objectAnimation.scalingZ, animationTime, 1.0));
+
+            mat4.identity(objectMatrix);
+            mat4.translate(objectMatrix, objectMatrix, this.modelLocation);
+            mat4.rotateX(objectMatrix, objectMatrix, this.modelRotation[0]);
+            mat4.rotateY(objectMatrix, objectMatrix, this.modelRotation[1]);
+            mat4.rotateZ(objectMatrix, objectMatrix, this.modelRotation[2]);
+            mat4.scale(objectMatrix, objectMatrix, this.modelScaling);
+        }
+
+        private calculateBoneMatrix(boneMatrixBuffer: BoneAnimationMatrixBuffer, boneAnimationBuffer: BoneAnimationBuffer, skinModel: SkinModel, boneAnimation: IPOBoneAnimation, animationTime: float) {
+
+            let solver = this.animationSolver;
+
+            solver.calcBoneAnimation(boneAnimationBuffer, skinModel.data.bones, boneAnimation, animationTime);
+            solver.calcBoneMatrix(boneMatrixBuffer, skinModel.data.bones, boneAnimationBuffer);
         }
 
         private drawSkinModel(modelMatrix: Mat4, skinModel: SkinModel, images: List<RenderImage>, matrixBuffer: BoneAnimationMatrixBuffer) {
 
             // calc base matrix (model-view matrix)
-            mat4.multiply(this.modelViewMatrix, this.viewMatrix, this.modelMatrix);
+            mat4.multiply(this.modelViewMatrix, this.viewMatrix, modelMatrix);
 
             // set parameter not dependent on parts
             this.render.setShader(this.bone2Shader);
@@ -216,6 +232,14 @@ namespace SkinModelAnimationPlaying {
                 for (var boneIndex = 0; boneIndex < part.bone.length; boneIndex++) {
                     mat4.copy(this.boneMatrix, matrixBuffer.animatedBoneMatrixList[part.bone[boneIndex]]);
                     shader.setBoneMatrix(boneIndex, this.boneMatrix, this.render.gl);
+                }
+
+                // set material
+                if (part.material == 0) {
+                    shader.setColor(this.noColor, this.render.gl);
+                }
+                else {
+                    shader.setColor(this.redColor, this.render.gl);
                 }
 
                 // draw
@@ -323,7 +347,9 @@ namespace SkinModelAnimationPlaying {
         aWeight2 = -1;
         aPosition2 = -1;
 
-        uBoneMatrixList = new List<WebGLUniformLocation>();
+        uBoneMatrixs = new List<WebGLUniformLocation>();
+
+        uColor: WebGLUniformLocation = null;
 
         initializeVertexSourceCode() {
 
@@ -363,9 +389,11 @@ namespace SkinModelAnimationPlaying {
                 + 'varying vec2 vTexCoord;'
 
                 + 'uniform sampler2D uTexture0;'
+                + 'uniform vec4 uColor;'
 
                 + 'void main(void) {'
-                + '    gl_FragColor = texture2D(uTexture0, vTexCoord);'
+                + '    vec4 texColor = texture2D(uTexture0, vTexCoord);'
+                + '    gl_FragColor = vec4(mix(texColor.rgb, uColor.rgb, uColor.a), texColor.a);'
                 + '}';
         }
 
@@ -385,10 +413,12 @@ namespace SkinModelAnimationPlaying {
 
             this.aTexCoord1 = this.getAttribLocation('aTexCoord1', gl);
 
-            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix1', gl));
-            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix2', gl));
+            this.uBoneMatrixs.push(this.getUniformLocation('uBoneMatrix1', gl));
+            this.uBoneMatrixs.push(this.getUniformLocation('uBoneMatrix2', gl));
 
             this.uTexture0 = this.getUniformLocation('uTexture0', gl);
+
+            this.uColor = this.getUniformLocation('uColor', gl);
         }
 
         setBuffers(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
@@ -406,11 +436,11 @@ namespace SkinModelAnimationPlaying {
 
             this.vertexAttribPointer(this.aWeight1, 1, gl.FLOAT, model.vertexDataStride, gl);
             this.vertexAttribPointer(this.aPosition1, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.addVertexAttribPointerOffset(4 * 3);// skip normal data
+            this.skipVertexAttribPointer(gl.FLOAT, 3, gl);// skip normal data
 
             this.vertexAttribPointer(this.aWeight2, 1, gl.FLOAT, model.vertexDataStride, gl);
             this.vertexAttribPointer(this.aPosition2, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.addVertexAttribPointerOffset(4 * 3);// skip normal data
+            this.skipVertexAttribPointer(gl.FLOAT, 3, gl);// skip normal data
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
 
@@ -422,12 +452,16 @@ namespace SkinModelAnimationPlaying {
         setBuffers_Bone2Shader_UV(model: RenderModel, gl: WebGLRenderingContext) {
 
             this.vertexAttribPointer(this.aTexCoord1, 2, gl.FLOAT, model.vertexDataStride, gl);
-            //this.vertexAttribPointer(this.aTexCoord2, 2, gl.FLOAT, model.vertexDataStride, gl); skip (not used in this sample)
-            //this.vertexAttribPointer(this.aTexCoord3, 2, gl.FLOAT, model.vertexDataStride, gl); skip (not used in this sample)
         }
 
         setBoneMatrix(boneIndex: int, matrix: Mat4, gl: WebGLRenderingContext) {
-            gl.uniformMatrix4fv(this.uBoneMatrixList[boneIndex], false, matrix);
+
+            gl.uniformMatrix4fv(this.uBoneMatrixs[boneIndex], false, matrix);
+        }
+
+        setColor(color: Vec4, gl: WebGLRenderingContext) {
+
+            gl.uniform4fv(this.uColor, color);
         }
     }
 
@@ -495,8 +529,8 @@ namespace SkinModelAnimationPlaying {
             this.aWeight4 = this.getAttribLocation('aWeight4', gl);
             this.aPosition4 = this.getAttribLocation('aPosition4', gl);
 
-            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix3', gl));
-            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix4', gl));
+            this.uBoneMatrixs.push(this.getUniformLocation('uBoneMatrix3', gl));
+            this.uBoneMatrixs.push(this.getUniformLocation('uBoneMatrix4', gl));
         }
 
         setBuffers(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {

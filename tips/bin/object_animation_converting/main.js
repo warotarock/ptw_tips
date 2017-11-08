@@ -1,6 +1,10 @@
-var fs = require('fs');
 var ObjectAnimationConverter;
 (function (ObjectAnimationConverter) {
+    var fs = (typeof (require) != 'undefined') ? require('fs') : {
+        writeFile: function (fileName, text) {
+            document.getElementById('content').innerHTML = text;
+        }
+    };
     var Main = (function () {
         function Main() {
         }
