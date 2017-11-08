@@ -1,7 +1,11 @@
 ﻿
-var fs = require('fs');
-
 namespace ObjectAnimationConverter {
+
+    var fs = (typeof (require) != 'undefined') ? require('fs') : {
+        writeFile(fileName, text) {
+            document.getElementById('content').innerHTML = text;
+        }
+    };
 
     class Main {
 
