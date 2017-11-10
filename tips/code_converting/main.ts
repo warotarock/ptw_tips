@@ -4,7 +4,8 @@ namespace CodeConverter {
     window.onload = () => {
 
         //let filePath = './statement_analyzer.ts';
-        let filePath = '../skinning_model_drawing/main.ts';
+        //let filePath = '../skinning_model_drawing/main.ts';
+        let filePath = './sample_code.ts';
 
         let data: any = null;
         let xhr = new XMLHttpRequest();

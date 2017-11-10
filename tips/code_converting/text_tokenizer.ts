@@ -10,7 +10,7 @@ namespace CodeConverter.TextTokenizer {
 
         SingleSeperatorLetters = ' [](){},?:;#.\t=!<>+-*/%^|&';
         MultiLengthSeperators: List<string> = [
-            '===', '!==', '==', '!=', '<=', '>=', '+=', '-=', '*=', '/=', '%=', '^=', '|=', '&=', '&&', '||', '++', '--'
+            '===', '!==', '==', '!=', '<=', '>=', '+=', '-=', '*=', '/=', '%=', '^=', '|=', '&=', '&&', '||', '++', '--', '=>'
         ];
 
         NumberSignLetterOrSeperator = '-';

@@ -1619,7 +1619,7 @@ namespace CodeConverter.StatementAnalyzer {
             state.CurrentIndex++;
 
             // Trace the argument
-            if (!this.statementSyntax_ProcessStatementBlockArgument(result, tokens, state)) {
+            if (!this.processStatementBlockArgument(result, tokens, state)) {
                 return false;
             }
 
@@ -1645,7 +1645,7 @@ namespace CodeConverter.StatementAnalyzer {
             state.CurrentIndex += 2;
 
             // Trace the argument
-            if (!this.statementSyntax_ProcessStatementBlockArgument(result, tokens, state)) {
+            if (!this.processStatementBlockArgument(result, tokens, state)) {
                 return false;
             }
 
@@ -1694,7 +1694,7 @@ namespace CodeConverter.StatementAnalyzer {
             state.CurrentIndex++;
 
             // Trace the argument
-            if (!this.statementSyntax_ProcessStatementBlockArgument(result, tokens, state)) {
+            if (!this.processStatementBlockArgument(result, tokens, state)) {
                 return false;
             }
 
@@ -1707,58 +1707,6 @@ namespace CodeConverter.StatementAnalyzer {
             }
 
             result.FlushStatement();
-
-            return true;
-        }
-
-        private statementSyntax_ProcessStatementBlockArgument(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
-
-            // Searching argument (
-            while (state.CurrentIndex < tokens.length) {
-
-                let token = tokens[state.CurrentIndex];
-
-                if (token.isSeperatorOf('(')) {
-                    state.CurrentIndex++;
-                    break;
-                }
-                else if (!token.isBlank()) {
-                    state.addError('( expected.');
-                    state.CurrentIndex++;
-                }
-                else {
-                    state.CurrentIndex++;
-                }
-
-                if (this.checkEOF(tokens, state)) {
-                    return false;
-                }
-            }
-
-            // Tracing argument
-            while (state.CurrentIndex < tokens.length) {
-
-                let token = tokens[state.CurrentIndex];
-
-                if (!state.Trace_NestingCounter.isInNest()) {
-                    if (token.isSeperatorOf(')')) {
-                        state.CurrentIndex++;
-                        break;
-                    }
-                    else {
-                        state.CurrentIndex++;
-                    }
-                }
-                else {
-                    state.CurrentIndex++;
-                }
-
-                state.Trace_NestingCounter.countParenthesis(token);
-
-                if (this.checkEOF(tokens, state)) {
-                    return false;
-                }
-            }
 
             return true;
         }
@@ -1797,7 +1745,7 @@ namespace CodeConverter.StatementAnalyzer {
             state.CurrentIndex++;
 
             // Trace the argument
-            if (!this.statementSyntax_ProcessStatementBlockArgument(result, tokens, state)) {
+            if (!this.processStatementBlockArgument(result, tokens, state)) {
                 return false;
             }
 
@@ -2147,6 +2095,58 @@ namespace CodeConverter.StatementAnalyzer {
                 else {
                     state.CurrentIndex++;
                 }
+
+                if (this.checkEOF(tokens, state)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private processStatementBlockArgument(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
+
+            // Searching argument (
+            while (state.CurrentIndex < tokens.length) {
+
+                let token = tokens[state.CurrentIndex];
+
+                if (token.isSeperatorOf('(')) {
+                    state.CurrentIndex++;
+                    break;
+                }
+                else if (!token.isBlank()) {
+                    state.addError('( expected.');
+                    state.CurrentIndex++;
+                }
+                else {
+                    state.CurrentIndex++;
+                }
+
+                if (this.checkEOF(tokens, state)) {
+                    return false;
+                }
+            }
+
+            // Tracing argument
+            while (state.CurrentIndex < tokens.length) {
+
+                let token = tokens[state.CurrentIndex];
+
+                if (!state.Trace_NestingCounter.isInNest()) {
+                    if (token.isSeperatorOf(')')) {
+                        state.CurrentIndex++;
+                        break;
+                    }
+                    else {
+                        state.CurrentIndex++;
+                    }
+                }
+                else {
+                    state.CurrentIndex++;
+                }
+
+                state.Trace_NestingCounter.countParenthesis(token);
 
                 if (this.checkEOF(tokens, state)) {
                     return false;
