@@ -16,6 +16,7 @@
 
 ![](./canvas_drawing_fig001.png)
 
+<br />
 
 ## キャンバス描画
 
@@ -38,6 +39,7 @@ setTextureImageFromCanvas(image: RenderImage, canvas: HTMLCanvasElement) {
 }
 ```
 
+<br />
 
 ### 描画頻度の抑制
 
@@ -51,6 +53,7 @@ setTextureImageFromCanvas(image: RenderImage, canvas: HTMLCanvasElement) {
 
 そのような場合には、文字列が表示される最初の１回と変更があったときだけ文字列の描画処理を行い、結果をWebGLのテクスチャに保存しておくことで描画処理の頻度を軽減することができます。サンプルプログラムではキャンバス描画クラス(CanvasDrawer、TextDrawer、ImageDrawer)にそのための機能が実装されています。
 
+<br />
 
 ### 文字列描画の位置決めとサイズの計測
 
@@ -62,8 +65,7 @@ setTextureImageFromCanvas(image: RenderImage, canvas: HTMLCanvasElement) {
 
 ![](./canvas_drawing_fig005.png)
 
-上は計測用のキャンバスの例です。
-
+<br />
 
 ## サンプルプログラム
 
@@ -73,6 +75,7 @@ setTextureImageFromCanvas(image: RenderImage, canvas: HTMLCanvasElement) {
 
 ![](./canvas_drawing_fig002.png)
 
+<br />
 
 ### 処理の流れ
 
@@ -83,6 +86,9 @@ setTextureImageFromCanvas(image: RenderImage, canvas: HTMLCanvasElement) {
     2. ドロワーのパラメータ変更（再描画フラグにtrueが設定されます）
     3. 再描画処理の実行（再描画フラグにfalseが設定されます）
 
+<br />
+
+## クラスの解説
 
 ### キャンバス描画クラス(CanvasDrawer)
 
@@ -95,6 +101,7 @@ setTextureImageFromCanvas(image: RenderImage, canvas: HTMLCanvasElement) {
 
 描画用、計測用のキャンバスはinitialize関数により作成され、2次元描画コンテキストも同時に取得されます。
 
+<br />
 
 ### ドロワークラス
 
@@ -107,17 +114,22 @@ setTextureImageFromCanvas(image: RenderImage, canvas: HTMLCanvasElement) {
 
 画像ドロワーは画像を描画するオブジェクトです。平行移動、拡大縮小、回転、半透明描画が可能です。
 
+<br />
 
 ### キャンバスレンダークラス(CanvasRender)
 
 HTMLのCanvas要素から取得されるコンテキスト（CanvasRenderingContext2D）のラッパークラスです。また、WebGLとの連携をしやすくするため、フォントのサイズのみを指定して変更する機能や色を数値型の配列で指定する機能などを用意してあります。
 
+<br />
 
 ### キャンバスコンテキストクラス(CanvasContext)
 
 HTMLのCanvas要素と2次元描画コンテキスト（CanvasRenderingContext2D）をセットで保持するためのクラスです。
 
+<br />
 
 ## 関連情報
 
 - [TypeScriptによる基本的なWebGLプログラミング](./basic_webgl_ts/)
+
+<br />
