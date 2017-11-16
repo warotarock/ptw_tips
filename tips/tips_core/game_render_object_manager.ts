@@ -48,8 +48,7 @@ namespace Game {
 
         billboarding: RenderObjectBillboardType = RenderObjectBillboardType.off;
 
-        locationMatrix: Mat4 = mat4.create();
-        rotationMatrix: Mat4 = mat4.create();
+        matrix: Mat4 = mat4.create();
         sortingValue = 0.0;
 
         model: RenderModel = null;
@@ -120,8 +119,7 @@ namespace Game {
 
             renderObject.billboarding = RenderObjectBillboardType.off;
 
-            mat4.identity(renderObject.locationMatrix);
-            mat4.identity(renderObject.rotationMatrix);
+            mat4.identity(renderObject.matrix);
             renderObject.sortingValue = 0.0;
 
             renderObject.model = null;
@@ -188,26 +186,14 @@ namespace Game {
             return this.getObjectLayer(layerID).objects;
         }
 
-        // Basic caluclation support
-
-        calcMatrix(renderObject: RenderObject) {
-
-            mat4.identity(renderObject.locationMatrix);
-            mat4.translate(renderObject.locationMatrix, renderObject.locationMatrix, renderObject.location);
-            mat4.rotateX(renderObject.locationMatrix, renderObject.locationMatrix, renderObject.rotation[0]);
-            mat4.rotateY(renderObject.locationMatrix, renderObject.locationMatrix, renderObject.rotation[1]);
-            mat4.rotateZ(renderObject.locationMatrix, renderObject.locationMatrix, renderObject.rotation[2]);
-            mat4.scale(renderObject.locationMatrix, renderObject.locationMatrix, renderObject.scaling);
-        }
-
         // Object sorting
 
         private matrixTranslation: Vec3 = vec3.create();
         private localLocation: Vec3 = vec3.create();
 
-        calcObjectSortingValue(renderObject: RenderObject, inverseCameraMatrix: Mat4, sortingMode: RenderObjectSortingMode) {
+        calcObjectSortingValue(renderObject: RenderObject, inverseCameraMatrix: Mat4, sortingMode: RenderObjectSortingMode): float {
 
-            vec3.set(this.matrixTranslation, renderObject.locationMatrix[12], renderObject.locationMatrix[13], renderObject.locationMatrix[14]);
+            vec3.set(this.matrixTranslation, renderObject.matrix[12], renderObject.matrix[13], renderObject.matrix[14]);
 
             vec3.transformMat4(this.localLocation, this.matrixTranslation, inverseCameraMatrix);
 
@@ -217,13 +203,13 @@ namespace Game {
                 var y = this.localLocation[1] / 128.0;
                 var z = this.localLocation[2] / 128.0;
 
-                renderObject.sortingValue = Math.sqrt(x * x + y * y + z * z) * 128.0;
+                return Math.sqrt(x * x + y * y + z * z) * 128.0;
             }
             else {
 
                 var z = this.localLocation[2] / 128.0;
 
-                renderObject.sortingValue = Math.sqrt(z * z) * 128.0;
+                return Math.sqrt(z * z) * 128.0;
             }
         }
 

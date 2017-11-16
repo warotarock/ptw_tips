@@ -340,7 +340,7 @@ var PTWTipsInput;
         InputManager.prototype.clearPointingInput = function () {
             this.pointingInputMappingSet.clear();
         };
-        InputManager.prototype.addPointingInputs = function (name) {
+        InputManager.prototype.addPointingInput = function (name) {
             var mapping = new PointingInputMapping();
             var integratedPointing = new IntegratedPointingInputControl(mapping);
             this.pointingInputMappingSet.addMapping(name, mapping);

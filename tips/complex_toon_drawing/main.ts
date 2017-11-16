@@ -39,7 +39,7 @@ namespace ComplexToonDrawing {
     class AnimationDataLoadingState {
         isInitialized = false;
         isLoaded = false;
-        animations = new Dictionary<IPOBoneAnimation>();
+        animations = new Dictionary<BoneAnimation>();
     }
 
     // drawing buffer
@@ -81,7 +81,7 @@ namespace ComplexToonDrawing {
         backImageResources = new List<RenderImage>();
 
         animationDataLoadingState = new AnimationDataLoadingState();
-        boneAnimationResource: IPOBoneAnimation = null;
+        boneAnimationResource: BoneAnimation = null;
         boneModel: SkinningModel = null;
 
         animationSolver = new AnimationSolver();
@@ -363,7 +363,7 @@ namespace ComplexToonDrawing {
 
                 // set bone matrix
                 for (var boneIndex = 0; boneIndex < part.bone.length; boneIndex++) {
-                    mat4.copy(this.boneMatrix, matrixBuffer.animatedBoneMatrixList[part.bone[boneIndex]]);
+                    mat4.copy(this.boneMatrix, matrixBuffer.boneMatrixList[part.bone[boneIndex]]);
                     shader.setBoneMatrix(boneIndex, this.boneMatrix, this.gl);
                 }
 

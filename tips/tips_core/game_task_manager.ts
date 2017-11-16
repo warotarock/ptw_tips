@@ -1,14 +1,16 @@
 ﻿
-module Game {
+namespace Game {
 
-    // Task base class
+    // State flags to control execution timing of event method
 
     export enum TaskState {
 
         created,
-        Active,
-        WaitingForDestroy,
+        active,
+        waitingForDestroy,
     }
+
+    // Task base class
 
     export class TaskClass implements IRecyclableObject {
 
@@ -165,11 +167,11 @@ module Game {
 
         addTask(task: TaskClass): TaskClass {
 
-            task.state = TaskState.created;
-
             this.tasks.push(task);
 
             task.onCreate(this.environment);
+
+            task.state = TaskState.active
 
             return task;
         }
@@ -185,7 +187,7 @@ module Game {
 
         destroyTask(task: TaskClass) {
 
-            task.state = TaskState.WaitingForDestroy;
+            task.state = TaskState.waitingForDestroy;
         }
 
         destroyTaskGroupTasks(taskGroupID: Game.TaskGroupID) {
@@ -210,24 +212,12 @@ module Game {
 
         // Updating methods for all tasks for each frame execution
 
-        updateTaskState() {
-
-            for (var i = 0; i < this.tasks.length; i++) {
-                var task = this.tasks[i];
-
-                if (task.state == TaskState.created) {
-
-                    task.state = TaskState.Active;
-                }
-            }
-        }
-
         executeDestroyTask() {
 
             for (var i = this.tasks.length - 1; i >= 0; i--) {
                 var task = this.tasks[i];
 
-                if (task.state == TaskState.WaitingForDestroy) {
+                if (task.state == TaskState.waitingForDestroy) {
 
                     this.deleteOrRecycleTask(task);
 
@@ -259,7 +249,7 @@ module Game {
             for (var i = this.tasks.length - 1; i >= 0; i--) {
                 var task = this.tasks[i];
 
-                if (task.state == TaskState.Active) {
+                if (task.state != TaskState.waitingForDestroy) {
 
                     task.run(this.environment);
                 }
@@ -271,7 +261,7 @@ module Game {
             for (var i = this.tasks.length - 1; i >= 0; i--) {
                 var task = this.tasks[i];
 
-                if (task.state == TaskState.Active) {
+                if (task.state != TaskState.waitingForDestroy) {
 
                     task.onBeforeRendering(this.environment);
                 }
@@ -283,7 +273,7 @@ module Game {
             for (var i = this.tasks.length - 1; i >= 0; i--) {
                 var task = this.tasks[i];
 
-                if (task.state == TaskState.Active) {
+                if (task.state != TaskState.waitingForDestroy) {
 
                     task.onSampleEvent1(this.environment);
                 }
@@ -295,7 +285,7 @@ module Game {
             for (var i = this.tasks.length - 1; i >= 0; i--) {
                 var task = this.tasks[i];
 
-                if (task.state == TaskState.Active) {
+                if (task.state != TaskState.waitingForDestroy) {
 
                     task.onSampleEvent2(this.environment);
                 }

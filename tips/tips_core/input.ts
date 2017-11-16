@@ -439,7 +439,7 @@ module PTWTipsInput {
             this.pointingInputMappingSet.clear();
         }
 
-        addPointingInputs(name: string): IntegratedPointingInputControl {
+        addPointingInput(name: string): IntegratedPointingInputControl {
 
             let mapping = new PointingInputMapping();
             let integratedPointing = new IntegratedPointingInputControl(mapping);

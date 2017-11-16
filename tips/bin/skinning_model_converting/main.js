@@ -23,7 +23,6 @@ var SkinModelConverting;
         Main.prototype.execute = function () {
             var _this = this;
             var fileName = 'sample_skin_model.dae';
-            var blendFileName = this.getExtensionChangedFileName(fileName, 'blend');
             var outFileName = this.getExtensionChangedFileName('../temp/' + fileName, 'json');
             document.getElementById('message').innerHTML = 'Out put will be located ' + outFileName;
             // Parsing by collada loader

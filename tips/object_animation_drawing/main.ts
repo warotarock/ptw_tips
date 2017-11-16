@@ -20,8 +20,8 @@ namespace ObjectAnimationDrawing {
         modelViewMatrix = mat4.create();
         projectionMatrix = mat4.create();
 
-        animationDatas = new Dictionary<IPOObjectAnimation>();
-        cubeAnimation: IPOObjectAnimation = null;
+        animationDatas = new Dictionary<ObjectAnimationCurveSet>();
+        cubeAnimation: ObjectAnimationCurveSet = null;
 
         animationSolver = new AnimationSolver();
 
@@ -177,7 +177,7 @@ namespace ObjectAnimationDrawing {
             xhr.send();
         }
 
-        private loadAnimation(result: Dictionary<IPOObjectAnimation>, url: string) {
+        private loadAnimation(result: Dictionary<ObjectAnimationCurveSet>, url: string) {
 
             var xhr = new XMLHttpRequest();
             xhr.open('GET', url);

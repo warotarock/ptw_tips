@@ -280,7 +280,7 @@ var ComplexToonDrawing;
                 this.render.setShader(shader);
                 // set bone matrix
                 for (var boneIndex = 0; boneIndex < part.bone.length; boneIndex++) {
-                    mat4.copy(this.boneMatrix, matrixBuffer.animatedBoneMatrixList[part.bone[boneIndex]]);
+                    mat4.copy(this.boneMatrix, matrixBuffer.boneMatrixList[part.bone[boneIndex]]);
                     shader.setBoneMatrix(boneIndex, this.boneMatrix, this.gl);
                 }
                 // draw

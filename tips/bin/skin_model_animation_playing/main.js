@@ -19,7 +19,7 @@ var SkinModelAnimationPlaying;
     }());
     var AnimationData = (function () {
         function AnimationData() {
-            this.data = null;
+            this.data = new Dictionary();
             this.loaded = false;
         }
         return AnimationData;
@@ -84,8 +84,9 @@ var SkinModelAnimationPlaying;
                 return;
             }
             // Loading finished
-            this.boneAnimation = this.animationData.data['ArmatureAction'];
-            this.objectAnimation = this.animationData.data['ArmatureAction']['Object'];
+            var animation = this.animationData.data['ArmatureAction'];
+            this.boneAnimation = animation.boneAnimations;
+            this.objectAnimation = animation.objectAnimation;
             this.boneAnimationBuffer = this.animationSolver.createBoneAnimationBuffer(this.skinModel.data.bones);
             this.boneMatrixBuffer = this.animationSolver.createBoneMatrixBuffer(this.skinModel.data.bones);
             this.isLoaded = true;
@@ -152,7 +153,7 @@ var SkinModelAnimationPlaying;
             for (var i = 0; i < parts.length; i++) {
                 var part = parts[i];
                 // select shader
-                var shader;
+                var shader = void 0;
                 if (part.bone.length <= 2) {
                     shader = this.bone2Shader;
                 }
@@ -162,7 +163,7 @@ var SkinModelAnimationPlaying;
                 this.render.setShader(shader);
                 // set bone matrix
                 for (var boneIndex = 0; boneIndex < part.bone.length; boneIndex++) {
-                    mat4.copy(this.boneMatrix, matrixBuffer.animatedBoneMatrixList[part.bone[boneIndex]]);
+                    mat4.copy(this.boneMatrix, matrixBuffer.boneMatrixList[part.bone[boneIndex]]);
                     shader.setBoneMatrix(boneIndex, this.boneMatrix, this.render.gl);
                 }
                 // set material
@@ -227,9 +228,7 @@ var SkinModelAnimationPlaying;
                 else {
                     data = JSON.parse(xhr.response);
                 }
-                for (var key in data) {
-                    animationData.data = data;
-                }
+                animationData.data = data;
                 animationData.loaded = true;
             });
             xhr.send();
