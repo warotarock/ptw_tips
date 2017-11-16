@@ -90,23 +90,26 @@ namespace RenderObjectManagement {
 
         run() {
 
-            this.animationTime += 1.0;
-
             // Camera position
             vec3.set(this.eyeLocation, -20.0, 0.0, 0.0);
             vec3.set(this.lookatLocation, 0.0, 0.0, 0.0);
             vec3.set(this.upVector, 0.0, 0.0, 1.0);
 
             // Create objects time by time
-            this.generateObjects();
+            this.processGeneratingObject();
 
             // Object animation
-            this.runObjects();
+            this.updateRenderObjects();
+
+            // Calculate object matrix
+            this.calclateRenderObjectMatrix();
 
             this.destroyFinishedObjects();
         }
 
-        private generateObjects() {
+        private processGeneratingObject() {
+
+            this.animationTime += 1.0;
 
             if (this.animationTime < 5.0) {
                 return;
@@ -139,7 +142,7 @@ namespace RenderObjectManagement {
             }
         }
 
-        private runObjects() {
+        private updateRenderObjects() {
 
             var renderObjects = this.renderObjectManager.getObjectList();
 
@@ -148,15 +151,28 @@ namespace RenderObjectManagement {
 
                 // Rotation
                 if (renderObject.tag == 0) {
-                    renderObject.rotation[1] += 0.05;
+                    renderObject.rotation[1] += 0.01;
                 }
                 else {
-                    renderObject.rotation[1] += 0.01;
-                    renderObject.rotation[2] += 0.01;
+                    renderObject.rotation[1] += 0.005;
+                    renderObject.rotation[2] += 0.005;
                 }
+            }
+        }
 
-                // Calculate object matrix
-                this.renderObjectManager.calcMatrix(renderObject);
+        private calclateRenderObjectMatrix() {
+
+            var renderObjects = this.renderObjectManager.getObjectList();
+
+            for (var i = 0; i < renderObjects.length; i++) {
+                var renderObject = renderObjects[i];
+
+                mat4.identity(renderObject.matrix);
+                mat4.translate(renderObject.matrix, renderObject.matrix, renderObject.location);
+                mat4.rotateX(renderObject.matrix, renderObject.matrix, renderObject.rotation[0]);
+                mat4.rotateY(renderObject.matrix, renderObject.matrix, renderObject.rotation[1]);
+                mat4.rotateZ(renderObject.matrix, renderObject.matrix, renderObject.rotation[2]);
+                mat4.scale(renderObject.matrix, renderObject.matrix, renderObject.scaling);
             }
         }
 
@@ -191,13 +207,7 @@ namespace RenderObjectManagement {
             this.renderObjectManager.updateObjectLayers();
 
             // Calc value for sorting
-            var objectList = this.renderObjectManager.getObjectList();
-
-            for (var i = 0; i < objectList.length; i++) {
-                var renderObject = objectList[i];
-
-                this.renderObjectManager.calcObjectSortingValue(renderObject, this.viewMatrix, Game.RenderObjectSortingMode.z);
-            }
+            this.updateRenderObjectSorting();
 
             // Draw first layer
             this.render.setCulling(true);
@@ -211,6 +221,16 @@ namespace RenderObjectManagement {
             this.drawLayer(Game.RenderObjectLayerID.foreGround);
         }
 
+        private updateRenderObjectSorting() {
+
+            var objectList = this.renderObjectManager.getObjectList();
+
+            for (var i = 0; i < objectList.length; i++) {
+                var renderObject = objectList[i];
+
+                renderObject.sortingValue = this.renderObjectManager.calcObjectSortingValue(renderObject, this.viewMatrix, Game.RenderObjectSortingMode.z);
+            }
+        }
         private drawLayer(layerID: Game.RenderObjectLayerID) {
 
             var objects = this.renderObjectManager.getZsortedObjectList(layerID)
@@ -224,7 +244,7 @@ namespace RenderObjectManagement {
 
         private drawRenderObject(renderObject: Game.RenderObject) {
 
-            mat4.multiply(this.modelViewMatrix, this.viewMatrix, renderObject.locationMatrix);
+            mat4.multiply(this.modelViewMatrix, this.viewMatrix, renderObject.matrix);
 
             this.render.setShader(this.shader);
             this.render.setProjectionMatrix(this.projectionMatrix);

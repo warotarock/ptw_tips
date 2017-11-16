@@ -151,8 +151,6 @@ namespace TaskManagement {
         lookatLocation = vec3.create();
         upVector = vec3.create();
 
-        location = vec3.create();
-
         modelMatrix = mat4.create();
         viewMatrix = mat4.create();
         modelViewMatrix = mat4.create();
@@ -165,6 +163,8 @@ namespace TaskManagement {
         sampleTask2Pool = new Game.TaskRecyclePool<SampleTask2>(SampleTask2, 50, "SampleTask2");
 
         taskManager = new Game.TaskManager();
+
+        location = vec3.create();
 
         animationTime = 0.0;
 
@@ -216,34 +216,27 @@ namespace TaskManagement {
 
         run() {
 
-            this.animationTime += 1.0;
-
             // Camera position
             vec3.set(this.eyeLocation, 17.1, -15.8, 10.0);
             vec3.set(this.lookatLocation, 0.0, 0.0, 4.0);
             vec3.set(this.upVector, 0.0, 0.0, 1.0);
 
             // Create tasks time by time
-            this.generateTasks();
+            this.processGeneratingTask();
 
-            // Setup task execution environment variables
-            this.taskManager.environment.render = this.render;
-            this.taskManager.environment.renderObjectManager = this.renderObjectManager;
-            this.taskManager.environment.taskManager = this.taskManager;
-            this.taskManager.environment.globalAnimationTime = this.animationTime;
-            this.taskManager.environment.globalAnimationTimeElapsed = 1.0;
+            // Task process
+            this.runTasks();
 
-            // Run tasks to animate objects
-            this.taskManager.runTasks_run();
+            // RenderObject process
+            this.calclateRenderObjectMatrix();
 
             // Destroy tasks waiting to be destoried
             this.taskManager.executeDestroyTask();
-
-            // Update task state
-            this.taskManager.updateTaskState();
         }
 
-        private generateTasks() {
+        private processGeneratingTask() {
+
+            this.animationTime += 1.0;
 
             if (this.animationTime < 3.0) {
                 return;
@@ -292,6 +285,35 @@ namespace TaskManagement {
             }
         }
 
+        private runTasks() {
+
+            // Setup task execution environment variables
+            this.taskManager.environment.render = this.render;
+            this.taskManager.environment.renderObjectManager = this.renderObjectManager;
+            this.taskManager.environment.taskManager = this.taskManager;
+            this.taskManager.environment.globalAnimationTime = this.animationTime;
+            this.taskManager.environment.globalAnimationTimeElapsed = 1.0;
+
+            // Run tasks to animate objects
+            this.taskManager.runTasks_run();
+        }
+
+        private calclateRenderObjectMatrix() {
+
+            var renderObjects = this.renderObjectManager.getObjectList();
+
+            for (var i = 0; i < renderObjects.length; i++) {
+                var renderObject = renderObjects[i];
+
+                mat4.identity(renderObject.matrix);
+                mat4.translate(renderObject.matrix, renderObject.matrix, renderObject.location);
+                mat4.rotateX(renderObject.matrix, renderObject.matrix, renderObject.rotation[0]);
+                mat4.rotateY(renderObject.matrix, renderObject.matrix, renderObject.rotation[1]);
+                mat4.rotateZ(renderObject.matrix, renderObject.matrix, renderObject.rotation[2]);
+                mat4.scale(renderObject.matrix, renderObject.matrix, renderObject.scaling);
+            }
+        }
+
         draw() {
 
             var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
@@ -302,25 +324,11 @@ namespace TaskManagement {
             this.render.setCulling(false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
 
-            // Calculate object matrix
-            var renderObjects = this.renderObjectManager.getObjectList();
-            for (var i = 0; i < renderObjects.length; i++) {
-                var renderObject = renderObjects[i];
-
-                this.renderObjectManager.calcMatrix(renderObject);
-            }
-
             // Update object layer before sorting
             this.renderObjectManager.updateObjectLayers();
 
             // Calc value for sorting
-            var objectList = this.renderObjectManager.getObjectList();
-
-            for (var i = 0; i < objectList.length; i++) {
-                var renderObject = objectList[i];
-
-                this.renderObjectManager.calcObjectSortingValue(renderObject, this.viewMatrix, Game.RenderObjectSortingMode.z);
-            }
+            this.updateRenderObjectSorting();
 
             // Run tasks to update rendering status
             this.taskManager.runTasks_onBeforeRendering();
@@ -331,6 +339,17 @@ namespace TaskManagement {
             this.drawLayer(Game.RenderObjectLayerID.backGround);
 
             this.drawLayer(Game.RenderObjectLayerID.foreGround);
+        }
+
+        private updateRenderObjectSorting() {
+
+            var objectList = this.renderObjectManager.getObjectList();
+
+            for (var i = 0; i < objectList.length; i++) {
+                var renderObject = objectList[i];
+
+                renderObject.sortingValue = this.renderObjectManager.calcObjectSortingValue(renderObject, this.viewMatrix, Game.RenderObjectSortingMode.z);
+            }
         }
 
         private drawLayer(layerID: Game.RenderObjectLayerID) {
@@ -346,7 +365,7 @@ namespace TaskManagement {
 
         private drawRenderObject(renderObject: Game.RenderObject) {
 
-            mat4.multiply(this.modelViewMatrix, this.viewMatrix, renderObject.locationMatrix);
+            mat4.multiply(this.modelViewMatrix, this.viewMatrix, renderObject.matrix);
 
             this.render.setShader(this.shader);
             this.render.setProjectionMatrix(this.projectionMatrix);

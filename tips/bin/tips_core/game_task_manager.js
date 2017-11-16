@@ -10,13 +10,14 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var Game;
 (function (Game) {
-    // Task base class
+    // State flags to control execution timing of event method
     var TaskState;
     (function (TaskState) {
         TaskState[TaskState["created"] = 0] = "created";
-        TaskState[TaskState["Active"] = 1] = "Active";
-        TaskState[TaskState["WaitingForDestroy"] = 2] = "WaitingForDestroy";
+        TaskState[TaskState["active"] = 1] = "active";
+        TaskState[TaskState["waitingForDestroy"] = 2] = "waitingForDestroy";
     })(TaskState = Game.TaskState || (Game.TaskState = {}));
+    // Task base class
     var TaskClass = (function () {
         function TaskClass() {
             this.recyclePool = null;
@@ -119,9 +120,9 @@ var Game;
             }
         };
         TaskManager.prototype.addTask = function (task) {
-            task.state = TaskState.created;
             this.tasks.push(task);
             task.onCreate(this.environment);
+            task.state = TaskState.active;
             return task;
         };
         TaskManager.prototype.addTaskToGroup = function (task, taskGroupID) {
@@ -130,7 +131,7 @@ var Game;
             return task;
         };
         TaskManager.prototype.destroyTask = function (task) {
-            task.state = TaskState.WaitingForDestroy;
+            task.state = TaskState.waitingForDestroy;
         };
         TaskManager.prototype.destroyTaskGroupTasks = function (taskGroupID) {
             var taskGroup = this.taskGroups[taskGroupID];
@@ -146,18 +147,10 @@ var Game;
             }
         };
         // Updating methods for all tasks for each frame execution
-        TaskManager.prototype.updateTaskState = function () {
-            for (var i = 0; i < this.tasks.length; i++) {
-                var task = this.tasks[i];
-                if (task.state == TaskState.created) {
-                    task.state = TaskState.Active;
-                }
-            }
-        };
         TaskManager.prototype.executeDestroyTask = function () {
             for (var i = this.tasks.length - 1; i >= 0; i--) {
                 var task = this.tasks[i];
-                if (task.state == TaskState.WaitingForDestroy) {
+                if (task.state == TaskState.waitingForDestroy) {
                     this.deleteOrRecycleTask(task);
                     ListRemoveAt(this.tasks, i);
                 }
@@ -177,7 +170,7 @@ var Game;
         TaskManager.prototype.runTasks_run = function () {
             for (var i = this.tasks.length - 1; i >= 0; i--) {
                 var task = this.tasks[i];
-                if (task.state == TaskState.Active) {
+                if (task.state != TaskState.waitingForDestroy) {
                     task.run(this.environment);
                 }
             }
@@ -185,7 +178,7 @@ var Game;
         TaskManager.prototype.runTasks_onBeforeRendering = function () {
             for (var i = this.tasks.length - 1; i >= 0; i--) {
                 var task = this.tasks[i];
-                if (task.state == TaskState.Active) {
+                if (task.state != TaskState.waitingForDestroy) {
                     task.onBeforeRendering(this.environment);
                 }
             }
@@ -193,7 +186,7 @@ var Game;
         TaskManager.prototype.runTasks_OnSampleEvent1 = function () {
             for (var i = this.tasks.length - 1; i >= 0; i--) {
                 var task = this.tasks[i];
-                if (task.state == TaskState.Active) {
+                if (task.state != TaskState.waitingForDestroy) {
                     task.onSampleEvent1(this.environment);
                 }
             }
@@ -201,7 +194,7 @@ var Game;
         TaskManager.prototype.runTasks_OnSampleEvent2 = function () {
             for (var i = this.tasks.length - 1; i >= 0; i--) {
                 var task = this.tasks[i];
-                if (task.state == TaskState.Active) {
+                if (task.state != TaskState.waitingForDestroy) {
                     task.onSampleEvent2(this.environment);
                 }
             }
