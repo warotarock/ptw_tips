@@ -108,7 +108,7 @@ var InputMnagement;
             this.input.analog1 = this.inputManager.addAxis('analog1');
             this.input.analog2 = this.inputManager.addAxis('analog2');
             this.input.analog3 = this.inputManager.addAxis('analog3');
-            this.input.pointer = this.inputManager.addPointingInputs('pointer');
+            this.input.pointer = this.inputManager.addPointingInput('pointer');
             this.inputManager.setMappingFromConfig(this.config);
             this.inputManager.setEvents(canvas);
         };
