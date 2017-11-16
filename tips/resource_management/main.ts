@@ -54,7 +54,7 @@ namespace ResourceManagement {
 
     class ImageResourceLoader extends Game.ResourceLoader<ImageResource> {
 
-        maxParallelLoadingCount = 5;
+        maxParallelLoadingCount = 3;
 
         render: WebGLRender = null;
 
@@ -269,7 +269,7 @@ namespace ResourceManagement {
 
             this.loadingSettings = loadingSettings;
 
-            // Resource manager setup
+            // Loader setup
             this.imageResourceLoader.render = this.render;
             this.imageResourceLoader.addResourceItems(imageResources);
 
@@ -300,7 +300,7 @@ namespace ResourceManagement {
             this.isLoaded = false;
             this.loadingAnimationTime = 0.0;
 
-            this.drawer_canvas.style.display = 'block';
+            this.drawer_canvas.style.display = 'block'; // Show canvas
             this.showLoadingProgress();
         }
 
@@ -327,7 +327,7 @@ namespace ResourceManagement {
             }
 
             // Loading finished
-            this.drawer_canvas.style.display = 'none';
+            this.drawer_canvas.style.display = 'none'; // Hide canvas
 
             // Link models and images
             this.linkResources();

@@ -62,7 +62,7 @@ var ResourceManagement;
         __extends(ImageResourceLoader, _super);
         function ImageResourceLoader() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.maxParallelLoadingCount = 5;
+            _this.maxParallelLoadingCount = 3;
             _this.render = null;
             return _this;
         }
@@ -224,7 +224,7 @@ var ResourceManagement;
                 .add(imageResources[ImageResourceID.Image02])
                 .add(imageResources[ImageResourceID.Image03]); // *This line (Image03) is a sample code: SettingSet can include images which is not used by models
             this.loadingSettings = loadingSettings;
-            // Resource manager setup
+            // Loader setup
             this.imageResourceLoader.render = this.render;
             this.imageResourceLoader.addResourceItems(imageResources);
             this.sceneResourceLoader.render = this.render;
@@ -245,7 +245,7 @@ var ResourceManagement;
             this.resourceManager.startLoading();
             this.isLoaded = false;
             this.loadingAnimationTime = 0.0;
-            this.drawer_canvas.style.display = 'block';
+            this.drawer_canvas.style.display = 'block'; // Show canvas
             this.showLoadingProgress();
         };
         Main.prototype.requestSwitchingScene = function (nextSceneID) {
@@ -264,7 +264,7 @@ var ResourceManagement;
                 return;
             }
             // Loading finished
-            this.drawer_canvas.style.display = 'none';
+            this.drawer_canvas.style.display = 'none'; // Hide canvas
             // Link models and images
             this.linkResources();
             // Start scene
