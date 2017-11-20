@@ -378,23 +378,6 @@ module PTWTipsInput {
             else {
                 this.processPollingCrossButton(time);
             }
-
-            //let debugbuttonTexts = [];
-            //for (let i = 0; i < this.gamepad.buttons.length; i++) {
-
-            //    let button = this.gamepad.buttons[i];
-            //    for (let prop in button) {
-            //        debugbuttonTexts.push(button[prop]);
-            //    }
-            //}
-            //console.log(debugbuttonTexts.join(', '));
-
-            //let debugAxisTexts = [];
-            //for (let i = 0; i < this.gamepad.axes.length; i++) {
-
-            //    debugAxisTexts.push(this.gamepad.axes[i].toFixed(2));
-            //}
-            //console.log(debugAxisTexts.join(', '));
         }
 
         private processPollingButtons(time: float) {
@@ -439,6 +422,7 @@ module PTWTipsInput {
             let gamepad = this.gamepad;
 
             for (let i = 0; i < this.sticks.length; i++) {
+
                 let axis = this.sticks[i];
 
                 if (i >= this.currentDeviceLayout.StickIndexMappings.length) {
@@ -483,8 +467,7 @@ module PTWTipsInput {
         private processCrossButtonEmulation(time: float) {
 
             // If any cross button is inputed, cancel emulation
-            for (let i = 0; i < this.crossButtons.length; i++) {
-                let button = this.crossButtons[i];
+            for (let button of this.crossButtons) {
 
                 if (button.isInputed) {
                     return;
@@ -577,8 +560,7 @@ module PTWTipsInput {
                 }
             }
 
-            for (let i = 0; i < this.crossButtons.length; i++) {
-                let button = this.crossButtons[i];
+            for (let button of this.crossButtons) {
 
                 button.processPollingDoublePress(time, this.doublePressMilliSecond);
             }
@@ -586,14 +568,12 @@ module PTWTipsInput {
 
         updateStates() {
 
-            for (let i = 0; i < this.buttons.length; i++) {
-                let button = this.buttons[i];
+            for (let button of this.buttons) {
 
                 button.updateStates();
             }
 
-            for (let i = 0; i < this.crossButtons.length; i++) {
-                let button = this.crossButtons[i];
+            for (let button of this.crossButtons) {
 
                 button.updateStates();
             }
@@ -601,16 +581,14 @@ module PTWTipsInput {
 
         getButtonControlByName(name: string): ButtonInputControl {
 
-            for (let i = 0; i < this.buttons.length; i++) {
-                let button = this.buttons[i];
+            for (let button of this.buttons) {
 
                 if (button.name == name) {
                     return button;
                 }
             }
 
-            for (let i = 0; i < this.crossButtons.length; i++) {
-                let button = this.crossButtons[i];
+            for (let button of this.crossButtons) {
 
                 if (button.name == name) {
                     return button;
@@ -622,8 +600,7 @@ module PTWTipsInput {
 
         getAxisControlByName(name: string): AxisInputControl {
 
-            for (let i = 0; i < this.sticks.length; i++) {
-                let axis = this.sticks[i];
+            for (let axis of this.sticks) {
 
                 if (axis.name == name) {
                     return axis;
@@ -641,9 +618,11 @@ module PTWTipsInput {
         private checkGamepads(): boolean {
 
             if ('getGamepads' in navigator) {
+
                 let gamepads: List<HTMLGamepad> = navigator.getGamepads();
 
                 for (let i = 0; i < gamepads.length; i++) {
+
                     if (gamepads[i]) {
                         return true;
                     }
@@ -656,7 +635,9 @@ module PTWTipsInput {
             let gamepads: List<HTMLGamepad> = navigator.getGamepads();
 
             for (let i = 0; i < gamepads.length; i++) {
+
                 if (gamepads[i]) {
+
                     return gamepads[i]
                 }
             }
@@ -672,8 +653,10 @@ module PTWTipsInput {
         private isGamepadButtonPressed(button: HTMLGamepadButton): boolean {
 
             if (typeof (button) == 'object') {
+
                 return button.pressed;
             }
+
             return (<any>button == 1.0);
         }
     }

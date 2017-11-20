@@ -118,28 +118,28 @@ namespace PTWTipsSound {
 
             // Get playing unit
             let playingUnitCount = this.getPlayingUnitCount();
-            let playingUnit: SoundPlayingUnit = null;
+            let available_PlayingUnit: SoundPlayingUnit = null;
 
             for (let i = 0; i < playingUnitCount; i++) {
 
-                let pu = this.getPlayingUnit(i);
-                let state = pu.getState();
+                let playingUnit = this.getPlayingUnit(i);
+                let state = playingUnit.getState();
 
                 if (state == SoundPlayingState.ready || state == SoundPlayingState.stopped || state == SoundPlayingState.done) {
 
-                    playingUnit = pu;
+                    available_PlayingUnit = playingUnit;
                 }
             }
 
             // Play 
-            if (playingUnit == null) {
+            if (available_PlayingUnit == null) {
                 return null;
             }
 
-            playingUnit.resetEffects();
-            playingUnit.play();
+            available_PlayingUnit.resetEffects();
+            available_PlayingUnit.play();
 
-            return playingUnit;
+            return available_PlayingUnit;
         }
 
         // Override methods
@@ -221,11 +221,11 @@ namespace PTWTipsSound {
 
         isMuted = false;
 
-        addSoundSource(soundUnit: SoundSource) {
+        addSoundSource(soundSource: SoundSource) {
 
-            soundUnit.soundManger = this;
+            soundSource.soundManger = this;
 
-            this.soundSources.push(soundUnit);
+            this.soundSources.push(soundSource);
         }
 
         setMute(enable: boolean) {
@@ -235,13 +235,13 @@ namespace PTWTipsSound {
 
         processSounds() {
 
-            for (let soundUnit of this.soundSources) {
+            for (let soundSource of this.soundSources) {
 
-                let playingUnitCount = soundUnit.getPlayingUnitCount();
+                let playingUnitCount = soundSource.getPlayingUnitCount();
 
                 for (let i = 0; i < playingUnitCount; i++) {
 
-                    let playUnit = soundUnit.getPlayingUnit(i);
+                    let playUnit = soundSource.getPlayingUnit(i);
 
                     let state = playUnit.getState();
 
@@ -284,7 +284,7 @@ namespace PTWTipsSound {
                     }
                 }
 
-                soundUnit.isPlayedOnce = false;
+                soundSource.isPlayedOnce = false;
             }
         }
     }

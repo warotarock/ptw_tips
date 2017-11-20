@@ -61,13 +61,15 @@ var RenderShader = (function () {
         // Override method
     };
     RenderShader.prototype.enableVertexAttributes = function (gl) {
-        for (var i = 0; i < this.attribLocationList.length; i++) {
-            gl.enableVertexAttribArray(this.attribLocationList[i]);
+        for (var _i = 0, _a = this.attribLocationList; _i < _a.length; _i++) {
+            var attribLocation = _a[_i];
+            gl.enableVertexAttribArray(attribLocation);
         }
     };
     RenderShader.prototype.disableVertexAttributes = function (gl) {
-        for (var i = 0; i < this.attribLocationList.length; i++) {
-            gl.disableVertexAttribArray(this.attribLocationList[i]);
+        for (var _i = 0, _a = this.attribLocationList; _i < _a.length; _i++) {
+            var attribLocation = _a[_i];
+            gl.disableVertexAttribArray(attribLocation);
         }
     };
     RenderShader.prototype.resetVertexAttribPointerOffset = function () {
@@ -246,7 +248,8 @@ var WebGLRender = (function () {
         var lastShader = this.currentShader;
         this.gl.useProgram(shader.program);
         this.currentShader = shader;
-        if (lastShader != null && lastShader.attribLocationList.length != this.currentShader.attribLocationList.length) {
+        if (lastShader != null
+            && lastShader.attribLocationList.length != this.currentShader.attribLocationList.length) {
             lastShader.disableVertexAttributes(this.gl);
         }
     };

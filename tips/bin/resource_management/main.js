@@ -307,8 +307,8 @@ var ResourceManagement;
             this.context2D.fillText(percentage.toFixed(2) + '%', centerX, centerY);
         };
         Main.prototype.linkResources = function () {
-            for (var i = 0; i < this.sceneResources.length; i++) {
-                var sceneResource = this.sceneResources[i];
+            for (var _i = 0, _a = this.sceneResources; _i < _a.length; _i++) {
+                var sceneResource = _a[_i];
                 if (sceneResource.loadingState != Game.ResourceLoadingstate.finished) {
                     continue;
                 }
@@ -317,9 +317,9 @@ var ResourceManagement;
                     if (modelResource.images == null) {
                         modelResource.images = new List(sceneResource.imageIDs.length);
                     }
-                    for (var k = 0; k < sceneResource.imageIDs.length; k++) {
-                        var imageID = sceneResource.imageIDs[k];
-                        modelResource.images[k] = this.imageResources[imageID].image;
+                    for (var i = 0; i < sceneResource.imageIDs.length; i++) {
+                        var imageID = sceneResource.imageIDs[i];
+                        modelResource.images[i] = this.imageResources[imageID].image;
                     }
                 }
             }

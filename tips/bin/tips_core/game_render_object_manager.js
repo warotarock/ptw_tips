@@ -9,7 +9,7 @@ var Game;
         RenderObjectLayerID[RenderObjectLayerID["nearGround"] = 4] = "nearGround";
         RenderObjectLayerID[RenderObjectLayerID["ui"] = 5] = "ui";
         RenderObjectLayerID[RenderObjectLayerID["invisible"] = 6] = "invisible";
-        RenderObjectLayerID[RenderObjectLayerID["maxLayerCount"] = 6] = "maxLayerCount";
+        RenderObjectLayerID[RenderObjectLayerID["maxLayerID"] = 6] = "maxLayerID";
     })(RenderObjectLayerID = Game.RenderObjectLayerID || (Game.RenderObjectLayerID = {}));
     var RenderObjectBlendType;
     (function (RenderObjectBlendType) {
@@ -73,14 +73,15 @@ var Game;
         // Object management
         RenderObjectManager.prototype.allocate = function (maxRenderObjectCount) {
             this.recyclePool = new RecyclePool(RenderObject, maxRenderObjectCount);
-            for (var i = 0; i < RenderObjectLayerID.maxLayerCount + 1; i++) {
+            var layerCount = RenderObjectLayerID.maxLayerID + 1;
+            for (var i = 0; i < layerCount; i++) {
                 this.objectLayers.push(new RenderObjectLayer());
             }
             return this;
         };
         RenderObjectManager.prototype.clearObjects = function () {
-            for (var k = 0; k < this.objectLayers.length; k++) {
-                var layer = this.objectLayers[k];
+            for (var _i = 0, _a = this.objectLayers; _i < _a.length; _i++) {
+                var layer = _a[_i];
                 layer.objects = new List();
             }
             this.recyclePool.reset();
@@ -164,8 +165,8 @@ var Game;
         };
         // Updating methods for each frame execution
         RenderObjectManager.prototype.updateObjectLayers = function () {
-            for (var k = 0; k < this.objectLayers.length; k++) {
-                var layer = this.objectLayers[k];
+            for (var _i = 0, _a = this.objectLayers; _i < _a.length; _i++) {
+                var layer = _a[_i];
                 for (var i = layer.objects.length - 1; i >= 0; i--) {
                     var obj = layer.objects[i];
                     if (obj.layerID != obj.lastLayerID) {

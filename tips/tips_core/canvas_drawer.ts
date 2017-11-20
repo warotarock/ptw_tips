@@ -352,8 +352,7 @@ class CanvasDrawer {
 
     private drawObjects(canvasContext: CanvasContext) {
 
-        for (let i = 0; i < this.drawerObjects.length; i++) {
-            let drawerObject = this.drawerObjects[i];
+        for (let drawerObject of this.drawerObjects) {
 
             if (drawerObject.Type == DrawerObjectTypeID.verticalText || drawerObject.Type == DrawerObjectTypeID.horizontalText) {
 
@@ -633,7 +632,6 @@ class CanvasDrawer {
             for (let y = imageData.height - 1; y >= yLimit; y--) {
 
                 let alpha = data[(y * 4 * imageData.width) + (x * 4) + 3];
-
 
                 if (alpha > 128) {
 

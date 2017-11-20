@@ -65,8 +65,7 @@ namespace Game {
 
         addResourceItems(resourceItems: List<T>) {
 
-            for (let i = 0; i < resourceItems.length; i++) {
-                let resourceItem = resourceItems[i];
+            for (let resourceItem of resourceItems) {
 
                 if (resourceItem == null || resourceItem == undefined) {
                     continue;
@@ -78,8 +77,7 @@ namespace Game {
 
         resetLoadingTargetFlags() {
 
-            for (let i = 0; i < this.resourceItems.length; i++) {
-                let resourceItem = this.resourceItems[i];
+            for (let resourceItem of this.resourceItems) {
 
                 resourceItem.isUsed = false;
             }
@@ -87,8 +85,7 @@ namespace Game {
 
         setLoadingTargetFlags(loadingSettingSet: ResourceItemLoadingSettingSet) {
 
-            for (let i = 0; i < loadingSettingSet.settings.length; i++) {
-                let setting = loadingSettingSet.settings[i];
+            for (let setting of loadingSettingSet.settings) {
 
                 setting.resourceItem.isUsed = true;
             }
@@ -100,10 +97,10 @@ namespace Game {
             this.loadingResourceItems = new List<T>();
             this.finishedResourceItems = new List<T>();
 
-            for (let i = 0; i < this.resourceItems.length; i++) {
-                let resourceItem = this.resourceItems[i];
+            for (let resourceItem of this.resourceItems) {
 
                 if (resourceItem.isUsed && resourceItem.loadingState == ResourceLoadingstate.none) {
+
                     resourceItem.loadingState = ResourceLoadingstate.waitingLoading;
 
                     this.waitingResourceItems.push(resourceItem);
@@ -168,14 +165,12 @@ namespace Game {
 
             let sumOfWeight = 0.0;
 
-            for (let i = 0; i < this.loadingResourceItems.length; i++) {
-                let resourceItem = this.loadingResourceItems[i];
+            for (let resourceItem of this.loadingResourceItems) {
 
                 sumOfWeight += resourceItem.loadingWeight;
             }
 
-            for (let i = 0; i < this.waitingResourceItems.length; i++) {
-                let resourceItem = this.waitingResourceItems[i];
+            for (let resourceItem of this.waitingResourceItems) {
 
                 sumOfWeight += resourceItem.loadingWeight;
             }
@@ -189,8 +184,7 @@ namespace Game {
 
             let sumOfWeight = 0.0;
 
-            for (let i = 0; i < this.finishedResourceItems.length; i++) {
-                let resourceItem = this.finishedResourceItems[i];
+            for (let resourceItem of this.finishedResourceItems) {
 
                 sumOfWeight += resourceItem.loadingWeight;
             }
@@ -200,8 +194,7 @@ namespace Game {
 
         unloadUnusedResources() {
 
-            for (let i = 0; i < this.resourceItems.length; i++) {
-                let resourceItem = this.resourceItems[i];
+            for (let resourceItem of this.resourceItems) {
 
                 if (!resourceItem.isUsed && resourceItem.loadingState == Game.ResourceLoadingstate.finished) {
 
@@ -234,8 +227,7 @@ namespace Game {
 
         resetLoadingTargets() {
 
-            for (let i = 0; i < this.loaders.length; i++) {
-                let loader = this.loaders[i];
+            for (let loader of this.loaders) {
 
                 loader.resetLoadingTargetFlags();
             }
@@ -243,8 +235,7 @@ namespace Game {
 
         addLoadingTarget(loadingSettingSet: ResourceItemLoadingSettingSet) {
 
-            for (let i = 0; i < this.loaders.length; i++) {
-                let loader = this.loaders[i];
+            for (let loader of this.loaders) {
 
                 loader.setLoadingTargetFlags(loadingSettingSet);
             }
@@ -254,8 +245,7 @@ namespace Game {
 
             this.loadingLoaderProgressCount = 0;
 
-            for (let i = 0; i < this.loaders.length; i++) {
-                let loader = this.loaders[i];
+            for (let loader of this.loaders) {
 
                 loader.startLoading();
             }
@@ -270,15 +260,19 @@ namespace Game {
             let loader = this.loaders[this.loadingLoaderProgressCount];
 
             if (loader.processLoading()) {
+
                 return true;
             }
             else {
+
                 this.loadingLoaderProgressCount++;
 
                 if (this.loadingLoaderProgressCount >= this.loaders.length) {
+
                     return false;
                 }
                 else {
+
                     return true;
                 }
             }
@@ -289,25 +283,25 @@ namespace Game {
             let sumOfLoading = 0.0;
             let sumOfLoaded = 0.0;
 
-            for (let i = 0; i < this.loaders.length; i++) {
-                let loader = this.loaders[i];
+            for (let loader of this.loaders) {
 
                 sumOfLoading += loader.getLoadingWeightTotal();
                 sumOfLoaded += loader.getLoadedWeightTotal();
             }
 
             if (sumOfLoading == 0.0) {
+
                 return -1.0;
             }
             else {
+
                 return sumOfLoaded / sumOfLoading;
             }
         }
 
         unloadUnusedResources() {
 
-            for (let i = 0; i < this.loaders.length; i++) {
-                let loader = this.loaders[i];
+            for (let loader of this.loaders) {
 
                 loader.unloadUnusedResources();
             }

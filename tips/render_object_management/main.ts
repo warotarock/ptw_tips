@@ -52,7 +52,7 @@ namespace RenderObjectManagement {
             // Allocate render object pool
             this.renderObjectManager.allocate(this.MAX_RENDER_OBJECT);
 
-            // Create an object for background layer
+            // Create an object for background layer (set RenderObject.tag to 1)
             let renderObject = this.renderObjectManager.createObject();
             if (renderObject != null) {
 
@@ -72,8 +72,7 @@ namespace RenderObjectManagement {
         processLoading() {
 
             // Waiting for data
-            for (let i = 0; i < this.images1.length; i++) {
-                let image = this.images1[i];
+            for (let image of this.images1) {
 
                 if (image.texture == null) {
                     return;
@@ -111,7 +110,7 @@ namespace RenderObjectManagement {
 
             this.animationTime += 1.0;
 
-            if (this.animationTime < 5.0) {
+            if (this.animationTime < 3.0) {
                 return;
             }
 
@@ -124,9 +123,9 @@ namespace RenderObjectManagement {
                 renderObject.images = this.images1;
                 renderObject.layerID = Game.RenderObjectLayerID.foreGround;
 
-                let locationRange = 30.0;
+                let locationRange = 20.0;
                 vec3.set(renderObject.location
-                    , (0.00 + Math.random()) * locationRange
+                    , (1.00 + Math.random()) * locationRange
                     , (-0.5 + Math.random()) * locationRange
                     , (-0.5 + Math.random()) * locationRange
                 );
@@ -146,11 +145,10 @@ namespace RenderObjectManagement {
 
             let renderObjects = this.renderObjectManager.getObjectList();
 
-            for (let i = 0; i < renderObjects.length; i++) {
-                let renderObject = renderObjects[i];
+            for (let renderObject of renderObjects) {
 
-                // Rotation
                 if (renderObject.tag == 0) {
+                    renderObject.location[0] -= 0.1;
                     renderObject.rotation[1] += 0.01;
                 }
                 else {
@@ -164,8 +162,7 @@ namespace RenderObjectManagement {
 
             let renderObjects = this.renderObjectManager.getObjectList();
 
-            for (let i = 0; i < renderObjects.length; i++) {
-                let renderObject = renderObjects[i];
+            for (let renderObject of renderObjects) {
 
                 mat4.identity(renderObject.matrix);
                 mat4.translate(renderObject.matrix, renderObject.matrix, renderObject.location);
@@ -185,7 +182,7 @@ namespace RenderObjectManagement {
 
                 if (renderObject.tag == 0) {
                     renderObject.animationTime += 1.0;
-                    if (renderObject.animationTime > 200.0) {
+                    if (renderObject.animationTime > 400.0) {
 
                         this.renderObjectManager.removeObject(renderObject);
                     }
@@ -223,20 +220,19 @@ namespace RenderObjectManagement {
 
         private updateRenderObjectSorting() {
 
-            let objectList = this.renderObjectManager.getObjectList();
+            let renderObjects = this.renderObjectManager.getObjectList();
 
-            for (let i = 0; i < objectList.length; i++) {
-                let renderObject = objectList[i];
+            for (let renderObject of renderObjects) {
 
                 renderObject.sortingValue = this.renderObjectManager.calcObjectSortingValue(renderObject, this.viewMatrix, Game.RenderObjectSortingMode.z);
             }
         }
+
         private drawLayer(layerID: Game.RenderObjectLayerID) {
 
-            let objects = this.renderObjectManager.getZsortedObjectList(layerID)
+            let renderObjects = this.renderObjectManager.getZsortedObjectList(layerID)
 
-            for (let i = 0; i < objects.length; i++) {
-                let renderObject = objects[i];
+            for (let renderObject of renderObjects) {
 
                 this.drawRenderObject(renderObject);
             }

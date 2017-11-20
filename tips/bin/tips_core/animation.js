@@ -255,11 +255,11 @@ var AnimationSolver = (function () {
         var buffer = new BoneAnimationBuffer();
         buffer.bones = new Dictionary();
         buffer.boneList = new List(bones.length);
-        for (var i = 0; i < bones.length; i++) {
-            var bone = bones[i];
+        for (var boneIndex = 0; boneIndex < bones.length; boneIndex++) {
+            var bone = bones[boneIndex];
             var bufferBone = new BoneAnimationBufferBone();
             buffer.bones[bone.name] = bufferBone;
-            buffer.boneList[i] = bufferBone;
+            buffer.boneList[boneIndex] = bufferBone;
         }
         return buffer;
     };
@@ -267,10 +267,10 @@ var AnimationSolver = (function () {
         var buffer = new BoneAnimationMatrixBuffer();
         buffer.boneMatrices = new Dictionary();
         buffer.boneMatrixList = new List(bones.length);
-        for (var i = 0; i < bones.length; i++) {
-            var bone = bones[i];
-            buffer.boneMatrixList[i] = mat4.create();
-            buffer.boneMatrices[bone.name] = buffer.boneMatrixList[i];
+        for (var boneIndex = 0; boneIndex < bones.length; boneIndex++) {
+            var bone = bones[boneIndex];
+            buffer.boneMatrixList[boneIndex] = mat4.create();
+            buffer.boneMatrices[bone.name] = buffer.boneMatrixList[boneIndex];
         }
         return buffer;
     };

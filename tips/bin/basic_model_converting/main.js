@@ -34,27 +34,28 @@ var BasicModelConverting;
         };
         Main.prototype.convert = function (staticMeshes) {
             var convetedModels = new List();
-            for (var meshIndex = 0; meshIndex < staticMeshes.length; meshIndex++) {
-                var mesh = staticMeshes[meshIndex];
+            for (var _i = 0, staticMeshes_1 = staticMeshes; _i < staticMeshes_1.length; _i++) {
+                var mesh = staticMeshes_1[_i];
                 var vertexData = [];
-                for (var i = 0; i < mesh.vertices.length; i++) {
-                    var modelVertex = mesh.vertices[i];
+                for (var _a = 0, _b = mesh.vertices; _a < _b.length; _a++) {
+                    var modelVertex = _b[_a];
                     vertexData.push(modelVertex.position[0]);
                     vertexData.push(modelVertex.position[1]);
                     vertexData.push(modelVertex.position[2]);
                     vertexData.push(modelVertex.normal[0]);
                     vertexData.push(modelVertex.normal[1]);
                     vertexData.push(modelVertex.normal[2]);
-                    for (var k = 0; k < modelVertex.texcoords.length; k++) {
-                        vertexData.push(modelVertex.texcoords[k][0]);
-                        vertexData.push(modelVertex.texcoords[k][1]);
+                    for (var uvIndex = 0; uvIndex < modelVertex.texcoords.length; uvIndex++) {
+                        vertexData.push(modelVertex.texcoords[uvIndex][0]);
+                        vertexData.push(modelVertex.texcoords[uvIndex][1]);
                     }
                 }
                 var indexData = [];
-                for (var i = 0; i < mesh.faces.length; i++) {
-                    var modelFace = mesh.faces[i];
-                    for (var k = 0; k < modelFace.vertexIndeces.length; k++) {
-                        indexData.push(modelFace.vertexIndeces[k]);
+                for (var _c = 0, _d = mesh.faces; _c < _d.length; _c++) {
+                    var modelFace = _d[_c];
+                    for (var _e = 0, _f = modelFace.vertexIndeces; _e < _f.length; _e++) {
+                        var vertexIndex = _f[_e];
+                        indexData.push(vertexIndex);
                     }
                 }
                 var uvMapCount = mesh.vertices[0].texcoords.length;
@@ -84,12 +85,14 @@ var BasicModelConverting;
                     out.push(tab3 + ', \"vertexStride\": ' + convetedMesh.vertexStride);
                     out.push(tab3 + ', \"vertex\": ' + JSON.stringify(convetedMesh.vertex, this.jsonStringifyReplacer));
                     out.push(tab3 + ', \"index\": ' + JSON.stringify(convetedMesh.index));
-                    out.push(tab2 + '}' + (i < convetedMeshes.length - 1 ? ',' : ''));
+                    out.push(tab2 + '}');
                 }
                 else {
                     out.push(tab2 + '\"' + convetedMesh.name + '\": '
-                        + JSON.stringify(convetedMesh, this.jsonStringifyReplacer)
-                        + (i < convetedMeshes.length - 1 ? ',' : ''));
+                        + JSON.stringify(convetedMesh, this.jsonStringifyReplacer));
+                }
+                if (i < convetedMeshes.length - 1) {
+                    out[out.length - 1] += ',';
                 }
             }
             out.push(tab1 + '}');

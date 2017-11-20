@@ -54,12 +54,10 @@ namespace BasicModelConverting {
         convert(staticMeshes: List<Converters.StaticMeshModel>): List<ConvertedModel> {
 
             let convetedModels = new List<ConvertedModel>();
-            for (let meshIndex = 0; meshIndex < staticMeshes.length; meshIndex++) {
-                let mesh = staticMeshes[meshIndex];
+            for (let mesh of staticMeshes) {
 
                 let vertexData = [];
-                for (let i = 0; i < mesh.vertices.length; i++) {
-                    let modelVertex = mesh.vertices[i];
+                for (let modelVertex of mesh.vertices) {
 
                     vertexData.push(modelVertex.position[0]);
                     vertexData.push(modelVertex.position[1]);
@@ -69,18 +67,17 @@ namespace BasicModelConverting {
                     vertexData.push(modelVertex.normal[1]);
                     vertexData.push(modelVertex.normal[2]);
 
-                    for (let k = 0; k < modelVertex.texcoords.length; k++) {
-                        vertexData.push(modelVertex.texcoords[k][0]);
-                        vertexData.push(modelVertex.texcoords[k][1]);
+                    for (let uvIndex = 0; uvIndex < modelVertex.texcoords.length; uvIndex++) {
+                        vertexData.push(modelVertex.texcoords[uvIndex][0]);
+                        vertexData.push(modelVertex.texcoords[uvIndex][1]);
                     }
                 }
 
                 let indexData = [];
-                for (let i = 0; i < mesh.faces.length; i++) {
-                    let modelFace = mesh.faces[i];
+                for (let modelFace of mesh.faces) {
 
-                    for (let k = 0; k < modelFace.vertexIndeces.length; k++) {
-                        indexData.push(modelFace.vertexIndeces[k]);
+                    for (let vertexIndex of modelFace.vertexIndeces) {
+                        indexData.push(vertexIndex);
                     }
                 }
 
@@ -123,14 +120,18 @@ namespace BasicModelConverting {
                     out.push(tab3 + ', \"vertexStride\": ' + convetedMesh.vertexStride);
                     out.push(tab3 + ', \"vertex\": ' + JSON.stringify(convetedMesh.vertex, this.jsonStringifyReplacer));
                     out.push(tab3 + ', \"index\": ' + JSON.stringify(convetedMesh.index));
-                    out.push(tab2 + '}' + (i < convetedMeshes.length - 1 ? ',' : ''));
+                    out.push(tab2 + '}');
                 }
                 else {
 
                     out.push(tab2 + '\"' + convetedMesh.name + '\": '
                         + JSON.stringify(convetedMesh, this.jsonStringifyReplacer)
-                        + (i < convetedMeshes.length - 1 ? ',' : '')
                     );
+                }
+
+                if (i < convetedMeshes.length - 1) {
+
+                    out[out.length - 1] += ',';
                 }
             }
 

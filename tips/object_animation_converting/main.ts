@@ -48,8 +48,8 @@ namespace ObjectAnimationConverter {
             let result = new List<any>();
 
             // for each bAction
-            for (let i = 0; i < bAction_BHeads.length; i++) {
-                let bAction_BHead = bAction_BHeads[i];
+            for (let bAction_BHead of bAction_BHeads) {
+
                 let bAction = blendFile.dna.createDataSet(bAction_BHead);
 
                 let animation = {
@@ -73,8 +73,9 @@ namespace ObjectAnimationConverter {
                     let bezTriple = blendFile.dna.createDataSet(bezTriple_Bhead);
 
                     let points = [];
-                    for (let k = 0; k < bezTriple.elementCount; k++) {
-                        let bezt = bezTriple[k];
+                    for (let i = 0; i < bezTriple.elementCount; i++) {
+                        let bezt = bezTriple[i];
+
                         points.push(
                             [
                                 [bezt.vec[0], bezt.vec[1], bezt.vec[2]],
@@ -130,8 +131,8 @@ namespace ObjectAnimationConverter {
 
             out.push('{');
 
-            for (let i = 0; i < convetedData.length; i++) {
-                let animation = convetedData[i];
+            for (let animationIndex = 0; animationIndex < convetedData.length; animationIndex++) {
+                let animation = convetedData[animationIndex];
 
                 out.push('  \"' + animation.name + '\": {');
 
@@ -149,8 +150,8 @@ namespace ObjectAnimationConverter {
 
                     out.push('    \"' + group.name + '\": {');
 
-                    for (let k = 0; k < group.curves.length; k++) {
-                        let curve = group.curves[k];
+                    for (let curveIndex = 0; curveIndex < group.curves.length; curveIndex++) {
+                        let curve = group.curves[curveIndex];
 
                         let output_carve = {
                             ipoType: 2,
@@ -161,14 +162,28 @@ namespace ObjectAnimationConverter {
 
                         out.push('      \"' + curve.channel + '\": '
                             + JSON.stringify(output_carve, this.jsonStringifyReplacer)
-                            + (k < group.curves.length - 1 ? ',' : '')
                         );
+
+                        if (curveIndex < group.curves.length - 1) {
+
+                            out[out.length - 1] += ',';
+                        }
                     }
 
-                    out.push('    }' + (groupIndex < channelGroup.length - 1 ? ',' : ''));
+                    out.push('    }');
+
+                    if (groupIndex < channelGroup.length - 1) {
+
+                        out[out.length - 1] += ',';
+                    }
                 }
 
-                out.push('  }' + (i < convetedData.length - 1 ? ',' : ''));
+                out.push('  }');
+
+                if (animationIndex < convetedData.length - 1) {
+
+                    out[out.length - 1] += ',';
+                }
             }
 
             out.push('}');

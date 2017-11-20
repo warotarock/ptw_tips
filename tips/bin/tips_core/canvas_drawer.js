@@ -266,8 +266,8 @@ var CanvasDrawer = (function () {
         this.measuringCanvasContext.initialize(measuringCanvas);
     };
     CanvasDrawer.prototype.drawObjects = function (canvasContext) {
-        for (var i = 0; i < this.drawerObjects.length; i++) {
-            var drawerObject = this.drawerObjects[i];
+        for (var _i = 0, _a = this.drawerObjects; _i < _a.length; _i++) {
+            var drawerObject = _a[_i];
             if (drawerObject.Type == DrawerObjectTypeID.verticalText || drawerObject.Type == DrawerObjectTypeID.horizontalText) {
                 var textDrawer = drawerObject;
                 if (textDrawer.isVertical) {

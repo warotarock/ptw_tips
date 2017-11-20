@@ -85,21 +85,21 @@ var PTWTipsSound;
             this.isPlayedOnce = true;
             // Get playing unit
             var playingUnitCount = this.getPlayingUnitCount();
-            var playingUnit = null;
+            var available_PlayingUnit = null;
             for (var i = 0; i < playingUnitCount; i++) {
-                var pu = this.getPlayingUnit(i);
-                var state = pu.getState();
+                var playingUnit = this.getPlayingUnit(i);
+                var state = playingUnit.getState();
                 if (state == SoundPlayingState.ready || state == SoundPlayingState.stopped || state == SoundPlayingState.done) {
-                    playingUnit = pu;
+                    available_PlayingUnit = playingUnit;
                 }
             }
             // Play 
-            if (playingUnit == null) {
+            if (available_PlayingUnit == null) {
                 return null;
             }
-            playingUnit.resetEffects();
-            playingUnit.play();
-            return playingUnit;
+            available_PlayingUnit.resetEffects();
+            available_PlayingUnit.play();
+            return available_PlayingUnit;
         };
         // Override methods
         SoundSource.prototype.load = function (fileName) {
@@ -155,19 +155,19 @@ var PTWTipsSound;
             this.soundSources = new List();
             this.isMuted = false;
         }
-        SoundManager.prototype.addSoundSource = function (soundUnit) {
-            soundUnit.soundManger = this;
-            this.soundSources.push(soundUnit);
+        SoundManager.prototype.addSoundSource = function (soundSource) {
+            soundSource.soundManger = this;
+            this.soundSources.push(soundSource);
         };
         SoundManager.prototype.setMute = function (enable) {
             this.isMuted = enable;
         };
         SoundManager.prototype.processSounds = function () {
             for (var _i = 0, _a = this.soundSources; _i < _a.length; _i++) {
-                var soundUnit = _a[_i];
-                var playingUnitCount = soundUnit.getPlayingUnitCount();
+                var soundSource = _a[_i];
+                var playingUnitCount = soundSource.getPlayingUnitCount();
                 for (var i = 0; i < playingUnitCount; i++) {
-                    var playUnit = soundUnit.getPlayingUnit(i);
+                    var playUnit = soundSource.getPlayingUnit(i);
                     var state = playUnit.getState();
                     if (state == SoundPlayingState.done) {
                         // Finish playing
@@ -198,7 +198,7 @@ var PTWTipsSound;
                         }
                     }
                 }
-                soundUnit.isPlayedOnce = false;
+                soundSource.isPlayedOnce = false;
             }
         };
         return SoundManager;

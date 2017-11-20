@@ -37,13 +37,11 @@
         result = [];
         result.push('[DNA]');
 
-        for (let i = 0; i < blendFile.dna.structureTypeInfoList.length; i++) {
-            let typeInfo = blendFile.dna.structureTypeInfoList[i];
+        for (let typeInfo of blendFile.dna.structureTypeInfoList) {
 
             result.push(typeInfo.name);
 
-            for (let k = 0; k < typeInfo.fieldInfoList.length; k++) {
-                let fieldInfo = typeInfo.fieldInfoList[k];
+            for (let fieldInfo of typeInfo.fieldInfoList) {
 
                 result.push('&emsp;' + fieldInfo.definitionName + ': ' + fieldInfo.typeName + ' ' + fieldInfo.offset);
             }
@@ -57,8 +55,8 @@
         result = [];
         result.push('[All data blocks]');
 
-        for (let i = 0; i < blendFile.bheadList.length; i++) {
-            let bhead = blendFile.bheadList[i];
+        for (let bhead of blendFile.bheadList) {
+
             let typeInfo = blendFile.dna.structureTypeInfoList[bhead.SDNAnr];
 
             result.push(bhead.code + ' ' + typeInfo.name + ' ' + getAddressText(bhead.old) + ' (' + bhead.nr.toString() + ')');
@@ -72,8 +70,8 @@
 
         let material_TypeInfo = blendFile.dna.getStructureTypeInfo('Material');
 
-        for (let i = 0; i < blendFile.bheadList.length; i++) {
-            let bHead = blendFile.bheadList[i];
+        for (let bHead of blendFile.bheadList) {
+
             if (bHead.SDNAnr == material_TypeInfo.sdnaIndex) {
 
                 let dataset: any = blendFile.dna.createDataSet(bHead);
@@ -90,8 +88,8 @@
 
         let object_TypeInfo = blendFile.dna.getStructureTypeInfo('Object');
 
-        for (let i = 0; i < blendFile.bheadList.length; i++) {
-            let bHead = blendFile.bheadList[i];
+        for (let bHead of blendFile.bheadList) {
+
             if (bHead.SDNAnr == object_TypeInfo.sdnaIndex) {
 
                 let dataset: any = blendFile.dna.createDataSet(bHead);

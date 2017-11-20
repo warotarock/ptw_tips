@@ -117,6 +117,7 @@ class AnimationSolver {
     private cubeRoot(x: float): float {
 
         let res = Math.pow(Math.abs(x), 1.0 / 3.0);
+
         return (x >= 0) ? res : -res;
     }
 
@@ -127,28 +128,35 @@ class AnimationSolver {
         let x2: float;
 
         if (a == 0) {
+
             solution[0] = -c / b;
             solution[1] = -1;
             return;
         }
         d = b * b - 4 * a * c;
         if (d > 0) {
+
             if (b < 0) {
+
                 x1 = (-b - Math.sqrt(d)) / 2 / a;
                 x2 = -b / a - x1;
             }
             else {
+
                 x1 = (-b + Math.sqrt(d)) / 2 / a;
                 x2 = -b / a - x1;
             }
+
             solution[0] = x1;
             solution[1] = x2;
         }
         else if (d == 0) {
+
             solution[0] = -b / 2 / a;
             solution[1] = -1;
         }
         else {
+
             // imaginary root
         }
     }
@@ -174,13 +182,16 @@ class AnimationSolver {
         q = (b * (c - 2 * b * b) - d) / 2;
 
         a = q * q - p * p * p;
+
         if (a == 0) {
+
             q = this.cubeRoot(q);
             solution[0] = 2 * q - b;
             solution[1] = -q - b;
             solution[2] = -1;
         }
         else if (a > 0) {
+
             let sign = 1;
             if (q <= 0) { sign = -1; }
             a3 = this.cubeRoot(q + (sign) * Math.sqrt(a));
@@ -190,6 +201,7 @@ class AnimationSolver {
             solution[2] = -1;
         }
         else {
+
             a = 2 * Math.sqrt(p);
             t = Math.acos(q / (p * a / 2));
             solution[0] = a * Math.cos(t / 3) - b;
@@ -204,15 +216,17 @@ class AnimationSolver {
         this.bezierTempSolution[0] = 0.0;
         this.bezierTempSolution[1] = 0.0;
         this.bezierTempSolution[2] = 0.0;
-        let a: float = x4 - 3 * (x3 - x2) - x1;
-        let b: float = 3 * (x3 - 2 * x2 + x1);
-        let c: float = 3 * (x2 - x1);
-        let d: float = x1 - targetX;
+        let a = x4 - 3 * (x3 - x2) - x1;
+        let b = 3 * (x3 - 2 * x2 + x1);
+        let c = 3 * (x2 - x1);
+        let d = x1 - targetX;
         this.solveCubicEquation(this.bezierTempSolution, a, b, c, d);
 
         // return a root which in original range (>= 0.0 and <= 1.0)
         for (let i = 0; i < 3; i++) {
+
             if (this.bezierTempSolution[i] >= 0.0 && this.bezierTempSolution[i] <= 1.0) {
+
                 return this.bezierTempSolution[i];
             }
         }
@@ -328,12 +342,12 @@ class AnimationSolver {
         buffer.bones = new Dictionary<BoneAnimationBufferBone>();
         buffer.boneList = new List<BoneAnimationBufferBone>(bones.length);
 
-        for (let i = 0; i < bones.length; i++) {
-            let bone = bones[i];
+        for (let boneIndex = 0; boneIndex < bones.length; boneIndex++) {
+            let bone = bones[boneIndex];
 
             let bufferBone = new BoneAnimationBufferBone();
             buffer.bones[bone.name] = bufferBone;
-            buffer.boneList[i] = bufferBone;
+            buffer.boneList[boneIndex] = bufferBone;
         }
 
         return buffer;
@@ -345,11 +359,11 @@ class AnimationSolver {
         buffer.boneMatrices = new Dictionary<Mat4>();
         buffer.boneMatrixList = new List<Mat4>(bones.length);
 
-        for (let i = 0; i < bones.length; i++) {
-            let bone = bones[i];
+        for (let boneIndex = 0; boneIndex < bones.length; boneIndex++) {
+            let bone = bones[boneIndex];
 
-            buffer.boneMatrixList[i] = mat4.create();
-            buffer.boneMatrices[bone.name] = buffer.boneMatrixList[i];
+            buffer.boneMatrixList[boneIndex] = mat4.create();
+            buffer.boneMatrices[bone.name] = buffer.boneMatrixList[boneIndex];
         }
 
         return buffer;

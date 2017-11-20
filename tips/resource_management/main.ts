@@ -393,8 +393,7 @@ namespace ResourceManagement {
 
         private linkResources() {
 
-            for (let i = 0; i < this.sceneResources.length; i++) {
-                let sceneResource = this.sceneResources[i];
+            for (let sceneResource of this.sceneResources) {
 
                 if (sceneResource.loadingState != Game.ResourceLoadingstate.finished) {
                     continue;
@@ -407,10 +406,10 @@ namespace ResourceManagement {
                         modelResource.images = new List<RenderImage>(sceneResource.imageIDs.length);
                     }
 
-                    for (let k = 0; k < sceneResource.imageIDs.length; k++) {
-                        let imageID = sceneResource.imageIDs[k];
+                    for (let i = 0; i < sceneResource.imageIDs.length; i++) {
+                        let imageID = sceneResource.imageIDs[i];
 
-                        modelResource.images[k] = this.imageResources[imageID].image;
+                        modelResource.images[i] = this.imageResources[imageID].image;
                     }
                 }
             }

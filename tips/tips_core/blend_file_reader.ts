@@ -9,41 +9,51 @@ namespace BlendFileReader {
         private littleEndian: boolean = true;
 
         attach(data: DataView) {
+
             this.data = data;
             this.readPointer = 0;
         }
 
         setBinaryFormat(pointerBitSize: uint, littleEndian: boolean) {
+
             this.pointerBitSize = pointerBitSize;
             this.littleEndian = littleEndian;
         }
 
         getPointerBitSize(): uint {
+
             return this.pointerBitSize;
         }
 
         getPointerByteSize(): uint {
+
             return this.pointerBitSize / 8;
         }
 
         isLittleEndian(): boolean {
+
             return this.littleEndian;
         }
 
         isBigEndian(): boolean {
+
             return !this.littleEndian;
         }
 
         seek(offset: uint) {
+
             this.readPointer += offset;
         }
 
         seekTo(offset: uint) {
+
             this.readPointer = offset;
         }
 
         snapTo4ByteBoundary() {
+
             if ((this.readPointer % 4) != 0) {
+
                 this.readPointer += 4 - this.readPointer % 4;
             }
         }
@@ -214,6 +224,7 @@ namespace BlendFileReader {
             let buf = new Uint16Array(length);
 
             for (let i = 0; i < length; i++) {
+
                 let charCode = this.data.getUint8(start + i);
                 buf[i] = charCode;
             }
@@ -236,10 +247,13 @@ namespace BlendFileReader {
 
             let length = 0;
             while (true) {
+
                 let charCode = this.data.getUint8(this.readPointer + length);
+
                 if (charCode == 0) {
                     break;
                 }
+
                 length++;
             }
 
@@ -250,17 +264,21 @@ namespace BlendFileReader {
             return result;
         }
 
-        readStringSequence(stringCount: uint): List<string> {
+        readStringList(stringCount: uint): List<string> {
 
             let result = new List<string>(stringCount);
 
             for (let i = 0; i < stringCount; i++) {
+
                 let charCount = 0;
                 while (true) {
+
                     let charCode = this.data.getUint8(this.readPointer + charCount);
+
                     if (charCode == 0) {
                         break;
                     }
+
                     charCount++;
                 }
 
@@ -289,22 +307,27 @@ namespace BlendFileReader {
         }
 
         isBrendFile(): boolean {
+
             return (this.identifier == 'BLENDER')
         }
 
         isBigEndian(): boolean {
+
             return (this.endianness == 'V')
         }
 
         isLittleEndian(): boolean {
+
             return (this.endianness == 'v')
         }
 
         getPointerBitSize(): uint {
+
             return (this.pointer_size == '_' ? 32 : 64)
         }
 
         getPointerByteSize(): uint {
+
             return (this.pointer_size == '_' ? 4 : 8)
         }
     }
@@ -329,6 +352,7 @@ namespace BlendFileReader {
         blockCode: BHeadBlockCodes;
 
         read(reader: BinaryReader) {
+
             this.readHeader(reader);
             this.readData(reader);
         }
@@ -346,26 +370,32 @@ namespace BlendFileReader {
             this.littleEndian = reader.isLittleEndian();
 
             if (this.code == 'DNA1') {
+
                 this.blockCode = BHeadBlockCodes.DNA1;
             }
             else if (this.code == 'ENDB') {
+
                 this.blockCode = BHeadBlockCodes.ENDB;
             }
             else {
+
                 this.blockCode = BHeadBlockCodes.Other;
             }
         }
 
         readData(reader: BinaryReader) {
+
             this.data = reader.readBytes(this.len);
         }
 
         skipData(reader: BinaryReader, pointerBitSize: uint) {
+
             reader.seek(this.len);
         }
     }
 
     export class StructureFieldInfo {
+
         name: string;
         definitionName: string;
         typeName: string;
@@ -377,6 +407,7 @@ namespace BlendFileReader {
     }
 
     export class StructureTypeInfo {
+
         name: string;
         sdnaIndex: uint;
         fieldInfos: Dictionary<StructureFieldInfo> = {};
@@ -385,6 +416,7 @@ namespace BlendFileReader {
     }
 
     export class SDNADataSet {
+
         bhead: BHead;
         baseOffset: uint;
         reader: BinaryReader;
@@ -405,13 +437,13 @@ namespace BlendFileReader {
             // 'NAME'
             let name_Identifier = reader.readString(4);
             let nameCount = reader.readUInt32();
-            let nameList = reader.readStringSequence(nameCount);
+            let nameList = reader.readStringList(nameCount);
             reader.snapTo4ByteBoundary();
 
             // 'TYPE'
             let type_Identifier = reader.readString(4);
             let typeCount = reader.readUInt32();
-            let typeList = reader.readStringSequence(typeCount);
+            let typeList = reader.readStringList(typeCount);
             reader.snapTo4ByteBoundary();
 
             // 'TLEN
@@ -423,20 +455,21 @@ namespace BlendFileReader {
             let strc_Identifier = reader.readString(4);
             let structureCount = reader.readUInt32();
 
-            for (let i = 0; i < structureCount; i++) {
+            for (let sdnaIndex = 0; sdnaIndex < structureCount; sdnaIndex++) {
 
                 let typeNameIndex = reader.readUInt16();
                 let fields = reader.readUInt16();
 
                 let structureInfo = new StructureTypeInfo();
                 structureInfo.name = typeList[typeNameIndex];
-                structureInfo.sdnaIndex = i;
+                structureInfo.sdnaIndex = sdnaIndex;
 
                 this.structureTypeInfoList.push(structureInfo);
                 this.structureTypeInfos[structureInfo.name] = structureInfo;
 
                 let offset = 0;
-                for (let k = 0; k < fields; k++) {
+                for (let fieldCount = 0; fieldCount < fields; fieldCount++) {
+
                     let filedTypeIndex = reader.readUInt16();
                     let filedNameIndex = reader.readUInt16();
 
@@ -455,11 +488,9 @@ namespace BlendFileReader {
             }
 
             // フィールドが構造体であるかの設定
-            for (let i = 0; i < this.structureTypeInfoList.length; i++) {
-                let typeInfo = this.structureTypeInfoList[i];
+            for (let typeInfo of this.structureTypeInfoList) {
 
-                for (let k = 0; k < typeInfo.fieldInfoList.length; k++) {
-                    let fieldInfo = typeInfo.fieldInfoList[k];
+                for (let fieldInfo of typeInfo.fieldInfoList) {
 
                     fieldInfo.isStructure = (!fieldInfo.isPointer && (fieldInfo.typeName in this.structureTypeInfos));
                 }
@@ -473,6 +504,7 @@ namespace BlendFileReader {
 
             let isPointer = false;
             if (definitionName.indexOf('*') != -1) {
+
                 size = pointerByteSize;
                 isPointer = true;
             }
@@ -496,11 +528,10 @@ namespace BlendFileReader {
 
         private initializeStructurePrototypes() {
 
-            for (let i = 0; i < this.structureTypeInfoList.length; i++) {
-                let typeInfo = this.structureTypeInfoList[i];
+            for (let typeInfo of this.structureTypeInfoList) {
 
-                for (let k = 0; k < typeInfo.fieldInfoList.length; k++) {
-                    let fieldInfo = typeInfo.fieldInfoList[k];
+                for (let fieldInfo of typeInfo.fieldInfoList) {
+
                     this.defineStructureProperty(typeInfo, fieldInfo);
                 }
             }
@@ -512,6 +543,7 @@ namespace BlendFileReader {
             let fieldValuePropertyName = '_' + fieldInfo.name;
 
             if (fieldInfo.isStructure) {
+
                 // 構造体であるメンバにアクセスするプロパティの定義
                 Object.defineProperty(typeInfo.datasetPrototype.prototype, fieldInfo.name, {
                     get: function () {
@@ -537,6 +569,7 @@ namespace BlendFileReader {
                 });
             }
             else {
+
                 // プリミティブ型であるメンバにアクセスするプロパティの定義
                 Object.defineProperty(typeInfo.datasetPrototype.prototype, fieldInfo.name, {
                     get: function () {
@@ -553,46 +586,62 @@ namespace BlendFileReader {
 
                             let value: any;
                             if (fieldInfo.isPointer) {
+
                                 if (fieldInfo.elementCount == 1) {
+
                                     value = dataSet.reader.readPointerWord();
                                 }
                                 else {
+
                                     value = dataSet.reader.readPointerWordArray(fieldInfo.elementCount);
                                 }
                             }
                             else if (fieldInfo.typeName == 'float') {
+
                                 if (fieldInfo.elementCount == 1) {
+
                                     value = dataSet.reader.readFloat();
                                 }
                                 else {
+
                                     value = dataSet.reader.readFloatArray(fieldInfo.elementCount);
                                 }
                             }
                             else if (fieldInfo.typeName == 'int') {
+
                                 if (fieldInfo.elementCount == 1) {
+
                                     value = dataSet.reader.readInt32();
                                 }
                                 else {
+
                                     value = dataSet.reader.readInt32Array(fieldInfo.elementCount);
                                 }
                             }
                             else if (fieldInfo.typeName == 'short') {
+
                                 if (fieldInfo.elementCount == 1) {
+
                                     value = dataSet.reader.readInt16();
                                 }
                                 else {
+
                                     value = dataSet.reader.readInt16Array(fieldInfo.elementCount);
                                 }
                             }
                             else if (fieldInfo.typeName == 'char') {
+
                                 if (fieldInfo.elementCount == 1) {
+
                                     value = dataSet.reader.readInt8();
                                 }
                                 else {
+
                                     value = dataSet.reader.readNullEndingString();
                                 }
                             }
                             else {
+
                                 value = undefined;
                             }
 
@@ -611,6 +660,7 @@ namespace BlendFileReader {
             if (definitionName.indexOf('[') == -1) {
                 return 1;
             }
+
             let regex = new RegExp('\[[0-9]+\]', 'g');
             let maches = definitionName.match(regex);
 
@@ -627,17 +677,21 @@ namespace BlendFileReader {
 
             let startIndex = definitionName.lastIndexOf('*');
             if (startIndex == -1) {
+
                 startIndex = 0;
             }
             else {
+
                 startIndex = startIndex + 1;
             }
 
             let endIndex = definitionName.indexOf('[');
             if (endIndex == -1) {
+
                 endIndex = definitionName.length;
             }
             else {
+
                 endIndex = endIndex;
             }
 
@@ -646,21 +700,25 @@ namespace BlendFileReader {
 
         getSDNAIndex(name: string): uint {
 
-            if (name in this.structureTypeInfos) {
+            if (DictionaryContainsKey(this.structureTypeInfos, name)) {
+
                 let typeInfo: StructureTypeInfo = this.structureTypeInfos[name];
                 return typeInfo.sdnaIndex;
             }
             else {
+
                 return -1;
             }
         }
 
         getStructureTypeInfo(name: string): StructureTypeInfo {
 
-            if (name in this.structureTypeInfos) {
+            if (DictionaryContainsKey(this.structureTypeInfos, name)) {
+
                 return this.structureTypeInfos[name];
             }
             else {
+
                 return undefined;
             }
         }
@@ -678,17 +736,24 @@ namespace BlendFileReader {
 
             // accessor like array in a data block
             if (typeInfo.sdnaIndex == 0) {
+
                 dataSet.elementCount = bHead.len / (bHead.pointerBitSize / 8);
+
                 for (let i = 0; i < dataSet.elementCount; i++) {
+
                     dataSet[i] = dataSet.reader.readPointerWord();
                 }
             }
             else {
+
                 for (let i = 0; i < dataSet.elementCount; i++) {
+
                     if (i == 0) {
+
                         dataSet[i] = dataSet;
                     }
                     else {
+
                         let offset = i * bHead.len / bHead.nr;
                         dataSet[i] = this.createDataSetFromTypeInfo(typeInfo, bHead, offset);
                     }
@@ -743,13 +808,16 @@ namespace BlendFileReader {
             bHead.read(reader);
 
             if (bHead.blockCode == BHeadBlockCodes.DNA1) {
+
                 bHeadDataReader.attach(bHead.data);
                 dna.parse(bHeadDataReader);
             }
             else if (bHead.blockCode == BHeadBlockCodes.ENDB) {
+
                 break;
             }
             else {
+
                 bHeadList.push(bHead);
             }
         }

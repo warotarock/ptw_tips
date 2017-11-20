@@ -80,8 +80,8 @@ var SkinModelAnimationConverting;
                 .ToArray();
             var actions = new List();
             // For each bAction
-            for (var i = 0; i < bAction_BHeads.length; i++) {
-                var bAction_BHead = bAction_BHeads[i];
+            for (var _i = 0, bAction_BHeads_1 = bAction_BHeads; _i < bAction_BHeads_1.length; _i++) {
+                var bAction_BHead = bAction_BHeads_1[_i];
                 var bAction = blendFile.dna.createDataSet(bAction_BHead);
                 var action = new Action();
                 action.name = bAction.id.name.substr(2);
@@ -206,7 +206,10 @@ var SkinModelAnimationConverting;
                 this.ouputCurveGroups(out, 'boneAnimations', animation.boneAnimationGroups);
                 out[out.length - 1] += ',';
                 this.ouputCurveGroup(out, 'objectAnimation', animation.objectAnimationGroup, tab2, tab3);
-                out.push(tab1 + '}' + (animationIndex < animations.length - 1 ? ',' : ''));
+                out.push(tab1 + '}');
+                if (animationIndex < animations.length - 1) {
+                    out[out.length - 1] += ',';
+                }
             }
             out.push('}');
             fs.writeFile(outFileName, out.join('\r\n'), function (error) {
@@ -234,8 +237,10 @@ var SkinModelAnimationConverting;
             for (var curveIndex = 0; curveIndex < group.curves.length; curveIndex++) {
                 var curve = group.curves[curveIndex];
                 out.push(tab2 + '\"' + curve.name + '\": '
-                    + JSON.stringify(curve, this.jsonStringifyReplacer)
-                    + (curveIndex < group.curves.length - 1 ? ',' : ''));
+                    + JSON.stringify(curve, this.jsonStringifyReplacer));
+                if (curveIndex < group.curves.length - 1) {
+                    out[out.length - 1] += ',';
+                }
             }
             out.push(tab1 + '}');
         };

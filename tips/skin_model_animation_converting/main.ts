@@ -96,8 +96,8 @@ namespace SkinModelAnimationConverting {
             let actions = new List<Action>();
 
             // For each bAction
-            for (let i = 0; i < bAction_BHeads.length; i++) {
-                let bAction_BHead = bAction_BHeads[i];
+            for (let bAction_BHead of bAction_BHeads) {
+
                 let bAction = blendFile.dna.createDataSet(bAction_BHead);
 
                 let action = new Action();
@@ -273,7 +273,12 @@ namespace SkinModelAnimationConverting {
 
                 this.ouputCurveGroup(out, 'objectAnimation', animation.objectAnimationGroup, tab2, tab3);
 
-                out.push(tab1 + '}' + (animationIndex < animations.length - 1 ? ',' : ''));
+                out.push(tab1 + '}');
+
+                if (animationIndex < animations.length - 1) {
+
+                    out[out.length - 1] += ',';
+                }
             }
 
             out.push('}');
@@ -315,8 +320,12 @@ namespace SkinModelAnimationConverting {
 
                 out.push(tab2 + '\"' + curve.name + '\": '
                     + JSON.stringify(curve, this.jsonStringifyReplacer)
-                    + (curveIndex < group.curves.length - 1 ? ',' : '')
                 );
+
+                if (curveIndex < group.curves.length - 1) {
+
+                    out[out.length - 1] += ',';
+                }
             }
 
             out.push(tab1 + '}');

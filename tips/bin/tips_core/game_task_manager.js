@@ -114,8 +114,8 @@ var Game;
                 this.deleteOrRecycleTask(task);
             }
             this.tasks = new List();
-            for (var i = 0; i < this.taskGroups.length; i++) {
-                var taskGroup = this.taskGroups[i];
+            for (var _i = 0, _a = this.taskGroups; _i < _a.length; _i++) {
+                var taskGroup = _a[_i];
                 taskGroup.clear();
             }
         };
@@ -135,8 +135,8 @@ var Game;
         };
         TaskManager.prototype.destroyTaskGroupTasks = function (taskGroupID) {
             var taskGroup = this.taskGroups[taskGroupID];
-            for (var i = 0; i < taskGroup.TaskList.length; i++) {
-                var task = taskGroup.TaskList[i];
+            for (var _i = 0, _a = taskGroup.TaskList; _i < _a.length; _i++) {
+                var task = _a[_i];
                 this.destroyTask(task);
             }
         };
@@ -158,8 +158,8 @@ var Game;
         };
         TaskManager.prototype.deleteOrRecycleTask = function (task) {
             task.onDestroy(this.environment);
-            for (var i = 0; i < this.taskGroups.length; i++) {
-                var taskGroup = this.taskGroups[i];
+            for (var _i = 0, _a = this.taskGroups; _i < _a.length; _i++) {
+                var taskGroup = _a[_i];
                 taskGroup.remove(task);
             }
             if (task.recyclePool != null) {
@@ -168,32 +168,32 @@ var Game;
         };
         // Sample implementation of methods to execute all active tasks
         TaskManager.prototype.runTasks_run = function () {
-            for (var i = this.tasks.length - 1; i >= 0; i--) {
-                var task = this.tasks[i];
+            for (var _i = 0, _a = this.tasks; _i < _a.length; _i++) {
+                var task = _a[_i];
                 if (task.state != TaskState.waitingForDestroy) {
                     task.run(this.environment);
                 }
             }
         };
         TaskManager.prototype.runTasks_onBeforeRendering = function () {
-            for (var i = this.tasks.length - 1; i >= 0; i--) {
-                var task = this.tasks[i];
+            for (var _i = 0, _a = this.tasks; _i < _a.length; _i++) {
+                var task = _a[_i];
                 if (task.state != TaskState.waitingForDestroy) {
                     task.onBeforeRendering(this.environment);
                 }
             }
         };
         TaskManager.prototype.runTasks_OnSampleEvent1 = function () {
-            for (var i = this.tasks.length - 1; i >= 0; i--) {
-                var task = this.tasks[i];
+            for (var _i = 0, _a = this.tasks; _i < _a.length; _i++) {
+                var task = _a[_i];
                 if (task.state != TaskState.waitingForDestroy) {
                     task.onSampleEvent1(this.environment);
                 }
             }
         };
         TaskManager.prototype.runTasks_OnSampleEvent2 = function () {
-            for (var i = this.tasks.length - 1; i >= 0; i--) {
-                var task = this.tasks[i];
+            for (var _i = 0, _a = this.tasks; _i < _a.length; _i++) {
+                var task = _a[_i];
                 if (task.state != TaskState.waitingForDestroy) {
                     task.onSampleEvent2(this.environment);
                 }

@@ -318,8 +318,9 @@ namespace ComplexToonDrawing {
 
         private drawSkinningModels(modelMatrix: Mat4, modelNameList: List<string>, imageResources: List<RenderImage>) {
 
-            for (let i = 0; i < modelNameList.length; i++) {
-                let model = this.skinningModelLoadingState.models[modelNameList[i]];
+            for (let modelName of modelNameList) {
+
+                let model = this.skinningModelLoadingState.models[modelName];
 
                 this.drawSkinningModel(modelMatrix, model, this.boneMatrixBuffer, imageResources);
             }
@@ -348,8 +349,7 @@ namespace ComplexToonDrawing {
             let bones = skinningModel.data.bones;
             let parts = skinningModel.data.parts;
 
-            for (let i = 0; i < parts.length; i++) {
-                let part = parts[i];
+            for (let part of parts) {
 
                 // select shader
                 let shader: Bone2Shader;
@@ -421,8 +421,7 @@ namespace ComplexToonDrawing {
         private initializeSkinningModelBuffer(skinningModel: SkinningModel) {
 
             // create buffers for each part
-            for (let i = 0; i < skinningModel.data.parts.length; i++) {
-                let part = skinningModel.data.parts[i];
+            for (let part of skinningModel.data.parts) {
 
                 let renderModel = new RenderModel();
                 this.render.initializeModelBuffer(renderModel, part.vertex, part.index, 4 * part.vertexStride); // 4 (=size of float)

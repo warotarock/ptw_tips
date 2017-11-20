@@ -45,8 +45,8 @@ var Game;
             this.finishedResourceItems = null;
         }
         ResourceLoader.prototype.addResourceItems = function (resourceItems) {
-            for (var i = 0; i < resourceItems.length; i++) {
-                var resourceItem = resourceItems[i];
+            for (var _i = 0, resourceItems_1 = resourceItems; _i < resourceItems_1.length; _i++) {
+                var resourceItem = resourceItems_1[_i];
                 if (resourceItem == null || resourceItem == undefined) {
                     continue;
                 }
@@ -54,14 +54,14 @@ var Game;
             }
         };
         ResourceLoader.prototype.resetLoadingTargetFlags = function () {
-            for (var i = 0; i < this.resourceItems.length; i++) {
-                var resourceItem = this.resourceItems[i];
+            for (var _i = 0, _a = this.resourceItems; _i < _a.length; _i++) {
+                var resourceItem = _a[_i];
                 resourceItem.isUsed = false;
             }
         };
         ResourceLoader.prototype.setLoadingTargetFlags = function (loadingSettingSet) {
-            for (var i = 0; i < loadingSettingSet.settings.length; i++) {
-                var setting = loadingSettingSet.settings[i];
+            for (var _i = 0, _a = loadingSettingSet.settings; _i < _a.length; _i++) {
+                var setting = _a[_i];
                 setting.resourceItem.isUsed = true;
             }
         };
@@ -69,8 +69,8 @@ var Game;
             this.waitingResourceItems = new List();
             this.loadingResourceItems = new List();
             this.finishedResourceItems = new List();
-            for (var i = 0; i < this.resourceItems.length; i++) {
-                var resourceItem = this.resourceItems[i];
+            for (var _i = 0, _a = this.resourceItems; _i < _a.length; _i++) {
+                var resourceItem = _a[_i];
                 if (resourceItem.isUsed && resourceItem.loadingState == ResourceLoadingstate.none) {
                     resourceItem.loadingState = ResourceLoadingstate.waitingLoading;
                     this.waitingResourceItems.push(resourceItem);
@@ -114,12 +114,12 @@ var Game;
         };
         ResourceLoader.prototype.getLoadingWeightTotal = function () {
             var sumOfWeight = 0.0;
-            for (var i = 0; i < this.loadingResourceItems.length; i++) {
-                var resourceItem = this.loadingResourceItems[i];
+            for (var _i = 0, _a = this.loadingResourceItems; _i < _a.length; _i++) {
+                var resourceItem = _a[_i];
                 sumOfWeight += resourceItem.loadingWeight;
             }
-            for (var i = 0; i < this.waitingResourceItems.length; i++) {
-                var resourceItem = this.waitingResourceItems[i];
+            for (var _b = 0, _c = this.waitingResourceItems; _b < _c.length; _b++) {
+                var resourceItem = _c[_b];
                 sumOfWeight += resourceItem.loadingWeight;
             }
             sumOfWeight += this.getLoadedWeightTotal();
@@ -127,15 +127,15 @@ var Game;
         };
         ResourceLoader.prototype.getLoadedWeightTotal = function () {
             var sumOfWeight = 0.0;
-            for (var i = 0; i < this.finishedResourceItems.length; i++) {
-                var resourceItem = this.finishedResourceItems[i];
+            for (var _i = 0, _a = this.finishedResourceItems; _i < _a.length; _i++) {
+                var resourceItem = _a[_i];
                 sumOfWeight += resourceItem.loadingWeight;
             }
             return sumOfWeight;
         };
         ResourceLoader.prototype.unloadUnusedResources = function () {
-            for (var i = 0; i < this.resourceItems.length; i++) {
-                var resourceItem = this.resourceItems[i];
+            for (var _i = 0, _a = this.resourceItems; _i < _a.length; _i++) {
+                var resourceItem = _a[_i];
                 if (!resourceItem.isUsed && resourceItem.loadingState == Game.ResourceLoadingstate.finished) {
                     this.unloadResource(resourceItem);
                     resourceItem.loadingState = Game.ResourceLoadingstate.none;
@@ -158,21 +158,21 @@ var Game;
             this.loaders.push(loader);
         };
         ResourceManager.prototype.resetLoadingTargets = function () {
-            for (var i = 0; i < this.loaders.length; i++) {
-                var loader = this.loaders[i];
+            for (var _i = 0, _a = this.loaders; _i < _a.length; _i++) {
+                var loader = _a[_i];
                 loader.resetLoadingTargetFlags();
             }
         };
         ResourceManager.prototype.addLoadingTarget = function (loadingSettingSet) {
-            for (var i = 0; i < this.loaders.length; i++) {
-                var loader = this.loaders[i];
+            for (var _i = 0, _a = this.loaders; _i < _a.length; _i++) {
+                var loader = _a[_i];
                 loader.setLoadingTargetFlags(loadingSettingSet);
             }
         };
         ResourceManager.prototype.startLoading = function () {
             this.loadingLoaderProgressCount = 0;
-            for (var i = 0; i < this.loaders.length; i++) {
-                var loader = this.loaders[i];
+            for (var _i = 0, _a = this.loaders; _i < _a.length; _i++) {
+                var loader = _a[_i];
                 loader.startLoading();
             }
         };
@@ -197,8 +197,8 @@ var Game;
         ResourceManager.prototype.getLoadingProgress = function () {
             var sumOfLoading = 0.0;
             var sumOfLoaded = 0.0;
-            for (var i = 0; i < this.loaders.length; i++) {
-                var loader = this.loaders[i];
+            for (var _i = 0, _a = this.loaders; _i < _a.length; _i++) {
+                var loader = _a[_i];
                 sumOfLoading += loader.getLoadingWeightTotal();
                 sumOfLoaded += loader.getLoadedWeightTotal();
             }
@@ -210,8 +210,8 @@ var Game;
             }
         };
         ResourceManager.prototype.unloadUnusedResources = function () {
-            for (var i = 0; i < this.loaders.length; i++) {
-                var loader = this.loaders[i];
+            for (var _i = 0, _a = this.loaders; _i < _a.length; _i++) {
+                var loader = _a[_i];
                 loader.unloadUnusedResources();
             }
         };

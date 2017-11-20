@@ -1,22 +1,22 @@
 
 namespace SkinModelDrawing {
 
+    interface SkinModelBoneData {
+
+        name: string;
+        parent: int;
+        matrix: List<float>;
+    }
+
     interface SkinModelPartData {
 
-        bone: List<int>;
+        boneIndices: List<int>;
         material: int;
         vertexStride: int;
         vertex: List<float>;
         index: List<int>;
 
         renderModel: RenderModel;
-    }
-
-    interface SkinModelBoneData {
-
-        name: string;
-        parent: int;
-        matrix: List<float>;
     }
 
     interface SkinModelData {
@@ -123,7 +123,7 @@ namespace SkinModelDrawing {
             this.render.setCulling(false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
 
-            this.drawSkinModel(this.objectMatrix, this.skinModel, this.boneMatrixList);
+            this.drawSkinModel(this.objectMatrix, this.skinModel, this.images, this.boneMatrixList);
         }
 
         private calculateObjectMatrix(objectMatrix: Mat4, animationTime: float) {
@@ -136,22 +136,23 @@ namespace SkinModelDrawing {
 
             for (let i = 0; i < skinModel.data.bones.length; i++) {
                 let bone = skinModel.data.bones[i];
+                let targetMatrix = boneMatrixList[i];
 
                 if (bone.parent == -1) {
                     // root parent
-                    mat4.copy(boneMatrixList[i], bone.matrix);
+                    mat4.copy(targetMatrix, bone.matrix);
                 }
                 else {
                     // child
-                    mat4.multiply(boneMatrixList[i], boneMatrixList[bone.parent], bone.matrix);
+                    mat4.multiply(targetMatrix, boneMatrixList[bone.parent], bone.matrix);
 
                     // sample motion
-                    mat4.rotateX(boneMatrixList[i], boneMatrixList[i], Math.cos(this.animationTime * 0.05));
+                    mat4.rotateX(targetMatrix, targetMatrix, Math.cos(this.animationTime * 0.05));
                 }
             }
         }
 
-        private drawSkinModel(modelMatrix: Mat4, skinModel: SkinModel, boneMatrixList: List<Mat4>) {
+        private drawSkinModel(modelMatrix: Mat4, skinModel: SkinModel, images: List<RenderImage>, boneMatrixList: List<Mat4>) {
 
             // calc base matrix (model-view matrix)
             mat4.multiply(this.modelViewMatrix, this.viewMatrix, modelMatrix);
@@ -168,12 +169,11 @@ namespace SkinModelDrawing {
             // drawing for each part
             let parts = skinModel.data.parts;
 
-            for (let i = 0; i < parts.length; i++) {
-                let part = parts[i];
+            for (var part of parts) {
 
                 // select shader
                 let shader: Bone2Shader;
-                if (part.bone.length <= 2) {
+                if (part.boneIndices.length <= 2) {
                     shader = this.bone2Shader;
                 }
                 else {
@@ -182,9 +182,12 @@ namespace SkinModelDrawing {
                 this.render.setShader(shader);
 
                 // set bone matrix
-                for (let boneIndex = 0; boneIndex < part.bone.length; boneIndex++) {
-                    mat4.copy(this.boneMatrix, boneMatrixList[part.bone[boneIndex]]);
-                    shader.setBoneMatrix(boneIndex, this.boneMatrix, this.render.gl);
+                for (let part_BoneIndex = 0; part_BoneIndex < part.boneIndices.length; part_BoneIndex++) {
+
+                    let model_BoneIndex = part.boneIndices[part_BoneIndex];
+
+                    mat4.copy(this.boneMatrix, boneMatrixList[model_BoneIndex]);
+                    shader.setBoneMatrix(part_BoneIndex, this.boneMatrix, this.render.gl);
                 }
 
                 // set material
@@ -196,7 +199,7 @@ namespace SkinModelDrawing {
                 }
 
                 // draw
-                this.render.setBuffers(part.renderModel, this.images);
+                this.render.setBuffers(part.renderModel, images);
 
                 this.render.setDepthTest(true)
                 this.render.setCulling(false);
@@ -249,8 +252,7 @@ namespace SkinModelDrawing {
         private initializeSkinModelBuffer(skinModel: SkinModel) {
 
             // create buffers for each part
-            for (let i = 0; i < skinModel.data.parts.length; i++) {
-                let part = skinModel.data.parts[i];
+            for (let part of skinModel.data.parts) {
 
                 let renderModel = new RenderModel();
                 this.render.initializeModelBuffer(renderModel, part.vertex, part.index, 4 * part.vertexStride); // 4 (=size of float)

@@ -156,8 +156,8 @@ var TaskManagement;
         };
         Main.prototype.processLoading = function () {
             // Waiting for data
-            for (var i = 0; i < this.images1.length; i++) {
-                var image = this.images1[i];
+            for (var _i = 0, _a = this.images1; _i < _a.length; _i++) {
+                var image = _a[_i];
                 if (image.texture == null) {
                     return;
                 }
@@ -220,8 +220,8 @@ var TaskManagement;
         };
         Main.prototype.calclateRenderObjectMatrix = function () {
             var renderObjects = this.renderObjectManager.getObjectList();
-            for (var i = 0; i < renderObjects.length; i++) {
-                var renderObject = renderObjects[i];
+            for (var _i = 0, renderObjects_1 = renderObjects; _i < renderObjects_1.length; _i++) {
+                var renderObject = renderObjects_1[_i];
                 mat4.identity(renderObject.matrix);
                 mat4.translate(renderObject.matrix, renderObject.matrix, renderObject.location);
                 mat4.rotateX(renderObject.matrix, renderObject.matrix, renderObject.rotation[0]);
@@ -249,16 +249,16 @@ var TaskManagement;
             this.drawLayer(Game.RenderObjectLayerID.foreGround);
         };
         Main.prototype.updateRenderObjectSorting = function () {
-            var objectList = this.renderObjectManager.getObjectList();
-            for (var i = 0; i < objectList.length; i++) {
-                var renderObject = objectList[i];
+            var renderObjects = this.renderObjectManager.getObjectList();
+            for (var _i = 0, renderObjects_2 = renderObjects; _i < renderObjects_2.length; _i++) {
+                var renderObject = renderObjects_2[_i];
                 renderObject.sortingValue = this.renderObjectManager.calcObjectSortingValue(renderObject, this.viewMatrix, Game.RenderObjectSortingMode.z);
             }
         };
         Main.prototype.drawLayer = function (layerID) {
-            var objects = this.renderObjectManager.getZsortedObjectList(layerID);
-            for (var i = 0; i < objects.length; i++) {
-                var renderObject = objects[i];
+            var renderObjects = this.renderObjectManager.getZsortedObjectList(layerID);
+            for (var _i = 0, renderObjects_3 = renderObjects; _i < renderObjects_3.length; _i++) {
+                var renderObject = renderObjects_3[_i];
                 this.drawRenderObject(renderObject);
             }
         };

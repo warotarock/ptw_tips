@@ -12,6 +12,8 @@
 
 - [Live Demo](https://warotarock.github.io/ptw_tips/tips/render_object_management/)
 
+![](render_object_management_fig001.png)
+
 <br />
 
 ## 描画オブジェクト管理

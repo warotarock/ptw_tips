@@ -198,8 +198,7 @@ namespace TaskManagement {
         processLoading() {
 
             // Waiting for data
-            for (let i = 0; i < this.images1.length; i++) {
-                let image = this.images1[i];
+            for (let image of this.images1) {
 
                 if (image.texture == null) {
                     return;
@@ -302,8 +301,7 @@ namespace TaskManagement {
 
             let renderObjects = this.renderObjectManager.getObjectList();
 
-            for (let i = 0; i < renderObjects.length; i++) {
-                let renderObject = renderObjects[i];
+            for (let renderObject of renderObjects) {
 
                 mat4.identity(renderObject.matrix);
                 mat4.translate(renderObject.matrix, renderObject.matrix, renderObject.location);
@@ -343,10 +341,9 @@ namespace TaskManagement {
 
         private updateRenderObjectSorting() {
 
-            let objectList = this.renderObjectManager.getObjectList();
+            let renderObjects = this.renderObjectManager.getObjectList();
 
-            for (let i = 0; i < objectList.length; i++) {
-                let renderObject = objectList[i];
+            for (let renderObject of renderObjects) {
 
                 renderObject.sortingValue = this.renderObjectManager.calcObjectSortingValue(renderObject, this.viewMatrix, Game.RenderObjectSortingMode.z);
             }
@@ -354,10 +351,9 @@ namespace TaskManagement {
 
         private drawLayer(layerID: Game.RenderObjectLayerID) {
 
-            let objects = this.renderObjectManager.getZsortedObjectList(layerID)
+            let renderObjects = this.renderObjectManager.getZsortedObjectList(layerID)
 
-            for (let i = 0; i < objects.length; i++) {
-                let renderObject = objects[i];
+            for (let renderObject of renderObjects) {
 
                 this.drawRenderObject(renderObject);
             }

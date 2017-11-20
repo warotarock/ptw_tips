@@ -39,8 +39,8 @@ var SkinModelConverting;
         };
         Main.prototype.convert = function (sceneData) {
             var convetedModels = new List();
-            for (var modelIndex = 0; modelIndex < sceneData.skinMeshModels.length; modelIndex++) {
-                var skinModel = sceneData.skinMeshModels[modelIndex];
+            for (var _i = 0, _a = sceneData.skinMeshModels; _i < _a.length; _i++) {
+                var skinModel = _a[_i];
                 var sortedParts = Enumerable.From(skinModel.parts)
                     .OrderBy(function (part) { return part.boneIndices.length; })
                     .ThenBy(function (part) { return part.boneIndices[0]; })
@@ -49,29 +49,25 @@ var SkinModelConverting;
                     .ThenBy(function (part) { return part.boneIndices.length > 3 ? part.boneIndices[3] : 9999; })
                     .ToArray();
                 var convetedParts = new List();
-                for (var partIndex = 0; partIndex < sortedParts.length; partIndex++) {
-                    var skinPart = sortedParts[partIndex];
+                for (var _b = 0, sortedParts_1 = sortedParts; _b < sortedParts_1.length; _b++) {
+                    var skinPart = sortedParts_1[_b];
                     var boneIndices = [];
-                    for (var boneIndex = 0; boneIndex < skinPart.boneIndices.length; boneIndex++) {
-                        if (skinPart.boneIndices[boneIndex] == -1) {
-                            break;
-                        }
-                        else {
-                            boneIndices.push(skinPart.boneIndices[boneIndex]);
-                        }
+                    for (var _c = 0, _d = skinPart.boneIndices; _c < _d.length; _c++) {
+                        var boneIndex = _d[_c];
+                        boneIndices.push(boneIndex);
                     }
                     var vertices = [];
-                    for (var vertexIndex = 0; vertexIndex < skinPart.vertices.length; vertexIndex++) {
-                        var skinVertex = skinPart.vertices[vertexIndex];
-                        for (var k = 0; k < skinVertex.positions.length; k++) {
-                            var vpos = skinVertex.positions[k];
-                            vertices.push(vpos.boneWeight);
-                            vertices.push(vpos.position[0]);
-                            vertices.push(vpos.position[1]);
-                            vertices.push(vpos.position[2]);
-                            vertices.push(vpos.normal[0]);
-                            vertices.push(vpos.normal[1]);
-                            vertices.push(vpos.normal[2]);
+                    for (var _e = 0, _f = skinPart.vertices; _e < _f.length; _e++) {
+                        var skinVertex = _f[_e];
+                        for (var _g = 0, _h = skinVertex.positions; _g < _h.length; _g++) {
+                            var skinVertexPosition = _h[_g];
+                            vertices.push(skinVertexPosition.boneWeight);
+                            vertices.push(skinVertexPosition.position[0]);
+                            vertices.push(skinVertexPosition.position[1]);
+                            vertices.push(skinVertexPosition.position[2]);
+                            vertices.push(skinVertexPosition.normal[0]);
+                            vertices.push(skinVertexPosition.normal[1]);
+                            vertices.push(skinVertexPosition.normal[2]);
                         }
                         if (skinVertex.positions.length == 1 || skinVertex.positions.length == 3) {
                             // Insert position and normal for dummy bone
@@ -83,16 +79,18 @@ var SkinModelConverting;
                             vertices.push(0.0);
                             vertices.push(0.0);
                         }
-                        for (var k = 0; k < skinVertex.texcoords.length; k++) {
-                            vertices.push(skinVertex.texcoords[k][0]);
-                            vertices.push(skinVertex.texcoords[k][1]);
+                        for (var _j = 0, _k = skinVertex.texcoords; _j < _k.length; _j++) {
+                            var texcoords = _k[_j];
+                            vertices.push(texcoords[0]);
+                            vertices.push(texcoords[1]);
                         }
                     }
                     var indices = [];
-                    for (var faceindex = 0; faceindex < skinPart.faces.length; faceindex++) {
-                        var meshFace = skinPart.faces[faceindex];
-                        for (var k = 0; k < meshFace.vertexIndeces.length; k++) {
-                            indices.push(meshFace.vertexIndeces[k]);
+                    for (var _l = 0, _m = skinPart.faces; _l < _m.length; _l++) {
+                        var meshFace = _m[_l];
+                        for (var _o = 0, _p = meshFace.vertexIndeces; _o < _p.length; _o++) {
+                            var index = _p[_o];
+                            indices.push(index);
                         }
                     }
                     var vertexCount = (skinVertex.positions.length <= 2 ? 2 : 4);
@@ -133,7 +131,10 @@ var SkinModelConverting;
                         '\"name\": \"' + bone.name + '\"' +
                         ', \"parent\": ' + this.getBoneParentIndex(skinModel.bones, bone.parent) +
                         ', \"matrix\": ' + JSON.stringify(this.floatArrayToArray(bone.localMatrix), this.jsonStringifyReplacer) +
-                        '}' + (boneIndex < skinModel.bones.length - 1 ? ',' : ''));
+                        '}');
+                    if (boneIndex < skinModel.bones.length - 1) {
+                        out[out.length - 1] += ',';
+                    }
                 }
                 out.push(tab3 + '],');
                 // parts
@@ -141,15 +142,21 @@ var SkinModelConverting;
                 for (var partIndex = 0; partIndex < skinModel.parts.length; partIndex++) {
                     var convetedPart = skinModel.parts[partIndex];
                     out.push(tab4 + '{');
-                    out.push(tab4 + '  \"bone\": ' + JSON.stringify(convetedPart.boneIndices, this.jsonStringifyReplacer));
+                    out.push(tab4 + '  \"boneIndices\": ' + JSON.stringify(convetedPart.boneIndices, this.jsonStringifyReplacer));
                     out.push(tab4 + '  , \"material\": ' + convetedPart.materialIndex);
                     out.push(tab4 + '  , \"vertexStride\": ' + convetedPart.vertexStride);
                     out.push(tab4 + '  , \"vertex\": ' + JSON.stringify(convetedPart.vertices, this.jsonStringifyReplacer));
                     out.push(tab4 + '  , \"index\": ' + JSON.stringify(convetedPart.indices));
-                    out.push(tab4 + '}' + (partIndex < skinModel.parts.length - 1 ? ',' : ''));
+                    out.push(tab4 + '}');
+                    if (partIndex < skinModel.parts.length - 1) {
+                        out[out.length - 1] += ',';
+                    }
                 }
                 out.push(tab3 + ']');
-                out.push(tab2 + '}' + (modelIndex < skinModels.length - 1 ? ',' : ''));
+                out.push(tab2 + '}');
+                if (modelIndex < skinModels.length - 1) {
+                    out[out.length - 1] += ',';
+                }
             }
             out.push(tab1 + '}');
             out.push('}');

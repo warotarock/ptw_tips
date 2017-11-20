@@ -1,19 +1,16 @@
 
 namespace SkinModelAnimationPlaying {
 
-    interface SkinModelData {
-        bones: List<SkinModelBoneData>;
-        parts: List<SkinModelPartData>;
-    }
-
     interface SkinModelBoneData {
+
         name: string;
         parent: int;
         matrix: List<float>;
     }
 
     interface SkinModelPartData {
-        bone: List<int>;
+
+        boneIndices: List<int>;
         material: int;
         vertexStride: int;
         vertex: List<float>;
@@ -22,17 +19,26 @@ namespace SkinModelAnimationPlaying {
         renderModel: RenderModel;
     }
 
+    interface SkinModelData {
+
+        bones: List<SkinModelBoneData>;
+        parts: List<SkinModelPartData>;
+    }
+
     class SkinModel {
+
         data: SkinModelData = null;
         loaded = false;
     }
 
     interface AnimationSet {
+
         boneAnimations: Dictionary<BoneAnimation>;
         objectAnimation: ObjectAnimationCurveSet;
     }
 
     class AnimationData {
+
         data = new Dictionary<AnimationSet>();
         loaded = false;
     }
@@ -221,12 +227,11 @@ namespace SkinModelAnimationPlaying {
             let bones = skinModel.data.bones;
             let parts = skinModel.data.parts;
 
-            for (let i = 0; i < parts.length; i++) {
-                let part = parts[i];
+            for (let part of parts) {
 
                 // select shader
                 let shader: Bone2Shader;
-                if (part.bone.length <= 2) {
+                if (part.boneIndices.length <= 2) {
                     shader = this.bone2Shader;
                 }
                 else {
@@ -235,9 +240,12 @@ namespace SkinModelAnimationPlaying {
                 this.render.setShader(shader);
 
                 // set bone matrix
-                for (let boneIndex = 0; boneIndex < part.bone.length; boneIndex++) {
-                    mat4.copy(this.boneMatrix, matrixBuffer.boneMatrixList[part.bone[boneIndex]]);
-                    shader.setBoneMatrix(boneIndex, this.boneMatrix, this.render.gl);
+                for (let part_BoneIndex = 0; part_BoneIndex < part.boneIndices.length; part_BoneIndex++) {
+
+                    let model_BoneIndex = part.boneIndices[part_BoneIndex];
+
+                    mat4.copy(this.boneMatrix, matrixBuffer.boneMatrixList[model_BoneIndex]);
+                    shader.setBoneMatrix(part_BoneIndex, this.boneMatrix, this.render.gl);
                 }
 
                 // set material
@@ -302,8 +310,7 @@ namespace SkinModelAnimationPlaying {
         private initializeSkinModelBuffer(skinModel: SkinModel) {
 
             // create buffers for each part
-            for (let i = 0; i < skinModel.data.parts.length; i++) {
-                let part = skinModel.data.parts[i];
+            for (let part of skinModel.data.parts) {
 
                 let renderModel = new RenderModel();
                 this.render.initializeModelBuffer(renderModel, part.vertex, part.index, 4 * part.vertexStride); // 4 (=size of float)

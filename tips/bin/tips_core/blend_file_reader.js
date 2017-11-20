@@ -155,7 +155,7 @@ var BlendFileReader;
             this.readPointer += length;
             return result;
         };
-        BinaryReader.prototype.readStringSequence = function (stringCount) {
+        BinaryReader.prototype.readStringList = function (stringCount) {
             var result = new List(stringCount);
             for (var i = 0; i < stringCount; i++) {
                 var charCount = 0;
@@ -276,12 +276,12 @@ var BlendFileReader;
             // 'NAME'
             var name_Identifier = reader.readString(4);
             var nameCount = reader.readUInt32();
-            var nameList = reader.readStringSequence(nameCount);
+            var nameList = reader.readStringList(nameCount);
             reader.snapTo4ByteBoundary();
             // 'TYPE'
             var type_Identifier = reader.readString(4);
             var typeCount = reader.readUInt32();
-            var typeList = reader.readStringSequence(typeCount);
+            var typeList = reader.readStringList(typeCount);
             reader.snapTo4ByteBoundary();
             // 'TLEN
             var tlen_Identifier = reader.readString(4);
@@ -290,16 +290,16 @@ var BlendFileReader;
             // 'STRC
             var strc_Identifier = reader.readString(4);
             var structureCount = reader.readUInt32();
-            for (var i = 0; i < structureCount; i++) {
+            for (var sdnaIndex = 0; sdnaIndex < structureCount; sdnaIndex++) {
                 var typeNameIndex = reader.readUInt16();
                 var fields = reader.readUInt16();
                 var structureInfo = new StructureTypeInfo();
                 structureInfo.name = typeList[typeNameIndex];
-                structureInfo.sdnaIndex = i;
+                structureInfo.sdnaIndex = sdnaIndex;
                 this.structureTypeInfoList.push(structureInfo);
                 this.structureTypeInfos[structureInfo.name] = structureInfo;
                 var offset = 0;
-                for (var k = 0; k < fields; k++) {
+                for (var fieldCount = 0; fieldCount < fields; fieldCount++) {
                     var filedTypeIndex = reader.readUInt16();
                     var filedNameIndex = reader.readUInt16();
                     var fieldInfo = this.createStructureFieldInfo(typeList[filedTypeIndex], nameList[filedNameIndex], lengthList[filedTypeIndex], reader.getPointerByteSize(), offset);
@@ -309,10 +309,10 @@ var BlendFileReader;
                 }
             }
             // フィールドが構造体であるかの設定
-            for (var i = 0; i < this.structureTypeInfoList.length; i++) {
-                var typeInfo = this.structureTypeInfoList[i];
-                for (var k = 0; k < typeInfo.fieldInfoList.length; k++) {
-                    var fieldInfo = typeInfo.fieldInfoList[k];
+            for (var _i = 0, _a = this.structureTypeInfoList; _i < _a.length; _i++) {
+                var typeInfo = _a[_i];
+                for (var _b = 0, _c = typeInfo.fieldInfoList; _b < _c.length; _b++) {
+                    var fieldInfo = _c[_b];
                     fieldInfo.isStructure = (!fieldInfo.isPointer && (fieldInfo.typeName in this.structureTypeInfos));
                 }
             }
@@ -339,10 +339,10 @@ var BlendFileReader;
             return result;
         };
         DNA.prototype.initializeStructurePrototypes = function () {
-            for (var i = 0; i < this.structureTypeInfoList.length; i++) {
-                var typeInfo = this.structureTypeInfoList[i];
-                for (var k = 0; k < typeInfo.fieldInfoList.length; k++) {
-                    var fieldInfo = typeInfo.fieldInfoList[k];
+            for (var _i = 0, _a = this.structureTypeInfoList; _i < _a.length; _i++) {
+                var typeInfo = _a[_i];
+                for (var _b = 0, _c = typeInfo.fieldInfoList; _b < _c.length; _b++) {
+                    var fieldInfo = _c[_b];
                     this.defineStructureProperty(typeInfo, fieldInfo);
                 }
             }
@@ -466,7 +466,7 @@ var BlendFileReader;
             return definitionName.substring(startIndex, endIndex);
         };
         DNA.prototype.getSDNAIndex = function (name) {
-            if (name in this.structureTypeInfos) {
+            if (DictionaryContainsKey(this.structureTypeInfos, name)) {
                 var typeInfo = this.structureTypeInfos[name];
                 return typeInfo.sdnaIndex;
             }
@@ -475,7 +475,7 @@ var BlendFileReader;
             }
         };
         DNA.prototype.getStructureTypeInfo = function (name) {
-            if (name in this.structureTypeInfos) {
+            if (DictionaryContainsKey(this.structureTypeInfos, name)) {
                 return this.structureTypeInfos[name];
             }
             else {

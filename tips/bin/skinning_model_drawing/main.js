@@ -85,7 +85,7 @@ var SkinModelDrawing;
             this.render.setDepthTest(true);
             this.render.setCulling(false);
             this.render.clearColorBufferDepthBuffer(0.0, 0.0, 0.1, 1.0);
-            this.drawSkinModel(this.objectMatrix, this.skinModel, this.boneMatrixList);
+            this.drawSkinModel(this.objectMatrix, this.skinModel, this.images, this.boneMatrixList);
         };
         Main.prototype.calculateObjectMatrix = function (objectMatrix, animationTime) {
             mat4.identity(objectMatrix);
@@ -94,19 +94,20 @@ var SkinModelDrawing;
         Main.prototype.calculateBoneMatrix = function (boneMatrixList, skinModel) {
             for (var i = 0; i < skinModel.data.bones.length; i++) {
                 var bone = skinModel.data.bones[i];
+                var targetMatrix = boneMatrixList[i];
                 if (bone.parent == -1) {
                     // root parent
-                    mat4.copy(boneMatrixList[i], bone.matrix);
+                    mat4.copy(targetMatrix, bone.matrix);
                 }
                 else {
                     // child
-                    mat4.multiply(boneMatrixList[i], boneMatrixList[bone.parent], bone.matrix);
+                    mat4.multiply(targetMatrix, boneMatrixList[bone.parent], bone.matrix);
                     // sample motion
-                    mat4.rotateX(boneMatrixList[i], boneMatrixList[i], Math.cos(this.animationTime * 0.05));
+                    mat4.rotateX(targetMatrix, targetMatrix, Math.cos(this.animationTime * 0.05));
                 }
             }
         };
-        Main.prototype.drawSkinModel = function (modelMatrix, skinModel, boneMatrixList) {
+        Main.prototype.drawSkinModel = function (modelMatrix, skinModel, images, boneMatrixList) {
             // calc base matrix (model-view matrix)
             mat4.multiply(this.modelViewMatrix, this.viewMatrix, modelMatrix);
             // set parameter not dependent on parts
@@ -118,11 +119,11 @@ var SkinModelDrawing;
             this.render.setProjectionMatrix(this.projectionMatrix);
             // drawing for each part
             var parts = skinModel.data.parts;
-            for (var i = 0; i < parts.length; i++) {
-                var part = parts[i];
+            for (var _i = 0, parts_1 = parts; _i < parts_1.length; _i++) {
+                var part = parts_1[_i];
                 // select shader
                 var shader = void 0;
-                if (part.bone.length <= 2) {
+                if (part.boneIndices.length <= 2) {
                     shader = this.bone2Shader;
                 }
                 else {
@@ -130,9 +131,10 @@ var SkinModelDrawing;
                 }
                 this.render.setShader(shader);
                 // set bone matrix
-                for (var boneIndex = 0; boneIndex < part.bone.length; boneIndex++) {
-                    mat4.copy(this.boneMatrix, boneMatrixList[part.bone[boneIndex]]);
-                    shader.setBoneMatrix(boneIndex, this.boneMatrix, this.render.gl);
+                for (var part_BoneIndex = 0; part_BoneIndex < part.boneIndices.length; part_BoneIndex++) {
+                    var model_BoneIndex = part.boneIndices[part_BoneIndex];
+                    mat4.copy(this.boneMatrix, boneMatrixList[model_BoneIndex]);
+                    shader.setBoneMatrix(part_BoneIndex, this.boneMatrix, this.render.gl);
                 }
                 // set material
                 if (part.material == 0) {
@@ -142,7 +144,7 @@ var SkinModelDrawing;
                     shader.setColor(this.redColor, this.render.gl);
                 }
                 // draw
-                this.render.setBuffers(part.renderModel, this.images);
+                this.render.setBuffers(part.renderModel, images);
                 this.render.setDepthTest(true);
                 this.render.setCulling(false);
                 this.render.drawElements(part.renderModel);
@@ -177,8 +179,8 @@ var SkinModelDrawing;
         };
         Main.prototype.initializeSkinModelBuffer = function (skinModel) {
             // create buffers for each part
-            for (var i = 0; i < skinModel.data.parts.length; i++) {
-                var part = skinModel.data.parts[i];
+            for (var _i = 0, _a = skinModel.data.parts; _i < _a.length; _i++) {
+                var part = _a[_i];
                 var renderModel = new RenderModel();
                 this.render.initializeModelBuffer(renderModel, part.vertex, part.index, 4 * part.vertexStride); // 4 (=size of float)
                 part.renderModel = renderModel;

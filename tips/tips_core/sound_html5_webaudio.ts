@@ -162,7 +162,7 @@ namespace PTWTipsSound_HTML5_WebAudio {
 
         initializePlayingUnits(maxPlayingUnitCount: int) {
 
-            for (let i = 0; i < maxPlayingUnitCount; i++) {
+            for (let count = 0; count < maxPlayingUnitCount; count++) {
 
                 let playingUnit = this.device.createSoundPlayingUnit();
 
@@ -174,8 +174,7 @@ namespace PTWTipsSound_HTML5_WebAudio {
 
             this.masterAudioBuffer = audioBuffer;
 
-            for (let i = 0; i < this.playingUnits.length; i++) {
-                let playingUnit = this.playingUnits[i];
+            for (let playingUnit of this.playingUnits) {
 
                 playingUnit.audioBuffer = audioBuffer;
             }

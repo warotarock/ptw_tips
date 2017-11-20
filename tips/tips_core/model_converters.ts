@@ -155,6 +155,7 @@ namespace Converters {
             let geometries = this.collada.dae.geometries;
 
             let result = new List<StaticMeshModel>();
+
             for (let geometryName in geometries) {
                 let geometry = geometries[geometryName];
 
@@ -196,8 +197,7 @@ namespace Converters {
         private extractVertices(geometry3js: any): List<MeshVertex> {
 
             let vertices = new List<MeshVertex>();
-            for (let i = 0; i < geometry3js.vertices.length; i++) {
-                let vartexData = geometry3js.vertices[i];
+            for (let vartexData of geometry3js.vertices) {
 
                 let vertex = new MeshVertex();
                 vec3.set(vertex.position, vartexData.x, vartexData.y, vartexData.z);
@@ -214,8 +214,7 @@ namespace Converters {
 
             let faces = new List<MeshFace>();
 
-            for (let i = 0; i < geometry3js.faces.length; i++) {
-                let faceData = geometry3js.faces[i];
+            for (let faceData of geometry3js.faces) {
 
                 let face = new MeshFace();
                 face.vertexIndeces = [
@@ -238,13 +237,13 @@ namespace Converters {
 
             if (geometry3js.faceVertexUvs.length > 0) {
 
-                for (let i = 0; i < geometry3js.faces.length; i++) {
-                    let face = faces[i];
+                for (let faceIndex = 0; faceIndex < geometry3js.faces.length; faceIndex++) {
+                    let face = faces[faceIndex];
 
                     face.texcoords = new List<List<Vec2>>();
 
-                    for (let k = 0; k < geometry3js.faceVertexUvs.length; k++) {
-                        let faceVertexUv = geometry3js.faceVertexUvs[k][i];
+                    for (let uvLayerIndex = 0; uvLayerIndex < geometry3js.faceVertexUvs.length; uvLayerIndex++) {
+                        let faceVertexUv = geometry3js.faceVertexUvs[uvLayerIndex][faceIndex];
 
                         face.texcoords.push([
                             vec2.fromValues(faceVertexUv[0].x, faceVertexUv[0].y),
@@ -261,20 +260,24 @@ namespace Converters {
         private overwriteVertexUV(faces: List<MeshFace>, vertices: List<MeshVertex>) {
 
             // overwrite vretex texture coord data by face data (may be conflicted...)
-            for (let i = 0; i < faces.length; i++) {
-                let face = faces[i];
+            for (let face of faces) {
 
                 for (let faceVertexIndex = 0; faceVertexIndex < face.vertexIndeces.length; faceVertexIndex++) {
+
                     let vertex = vertices[face.vertexIndeces[faceVertexIndex]];
                     let vertexNormals = face.vertexNormals[faceVertexIndex];
 
                     vec3.copy(vertex.normal, vertexNormals);
 
                     if (face.texcoords != null && face.texcoords.length > 0) {
+
                         for (let uvMapIndex = 0; uvMapIndex < face.texcoords.length; uvMapIndex++) {
+
                             if (vertex.texcoords.length <= uvMapIndex) {
+
                                 vertex.texcoords.push(vec2.create());
                             }
+
                             vec3.copy(vertex.texcoords[uvMapIndex], face.texcoords[uvMapIndex][faceVertexIndex]);
                         }
                     }
@@ -337,12 +340,12 @@ namespace Converters {
 
             let result = new List<SkinMeshBone>();
 
-            for (let i = 0; i < geometry3js.bones.length; i++) {
-                let bone = geometry3js.bones[i];
+            for (let boneIndex = 0; boneIndex < geometry3js.bones.length; boneIndex++) {
+                let bone = geometry3js.bones[boneIndex];
 
                 let skiningBone = new SkinMeshBone();
                 skiningBone.name = bone.name.replace(/_/g, '.');
-                skiningBone.originalBoneIndex = i;
+                skiningBone.originalBoneIndex = boneIndex;
                 mat4.copy(skiningBone.localMatrix, bone.matrix.elements);
 
                 mat4.copy(skiningBone.worldMatrix, skiningBone.localMatrix);
@@ -361,13 +364,14 @@ namespace Converters {
                 result.push(skiningBone);
             }
 
-            for (let i = 0; i < result.length; i++) {
-                let skiningBone = result[i];
+            for (let skiningBone of result) {
 
                 if (skiningBone.parent == null) {
+
                     skiningBone.nestLevel = 0;
                 }
                 else {
+
                     skiningBone.nestLevel = skiningBone.parent.nestLevel + 1;
                 }
             }
@@ -393,7 +397,9 @@ namespace Converters {
         private normalizeMat4Part(mat: Mat4, offset: int) {
 
             let length = Math.sqrt(mat[offset + 0] * mat[offset + 0] + mat[offset + 1] * mat[offset + 1] + mat[offset + 2] * mat[offset + 2]);
+
             if (length > 0) {
+
                 mat[offset + 0] /= length;
                 mat[offset + 1] /= length;
                 mat[offset + 2] /= length;
@@ -403,18 +409,17 @@ namespace Converters {
         private collectFaceGroups(geometry3js: any, vertices: List<MeshVertex>, faces: List<MeshFace>): List<SkinFaceGroup> {
 
             if (geometry3js.skinIndices == undefined || geometry3js.skinIndices == null) {
+
                 return null;
             }
 
-            // add weight data to vertex and face data
-            for (let i = 0; i < faces.length; i++) {
-                let face = faces[i];
+            // Adds weight data to vertex and face data
+            for (let face of faces) {
 
                 face.sortingIndeces = new List<int>();
 
-                for (let k = 0; k < face.vertexIndeces.length; k++) {
+                for (let vertexIndex of face.vertexIndeces) {
 
-                    let vertexIndex = face.vertexIndeces[k]
                     let vertex = vertices[vertexIndex];
                     let skinIndex = geometry3js.skinIndices[vertexIndex];
                     let skinWeight = geometry3js.skinWeights[vertexIndex];
@@ -464,7 +469,7 @@ namespace Converters {
                 }
             }
 
-            // grouping by bone and material
+            // Grouping by bone and material
             let faceGoups: List<SkinFaceGroup> = Enumerable.From(faces)
                 .GroupBy(face => getFaceGroupKey(face.materialIndex, face.sortingIndeces))
                 .Select(group => ({
@@ -478,79 +483,83 @@ namespace Converters {
                 .OrderBy(group => group.key)
                 .ToArray();
 
-            // compress all one-bone groups
-            for (let i = 0; i < faceGoups.length; i++) {
-                let group = faceGoups[i];
+            // Combine all groups witch has only 1 bone to another group
+            for (let sourceGroupIndex = 0; sourceGroupIndex < faceGoups.length; sourceGroupIndex++) {
+                let sourceGroup = faceGoups[sourceGroupIndex];
 
-                if (group.boneCount != 1) {
+                if (sourceGroup.boneCount != 1) {
                     continue;
                 }
                 else {
-                    let compress_to_group: SkinFaceGroup = null;
-                    let newBone = false;
 
-                    // search another group wihich same bone have
-                    for (let k = 0; k < faceGoups.length; k++) {
-                        let toGroup = faceGoups[k];
-                        if (k != i && toGroup.materialIndex == group.materialIndex && toGroup.boneCount >= 2) {
-                            for (let m = 0; m < toGroup.boneIndices.length; m++) {
-                                if (toGroup.boneIndices[m] == group.boneIndices[0]) {
-                                    compress_to_group = toGroup;
+                    let combineTo_Group: SkinFaceGroup = null;
+                    let ndeedsNewBoneSlot = false;
+
+                    // Search another group wihich has same bone combination
+                    for (let candidate_GroupIndex = 0; candidate_GroupIndex < faceGoups.length; candidate_GroupIndex++) {
+                        let candidate_Group = faceGoups[candidate_GroupIndex];
+
+                        if (candidate_GroupIndex != sourceGroupIndex && candidate_Group.materialIndex == sourceGroup.materialIndex && candidate_Group.boneCount >= 2) {
+
+                            for (let boneSlotIndex = 0; boneSlotIndex < candidate_Group.boneIndices.length; boneSlotIndex++) {
+
+                                if (candidate_Group.boneIndices[boneSlotIndex] == sourceGroup.boneIndices[0]) {
+                                    combineTo_Group = candidate_Group;
                                     break;
                                 }
                             }
                         }
                     }
 
-                    // search another one bone group
+                    // Search another one bone group
                     // or search three bone group
-                    if (compress_to_group == null) {
-                        for (let k = 0; k < faceGoups.length; k++) {
-                            let toGroup = faceGoups[k];
-                            if (k != i && toGroup.materialIndex == group.materialIndex && toGroup.boneCount == 1) {
-                                compress_to_group = toGroup;
-                                newBone = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (compress_to_group == null) {
-                        for (let k = 0; k < faceGoups.length; k++) {
-                            let toGroup = faceGoups[k];
-                            if (k != i && toGroup.materialIndex == group.materialIndex && toGroup.boneCount == 3) {
-                                compress_to_group = toGroup;
-                                newBone = true;
+                    if (combineTo_Group == null) {
+
+                        for (let candidate_GroupIndex = 0; candidate_GroupIndex < faceGoups.length; candidate_GroupIndex++) {
+                            let candidate_Group = faceGoups[candidate_GroupIndex];
+
+                            if (candidate_GroupIndex != sourceGroupIndex && candidate_Group.materialIndex == sourceGroup.materialIndex && candidate_Group.boneCount == 1) {
+
+                                combineTo_Group = candidate_Group;
+                                ndeedsNewBoneSlot = true;
                                 break;
                             }
                         }
                     }
 
-                    if (compress_to_group != null) {
+                    if (combineTo_Group == null) {
 
-                        if (newBone) {
-                            compress_to_group.boneIndices.push(group.boneIndices[0]);
-                            compress_to_group.boneCount++;
+                        for (let candidate_GroupIndex = 0; candidate_GroupIndex < faceGoups.length; candidate_GroupIndex++) {
+                            let candidate_Group = faceGoups[candidate_GroupIndex];
+
+                            if (candidate_GroupIndex != sourceGroupIndex && candidate_Group.materialIndex == sourceGroup.materialIndex && candidate_Group.boneCount == 3) {
+
+                                combineTo_Group = candidate_Group;
+                                ndeedsNewBoneSlot = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (combineTo_Group != null) {
+
+                        if (ndeedsNewBoneSlot) {
+
+                            combineTo_Group.boneIndices.push(sourceGroup.boneIndices[0]);
+                            combineTo_Group.boneCount++;
                         }
 
-                        compress_to_group.key = getFaceGroupKey(compress_to_group.materialIndex, compress_to_group.boneIndices);
+                        combineTo_Group.key = getFaceGroupKey(combineTo_Group.materialIndex, combineTo_Group.boneIndices);
 
                         // combine mesh
-                        compress_to_group.faces = compress_to_group.faces.concat(group.faces);
+                        combineTo_Group.faces = combineTo_Group.faces.concat(sourceGroup.faces);
 
-                        group.combined = true;
+                        sourceGroup.combined = true;
                     }
                 }
             }
 
-            // adjust boneIndices array size
-            for (let i = 0; i < faceGoups.length; i++) {
-                let group = faceGoups[i];
-                if (group.boneIndices.length == 1 || group.boneIndices.length == 3) {
-                    group.boneIndices.push(-1);
-                }
-            }
-
-            // filter and ordering
+            // Filter and ordering
             faceGoups = Enumerable.From(faceGoups)
                 .Where(group => !group.combined)
                 .OrderBy(group => group.key)
@@ -561,24 +570,30 @@ namespace Converters {
 
         private buildPartedSkinMeshModel(faceGoups: List<SkinFaceGroup>, vertices: List<MeshVertex>, faces: List<MeshFace>, bones: List<SkinMeshBone>): PartedSkinMeshModel {
 
+            // Creates vertex index table
             let vertexIndexTable = new Array(vertices.length);
 
-            // create a part data for each groups
-            let parts = new List<SkinMeshPart>();
-            for (let i = 0; i < faceGoups.length; i++) {
-                let group = faceGoups[i];
+            // Create bone index table to replace bone index to re-ordered one
+            let boneIndexTable = new List<int>(bones.length);
+            for (let i = 0; i < bones.length; i++) {
+                let bone = bones[i];
 
-                // assign new vertex index in the part
+                boneIndexTable[bone.originalBoneIndex] = i;
+            }
+
+            // Creates a part data for each groups
+            let parts = new List<SkinMeshPart>();
+            for (let group of faceGoups) {
+
+                // Assigns new index for face's vertex
                 let new_vertex_count = 0;
-                for (let k = 0; k < vertexIndexTable.length; k++) {
-                    vertexIndexTable[k] = -1;
+                for (let i = 0; i < vertexIndexTable.length; i++) {
+                    vertexIndexTable[i] = -1;
                 }
 
-                for (let k = 0; k < group.faces.length; k++) {
-                    let face: MeshFace = group.faces[k];
+                for (let face of group.faces) {
 
-                    for (let m = 0; m < face.vertexIndeces.length; m++) {
-                        let vertexIndex = face.vertexIndeces[m];
+                    for (let vertexIndex of face.vertexIndeces) {
 
                         if (vertexIndexTable[vertexIndex] == -1) {
                             vertexIndexTable[vertexIndex] = new_vertex_count;
@@ -587,32 +602,32 @@ namespace Converters {
                     }
                 }
 
-                // create vertices
+                // Creates vertices
                 let part_vertices = new List<SkinVertex>(new_vertex_count);
-                for (let k = 0; k < vertexIndexTable.length; k++) {
+                for (let oldVertexIndex = 0; oldVertexIndex < vertexIndexTable.length; oldVertexIndex++) {
 
-                    if (vertexIndexTable[k] != -1) {
+                    let newVertexIndex = vertexIndexTable[oldVertexIndex];
 
-                        let src_vertex = vertices[k];
+                    if (newVertexIndex != -1) {
+
+                        let src_vertex = vertices[oldVertexIndex];
 
                         let skinVertex = new SkinVertex();
                         skinVertex.texcoords = src_vertex.texcoords;
 
                         skinVertex.positions = new List<SkinVertexPosition>();
-                        for (let m = 0; m < group.boneIndices.length; m++) {
-                            let boneIndex = group.boneIndices[m];
-
-                            if (boneIndex == -1) {
-                                continue;
-                            }
+                        for (let boneIndex of group.boneIndices) {
 
                             let vpos = new SkinVertexPosition();
                             vec3.copy(vpos.position, src_vertex.position);
                             vec3.copy(vpos.normal, src_vertex.normal);
                             vpos.boneWeight = 0.0;
-                            for (let n = 0; n < src_vertex.boneWeights.length; n++) {
-                                if (src_vertex.boneWeights[n].index == boneIndex) {
-                                    vpos.boneWeight = src_vertex.boneWeights[n].weight;
+
+                            for (let boneWeight of src_vertex.boneWeights) {
+
+                                if (boneWeight.index == boneIndex) {
+
+                                    vpos.boneWeight = boneWeight.weight;
                                     break;
                                 }
                             }
@@ -620,19 +635,20 @@ namespace Converters {
                             skinVertex.positions.push(vpos);
                         }
 
-                        part_vertices[vertexIndexTable[k]] = skinVertex;
+                        part_vertices[newVertexIndex] = skinVertex;
                     }
                 }
 
-                // create faces
+                // Creates faces
                 let part_faces = new List<MeshFace>();
-                for (let k = 0; k < group.faces.length; k++) {
-                    let face: MeshFace = group.faces[k];
+                for (let face of group.faces) {
 
-                    let skinFace = new MeshFace();
-                    skinFace.vertexIndeces = Enumerable.From(face.vertexIndeces)
+                    let vertexIndeces = Enumerable.From(face.vertexIndeces)
                         .Select(index => vertexIndexTable[index])
                         .ToArray();
+
+                    let skinFace = new MeshFace();
+                    skinFace.vertexIndeces = vertexIndeces;
                     skinFace.vertexNormals = face.vertexNormals;
                     skinFace.texcoords = face.texcoords;
                     vec3.copy(skinFace.faceNormal, face.faceNormal);
@@ -642,9 +658,18 @@ namespace Converters {
                     part_faces.push(skinFace);
                 }
 
-                // create part
+                // Creates bone indices
+                let part_boneIndices = new List<int>();
+                for (let oldBoneIndex of group.boneIndices) {
+
+                    let newBoneIndex = boneIndexTable[oldBoneIndex];
+
+                    part_boneIndices.push(newBoneIndex);
+                }
+
+                // Creates part
                 let part = new SkinMeshPart();
-                part.boneIndices = group.boneIndices;
+                part.boneIndices = part_boneIndices;
                 part.materialIndex = group.materialIndex;
                 part.vertices = part_vertices;
                 part.faces = part_faces;
@@ -652,33 +677,15 @@ namespace Converters {
                 parts.push(part);
             }
 
-            // replace bone index to re-ordered one
-            let boneIndexTable = [];
-            for (let i = 0; i < bones.length; i++) {
+            // Transforms vertex positions into bone local
+            for (let part of parts) {
 
-                boneIndexTable[bones[i].originalBoneIndex] = i;
-            }
+                for (let vertex of part.vertices) {
 
-            for (let i = 0; i < parts.length; i++) {
-                let part = parts[i];
+                    for (let vertexIndex = 0; vertexIndex < vertex.positions.length; vertexIndex++) {
+                        let vpos = vertex.positions[vertexIndex];
+                        let boneIndex = part.boneIndices[vertexIndex];
 
-                for (let k = 0; k < part.boneIndices.length; k++) {
-                    if (part.boneIndices[k] != -1) {
-                        part.boneIndices[k] = boneIndexTable[part.boneIndices[k]];
-                    }
-                }
-            }
-
-            // transform vertex positions into bone local
-            for (let i = 0; i < parts.length; i++) {
-                let part = parts[i];
-
-                for (let k = 0; k < part.vertices.length; k++) {
-                    let vertex = part.vertices[k];
-
-                    for (let m = 0; m < vertex.positions.length; m++) {
-                        let vpos = vertex.positions[m];
-                        let boneIndex = part.boneIndices[m];
                         let bone = bones[boneIndex];
 
                         vec3.transformMat4(vpos.position, vpos.position, bone.worldInvMatrix);
@@ -689,7 +696,7 @@ namespace Converters {
                 }
             }
 
-            // create a model
+            // Creates a model
             let result = new PartedSkinMeshModel();
             result.bones = bones;
             result.parts = parts;

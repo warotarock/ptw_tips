@@ -36,8 +36,8 @@ var ObjectAnimationConverter;
                 .ToArray();
             var result = new List();
             // for each bAction
-            for (var i = 0; i < bAction_BHeads.length; i++) {
-                var bAction_BHead = bAction_BHeads[i];
+            for (var _i = 0, bAction_BHeads_1 = bAction_BHeads; _i < bAction_BHeads_1.length; _i++) {
+                var bAction_BHead = bAction_BHeads_1[_i];
                 var bAction = blendFile.dna.createDataSet(bAction_BHead);
                 var animation = {
                     name: bAction.id.name.substr(2),
@@ -55,8 +55,8 @@ var ObjectAnimationConverter;
                     var bezTriple_Bhead = bheadDictionary[fCurve.bezt];
                     var bezTriple = blendFile.dna.createDataSet(bezTriple_Bhead);
                     var points = [];
-                    for (var k = 0; k < bezTriple.elementCount; k++) {
-                        var bezt = bezTriple[k];
+                    for (var i = 0; i < bezTriple.elementCount; i++) {
+                        var bezt = bezTriple[i];
                         points.push([
                             [bezt.vec[0], bezt.vec[1], bezt.vec[2]],
                             [bezt.vec[3], bezt.vec[4], bezt.vec[5]],
@@ -100,8 +100,8 @@ var ObjectAnimationConverter;
         Main.prototype.output = function (convetedData, outFileName) {
             var out = [];
             out.push('{');
-            for (var i = 0; i < convetedData.length; i++) {
-                var animation = convetedData[i];
+            for (var animationIndex = 0; animationIndex < convetedData.length; animationIndex++) {
+                var animation = convetedData[animationIndex];
                 out.push('  \"' + animation.name + '\": {');
                 var channelGroup = Enumerable.From(animation.curves)
                     .GroupBy(function (curve) { return curve.group; })
@@ -114,8 +114,8 @@ var ObjectAnimationConverter;
                 for (var groupIndex = 0; groupIndex < channelGroup.length; groupIndex++) {
                     var group = channelGroup[groupIndex];
                     out.push('    \"' + group.name + '\": {');
-                    for (var k = 0; k < group.curves.length; k++) {
-                        var curve = group.curves[k];
+                    for (var curveIndex = 0; curveIndex < group.curves.length; curveIndex++) {
+                        var curve = group.curves[curveIndex];
                         var output_carve = {
                             ipoType: 2,
                             lastTime: 0.0,
@@ -123,12 +123,20 @@ var ObjectAnimationConverter;
                             curve: curve.points
                         };
                         out.push('      \"' + curve.channel + '\": '
-                            + JSON.stringify(output_carve, this.jsonStringifyReplacer)
-                            + (k < group.curves.length - 1 ? ',' : ''));
+                            + JSON.stringify(output_carve, this.jsonStringifyReplacer));
+                        if (curveIndex < group.curves.length - 1) {
+                            out[out.length - 1] += ',';
+                        }
                     }
-                    out.push('    }' + (groupIndex < channelGroup.length - 1 ? ',' : ''));
+                    out.push('    }');
+                    if (groupIndex < channelGroup.length - 1) {
+                        out[out.length - 1] += ',';
+                    }
                 }
-                out.push('  }' + (i < convetedData.length - 1 ? ',' : ''));
+                out.push('  }');
+                if (animationIndex < convetedData.length - 1) {
+                    out[out.length - 1] += ',';
+                }
             }
             out.push('}');
             fs.writeFile(outFileName, out.join('\r\n'), function (error) {

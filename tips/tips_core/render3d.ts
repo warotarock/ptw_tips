@@ -86,15 +86,17 @@ class RenderShader {
 
     enableVertexAttributes(gl: WebGLRenderingContext) {
 
-        for (let i = 0; i < this.attribLocationList.length; i++) {
-            gl.enableVertexAttribArray(this.attribLocationList[i]);
+        for (let attribLocation of this.attribLocationList) {
+
+            gl.enableVertexAttribArray(attribLocation);
         }
     }
 
     disableVertexAttributes(gl: WebGLRenderingContext) {
 
-        for (let i = 0; i < this.attribLocationList.length; i++) {
-            gl.disableVertexAttribArray(this.attribLocationList[i]);
+        for (let attribLocation of this.attribLocationList) {
+
+            gl.disableVertexAttribArray(attribLocation);
         }
     }
 
@@ -105,6 +107,7 @@ class RenderShader {
     vertexAttribPointer(indx: number, size: number, type: number, stride: number, gl: WebGLRenderingContext) {
 
         if (type == gl.FLOAT || type == gl.INT) {
+
             gl.vertexAttribPointer(indx, size, type, false, stride, this.vertexAttribPointerOffset);
             this.vertexAttribPointerOffset += 4 * size;
         }
@@ -113,6 +116,7 @@ class RenderShader {
     skipVertexAttribPointer(type: number, size: number, gl: WebGLRenderingContext) {
 
         if (type == gl.FLOAT || type == gl.INT) {
+
             this.vertexAttribPointerOffset += 4 * size;
         }
     }
@@ -143,6 +147,7 @@ class WebGLRender {
     initializeWebGL(canvas: HTMLCanvasElement): boolean {
 
         try {
+
             let option = { preserveDrawingBuffer: true, antialias: true };
 
             let gl = <WebGLRenderingContext>(
@@ -151,13 +156,16 @@ class WebGLRender {
             );
 
             if (gl != null) {
+
                 this.attach(gl);
             }
             else {
+
                 throw ('Faild to initialize WebGL.');
             }
         }
         catch (e) {
+
             return true;
         }
 
@@ -304,6 +312,7 @@ class WebGLRender {
             return program;
         }
         else {
+
             alert(gl.getProgramInfoLog(program));
         }
     }
@@ -312,9 +321,11 @@ class WebGLRender {
 
         let shader: WebGLShader;
         if (isVertexShader) {
+
             shader = gl.createShader(gl.VERTEX_SHADER);
         }
         else {
+
             shader = gl.createShader(gl.FRAGMENT_SHADER);
         }
 
@@ -323,8 +334,11 @@ class WebGLRender {
         gl.compileShader(shader);
 
         if (gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+
             return shader;
-        } else {
+        }
+        else {
+
             alert(gl.getShaderInfoLog(shader));
         }
     }
@@ -357,7 +371,9 @@ class WebGLRender {
         this.gl.useProgram(shader.program);
         this.currentShader = shader;
 
-        if (lastShader != null && lastShader.attribLocationList.length != this.currentShader.attribLocationList.length) {
+        if (lastShader != null
+            && lastShader.attribLocationList.length != this.currentShader.attribLocationList.length) {
+
             lastShader.disableVertexAttributes(this.gl);
         }
     }
@@ -401,9 +417,11 @@ class WebGLRender {
         let gl = this.gl;
 
         if (enable) {
+
             gl.enable(gl.DEPTH_TEST);
         }
         else {
+
             gl.disable(gl.DEPTH_TEST);
         }
 
@@ -422,9 +440,11 @@ class WebGLRender {
         let gl = this.gl;
 
         if (enable) {
+
             gl.enable(gl.CULL_FACE);
         }
         else {
+
             gl.disable(gl.CULL_FACE);
         }
 
@@ -438,10 +458,12 @@ class WebGLRender {
         gl.enable(gl.BLEND);
 
         if (blendType == WebGLRenderBlendType.add) {
+
             gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE);
             gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD)
         }
         else {
+
             gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
             gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
         }
@@ -450,6 +472,7 @@ class WebGLRender {
     }
 
     drawElements(model: RenderModel) {
+
         this.gl.drawElements(this.gl.TRIANGLES, model.indexCount, this.gl.UNSIGNED_SHORT, 0);
     }
 }

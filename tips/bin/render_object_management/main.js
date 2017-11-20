@@ -37,7 +37,7 @@ var RenderObjectManagement;
             this.loadModel(this.model, '../temp/sample_basic_model.json', 'Cube');
             // Allocate render object pool
             this.renderObjectManager.allocate(this.MAX_RENDER_OBJECT);
-            // Create an object for background layer
+            // Create an object for background layer (set RenderObject.tag to 1)
             var renderObject = this.renderObjectManager.createObject();
             if (renderObject != null) {
                 renderObject.model = this.model;
@@ -51,8 +51,8 @@ var RenderObjectManagement;
         };
         Main.prototype.processLoading = function () {
             // Waiting for data
-            for (var i = 0; i < this.images1.length; i++) {
-                var image = this.images1[i];
+            for (var _i = 0, _a = this.images1; _i < _a.length; _i++) {
+                var image = _a[_i];
                 if (image.texture == null) {
                     return;
                 }
@@ -78,7 +78,7 @@ var RenderObjectManagement;
         };
         Main.prototype.processGeneratingObject = function () {
             this.animationTime += 1.0;
-            if (this.animationTime < 5.0) {
+            if (this.animationTime < 3.0) {
                 return;
             }
             this.animationTime = 0.0;
@@ -87,8 +87,8 @@ var RenderObjectManagement;
                 renderObject.model = this.model;
                 renderObject.images = this.images1;
                 renderObject.layerID = Game.RenderObjectLayerID.foreGround;
-                var locationRange = 30.0;
-                vec3.set(renderObject.location, (0.00 + Math.random()) * locationRange, (-0.5 + Math.random()) * locationRange, (-0.5 + Math.random()) * locationRange);
+                var locationRange = 20.0;
+                vec3.set(renderObject.location, (1.00 + Math.random()) * locationRange, (-0.5 + Math.random()) * locationRange, (-0.5 + Math.random()) * locationRange);
                 var rotationRange = Math.PI * 2.0;
                 vec3.set(renderObject.rotation, Math.random() * rotationRange, Math.random() * rotationRange, Math.random() * rotationRange);
                 this.renderObjectManager.addObject(renderObject);
@@ -96,10 +96,10 @@ var RenderObjectManagement;
         };
         Main.prototype.updateRenderObjects = function () {
             var renderObjects = this.renderObjectManager.getObjectList();
-            for (var i = 0; i < renderObjects.length; i++) {
-                var renderObject = renderObjects[i];
-                // Rotation
+            for (var _i = 0, renderObjects_1 = renderObjects; _i < renderObjects_1.length; _i++) {
+                var renderObject = renderObjects_1[_i];
                 if (renderObject.tag == 0) {
+                    renderObject.location[0] -= 0.1;
                     renderObject.rotation[1] += 0.01;
                 }
                 else {
@@ -110,8 +110,8 @@ var RenderObjectManagement;
         };
         Main.prototype.calclateRenderObjectMatrix = function () {
             var renderObjects = this.renderObjectManager.getObjectList();
-            for (var i = 0; i < renderObjects.length; i++) {
-                var renderObject = renderObjects[i];
+            for (var _i = 0, renderObjects_2 = renderObjects; _i < renderObjects_2.length; _i++) {
+                var renderObject = renderObjects_2[_i];
                 mat4.identity(renderObject.matrix);
                 mat4.translate(renderObject.matrix, renderObject.matrix, renderObject.location);
                 mat4.rotateX(renderObject.matrix, renderObject.matrix, renderObject.rotation[0]);
@@ -126,7 +126,7 @@ var RenderObjectManagement;
                 var renderObject = renderObjects[i];
                 if (renderObject.tag == 0) {
                     renderObject.animationTime += 1.0;
-                    if (renderObject.animationTime > 200.0) {
+                    if (renderObject.animationTime > 400.0) {
                         this.renderObjectManager.removeObject(renderObject);
                     }
                 }
@@ -153,16 +153,16 @@ var RenderObjectManagement;
             this.drawLayer(Game.RenderObjectLayerID.foreGround);
         };
         Main.prototype.updateRenderObjectSorting = function () {
-            var objectList = this.renderObjectManager.getObjectList();
-            for (var i = 0; i < objectList.length; i++) {
-                var renderObject = objectList[i];
+            var renderObjects = this.renderObjectManager.getObjectList();
+            for (var _i = 0, renderObjects_3 = renderObjects; _i < renderObjects_3.length; _i++) {
+                var renderObject = renderObjects_3[_i];
                 renderObject.sortingValue = this.renderObjectManager.calcObjectSortingValue(renderObject, this.viewMatrix, Game.RenderObjectSortingMode.z);
             }
         };
         Main.prototype.drawLayer = function (layerID) {
-            var objects = this.renderObjectManager.getZsortedObjectList(layerID);
-            for (var i = 0; i < objects.length; i++) {
-                var renderObject = objects[i];
+            var renderObjects = this.renderObjectManager.getZsortedObjectList(layerID);
+            for (var _i = 0, renderObjects_4 = renderObjects; _i < renderObjects_4.length; _i++) {
+                var renderObject = renderObjects_4[_i];
                 this.drawRenderObject(renderObject);
             }
         };

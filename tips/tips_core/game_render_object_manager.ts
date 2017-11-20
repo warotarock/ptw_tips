@@ -11,7 +11,7 @@ namespace Game {
         nearGround = 4,
         ui = 5,
         invisible = 6,
-        maxLayerCount = 6,
+        maxLayerID = 6,
     }
 
     export enum RenderObjectBlendType {
@@ -86,7 +86,9 @@ namespace Game {
 
             this.recyclePool = new RecyclePool<RenderObject>(RenderObject, maxRenderObjectCount);
 
-            for (let i = 0; i < <int>RenderObjectLayerID.maxLayerCount + 1; i++) {
+            let layerCount = <int>RenderObjectLayerID.maxLayerID + 1;
+
+            for (let i = 0; i < layerCount; i++) {
                 this.objectLayers.push(new RenderObjectLayer());
             }
 
@@ -95,8 +97,7 @@ namespace Game {
 
         clearObjects() {
 
-            for (let k = 0; k < this.objectLayers.length; k++) {
-                let layer: RenderObjectLayer = this.objectLayers[k];
+            for (let layer of this.objectLayers) {
 
                 layer.objects = new List<RenderObject>();
             }
@@ -151,7 +152,9 @@ namespace Game {
         removeObject(renderObject: RenderObject) {
 
             for (let i = 0; i < this.objects.length; i++) {
+
                 if (this.objects[i] === renderObject) {
+
                     ListRemoveAt(this.objects, i);
                     break;
                 }
@@ -160,7 +163,9 @@ namespace Game {
             let layer = this.getObjectLayer(renderObject.lastLayerID);
 
             for (let i = 0; i < layer.objects.length; i++) {
+
                 if (layer.objects[i] === renderObject) {
+
                     ListRemoveAt(layer.objects, i);
                     break;
                 }
@@ -231,8 +236,7 @@ namespace Game {
 
         updateObjectLayers() {
 
-            for (let k = 0; k < this.objectLayers.length; k++) {
-                let layer = this.objectLayers[k];
+            for (let layer of this.objectLayers) {
 
                 for (let i = layer.objects.length - 1; i >= 0; i--) {
                     let obj = layer.objects[i];
