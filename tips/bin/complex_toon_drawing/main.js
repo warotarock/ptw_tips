@@ -270,7 +270,7 @@ var ComplexToonDrawing;
             for (var i = 0; i < parts.length; i++) {
                 var part = parts[i];
                 // select shader
-                var shader;
+                var shader = void 0;
                 if (part.bone.length <= 2) {
                     shader = this.drawer_Bone2Shader;
                 }

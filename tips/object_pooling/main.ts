@@ -17,14 +17,14 @@ namespace ObjectPooling {
 
         run() {
 
-            var sampleObjectPool = new RecyclePool<SampleObject>(SampleObject, 50);
+            let sampleObjectPool = new RecyclePool<SampleObject>(SampleObject, 50);
 
-            var result = [];
-            var content_element = document.getElementById('content');
+            let result = [];
+            let content_element = document.getElementById('content');
 
-            for (var i = 0; i < 1000; i++) {
+            for (let i = 0; i < 1000; i++) {
 
-                var sampleObject = sampleObjectPool.get();
+                let sampleObject = sampleObjectPool.get();
 
                 if (sampleObject == null) {
                     return;
@@ -46,7 +46,7 @@ namespace ObjectPooling {
         }
     }
 
-    var _Main: Main;
+    let _Main: Main;
 
     window.onload = () => {
 

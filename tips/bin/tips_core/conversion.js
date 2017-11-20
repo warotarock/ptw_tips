@@ -1,6 +1,7 @@
-// declarations for language conversion
+// Detailed type declarations
 var List = Array;
 var Dictionary = Array;
+// List methods
 function ListAddRange(destList, addList) {
     Array.prototype.push.apply(destList, addList);
 }
@@ -10,9 +11,11 @@ function ListGetRange(srcList, index, length) {
 function ListRemoveAt(destList, index) {
     destList.splice(index, 1);
 }
+// Dictionary methods
 function DictionaryContainsKey(dic, key) {
     return (key in dic);
 }
+// String methods
 function StringIsNullOrEmpty(str) {
     return (str == null || str == undefined || str == "");
 }

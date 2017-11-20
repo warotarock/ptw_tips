@@ -86,7 +86,7 @@ namespace Game {
 
             this.recyclePool = new RecyclePool<RenderObject>(RenderObject, maxRenderObjectCount);
 
-            for (var i = 0; i < <int>RenderObjectLayerID.maxLayerCount + 1; i++) {
+            for (let i = 0; i < <int>RenderObjectLayerID.maxLayerCount + 1; i++) {
                 this.objectLayers.push(new RenderObjectLayer());
             }
 
@@ -95,8 +95,8 @@ namespace Game {
 
         clearObjects() {
 
-            for (var k = 0; k < this.objectLayers.length; k++) {
-                var layer: RenderObjectLayer = this.objectLayers[k];
+            for (let k = 0; k < this.objectLayers.length; k++) {
+                let layer: RenderObjectLayer = this.objectLayers[k];
 
                 layer.objects = new List<RenderObject>();
             }
@@ -106,7 +106,7 @@ namespace Game {
 
         createObject(): RenderObject {
 
-            var renderObject = this.recyclePool.get();
+            let renderObject = this.recyclePool.get();
             if (renderObject == null) {
                 return null;
             }
@@ -142,7 +142,7 @@ namespace Game {
 
             this.objects.push(renderObject);
 
-            var layer = this.objectLayers[<int>renderObject.layerID];
+            let layer = this.objectLayers[<int>renderObject.layerID];
             layer.objects.push(renderObject);
 
             renderObject.lastLayerID = renderObject.layerID;
@@ -150,16 +150,16 @@ namespace Game {
 
         removeObject(renderObject: RenderObject) {
 
-            for (var i = 0; i < this.objects.length; i++) {
+            for (let i = 0; i < this.objects.length; i++) {
                 if (this.objects[i] === renderObject) {
                     ListRemoveAt(this.objects, i);
                     break;
                 }
             }
 
-            var layer = this.getObjectLayer(renderObject.lastLayerID);
+            let layer = this.getObjectLayer(renderObject.lastLayerID);
 
-            for (var i = 0; i < layer.objects.length; i++) {
+            for (let i = 0; i < layer.objects.length; i++) {
                 if (layer.objects[i] === renderObject) {
                     ListRemoveAt(layer.objects, i);
                     break;
@@ -199,15 +199,15 @@ namespace Game {
 
             if (sortingMode == RenderObjectSortingMode.xyz) {
 
-                var x = this.localLocation[0] / 128.0;
-                var y = this.localLocation[1] / 128.0;
-                var z = this.localLocation[2] / 128.0;
+                let x = this.localLocation[0] / 128.0;
+                let y = this.localLocation[1] / 128.0;
+                let z = this.localLocation[2] / 128.0;
 
                 return Math.sqrt(x * x + y * y + z * z) * 128.0;
             }
             else {
 
-                var z = this.localLocation[2] / 128.0;
+                let z = this.localLocation[2] / 128.0;
 
                 return Math.sqrt(z * z) * 128.0;
             }
@@ -215,7 +215,7 @@ namespace Game {
 
         getZsortedObjectList(layerID: RenderObjectLayerID): List<RenderObject> {
 
-            var layer = this.getObjectLayer(layerID);
+            let layer = this.getObjectLayer(layerID);
 
             layer.objects.sort(this.objectSortingFunction);
 
@@ -231,15 +231,15 @@ namespace Game {
 
         updateObjectLayers() {
 
-            for (var k = 0; k < this.objectLayers.length; k++) {
-                var layer = this.objectLayers[k];
+            for (let k = 0; k < this.objectLayers.length; k++) {
+                let layer = this.objectLayers[k];
 
-                for (var i = layer.objects.length - 1; i >= 0; i--) {
-                    var obj = layer.objects[i];
+                for (let i = layer.objects.length - 1; i >= 0; i--) {
+                    let obj = layer.objects[i];
 
                     if (obj.layerID != obj.lastLayerID) {
 
-                        var destLayer = this.getObjectLayer(obj.layerID);
+                        let destLayer = this.getObjectLayer(obj.layerID);
                         destLayer.objects.push(obj);
 
                         ListRemoveAt(layer.objects, i);

@@ -53,7 +53,7 @@ module PTWTipsInput {
 
         protected getButtonPressNextState(currentState: ButtonState): int {
 
-            var nextState = currentState;
+            let nextState = currentState;
 
             if (currentState == ButtonState.justPressed) {
                 nextState = ButtonState.pressed;
@@ -340,7 +340,7 @@ module PTWTipsInput {
 
         addControl(name: string, control: D) {
 
-            var mapping: T = this.mappingDictionary[name];
+            let mapping: T = this.mappingDictionary[name];
 
             mapping.add(control);
         }

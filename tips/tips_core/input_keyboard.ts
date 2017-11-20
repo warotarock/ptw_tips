@@ -15,7 +15,7 @@ module PTWTipsInput {
 
         setEvents(canvas: HTMLCanvasElement) {
             
-            var keydown = (e: KeyboardEvent) => {
+            let keydown = (e: KeyboardEvent) => {
             
                 //console.log('keydown ' + e.key + ' ' + e.keyCode);
 
@@ -26,7 +26,7 @@ module PTWTipsInput {
                 button.inputPress();
             };
 
-            var keyup = (e: KeyboardEvent) => {
+            let keyup = (e: KeyboardEvent) => {
 
                 //console.log('keyup ' + e.key + ' ' + e.keyCode);
 
@@ -47,7 +47,7 @@ module PTWTipsInput {
                 return;
             }
 
-            var button = new ButtonInputControl();
+            let button = new ButtonInputControl();
             button.name = name;
 
             this.buttons[name] = button;
@@ -56,7 +56,7 @@ module PTWTipsInput {
         processPolling(time: float) {
 
             for (let buttonName in this.buttons) {
-                var button: ButtonInputControl = this.buttons[buttonName];
+                let button: ButtonInputControl = this.buttons[buttonName];
 
                 button.processPollingDoublePress(time, this.doublePressMilliSecond);
             }
@@ -65,7 +65,7 @@ module PTWTipsInput {
         updateStates() {
 
             for (let buttonName in this.buttons) {
-                var button: ButtonInputControl = this.buttons[buttonName];
+                let button: ButtonInputControl = this.buttons[buttonName];
 
                 button.updateStates();
             }

@@ -352,8 +352,8 @@ class CanvasDrawer {
 
     private drawObjects(canvasContext: CanvasContext) {
 
-        for (var i = 0; i < this.drawerObjects.length; i++) {
-            var drawerObject = this.drawerObjects[i];
+        for (let i = 0; i < this.drawerObjects.length; i++) {
+            let drawerObject = this.drawerObjects[i];
 
             if (drawerObject.Type == DrawerObjectTypeID.verticalText || drawerObject.Type == DrawerObjectTypeID.horizontalText) {
 
@@ -379,15 +379,12 @@ class CanvasDrawer {
 
     private drawVerticalTextDrawer(textDrawer: TextDrawer) {
 
-        var letterHeight = textDrawer.fontHeight * textDrawer.letterHeightScale;
-        var lineWidth = letterHeight + textDrawer.lineSpan;
-        var lineEnd = '\n';
+        let letterHeight = textDrawer.fontHeight * textDrawer.letterHeightScale;
+        let lineWidth = letterHeight + textDrawer.lineSpan;
+        let lineEnd = '\n';
 
-        var lineText = textDrawer.text;
-        var textLength = lineText.length;
-
-        var topPos = textDrawer.location[1];
-        var x = textDrawer.location[0];
+        let topPos = textDrawer.location[1];
+        let x = textDrawer.location[0];
 
         let offsetX: float;
         if (textDrawer.horizontalTextAlignType == TextDrawerHorizontalAlignType.right) {
@@ -403,7 +400,7 @@ class CanvasDrawer {
             offsetX = textDrawer.letterOffsetLeft;
         }
 
-        var offsetY: float;
+        let offsetY: float;
         if (textDrawer.verticalTextAlignType == TextDrawerVerticalAlignType.bottom) {
 
             offsetY = textDrawer.letterOffsetBottom + letterHeight;
@@ -422,17 +419,17 @@ class CanvasDrawer {
         this.render.setFontSize(letterHeight);
         this.render.setFillColor(textDrawer.color);
 
-        var currentIndex = 0;
-        var textLength = textDrawer.text.length;
-        while (currentIndex < textLength) {
+        let currentIndex = 0;
+        let allTextLength = textDrawer.text.length;
+        while (currentIndex < allTextLength) {
 
-            var endIndex = StringIndexOf(textDrawer.text, lineEnd, currentIndex);
+            let endIndex = StringIndexOf(textDrawer.text, lineEnd, currentIndex);
             if (endIndex == -1) {
                 endIndex = textDrawer.text.length;
             }
 
-            var lineText = StringSubstring(textDrawer.text, currentIndex, endIndex - currentIndex);
-            var lineTextLength = lineText.length;
+            let lineText = StringSubstring(textDrawer.text, currentIndex, endIndex - currentIndex);
+            let lineTextLength = lineText.length;
 
             if (lineTextLength > 0) {
 
@@ -450,11 +447,11 @@ class CanvasDrawer {
                     y = topPos;
                 }
 
-                for (var i = 0; i < lineTextLength; i++) {
-                    var letter = StringSubstring(lineText, i, 1);
+                for (let i = 0; i < lineTextLength; i++) {
+                    let letter = StringSubstring(lineText, i, 1);
 
                     if (this.debug) {
-                        var textMetrics = this.render.measureText(letter);
+                        let textMetrics = this.render.measureText(letter);
                         this.render.setStrokeColor(this.color1);
                         this.render.beginPath();
                         this.render.rect(x + offsetX, y + offsetY, textMetrics.width, 1);
@@ -477,14 +474,14 @@ class CanvasDrawer {
 
     private drawHorizontalTextDrawer(textDrawer: TextDrawer) {
 
-        var letterHeight = textDrawer.fontHeight * textDrawer.letterHeightScale;
-        var lineHeight = letterHeight + textDrawer.lineSpan;
-        var lineEnd = '\n';
+        let letterHeight = textDrawer.fontHeight * textDrawer.letterHeightScale;
+        let lineHeight = letterHeight + textDrawer.lineSpan;
+        let lineEnd = '\n';
 
-        var x = textDrawer.location[0];
-        var y = textDrawer.location[1];
+        let x = textDrawer.location[0];
+        let y = textDrawer.location[1];
 
-        var offsetY: float;
+        let offsetY: float;
         if (textDrawer.verticalTextAlignType == TextDrawerVerticalAlignType.bottom) {
 
             offsetY = textDrawer.letterOffsetBottom;
@@ -503,21 +500,21 @@ class CanvasDrawer {
         this.render.setFontSize(letterHeight);
         this.render.setFillColor(textDrawer.color);
 
-        var currentIndex = 0;
-        var textLength = textDrawer.text.length;
-        while (currentIndex < textLength) {
+        let currentIndex = 0;
+        let allTextLength = textDrawer.text.length;
+        while (currentIndex < allTextLength) {
 
-            var endIndex = StringIndexOf(textDrawer.text, lineEnd, currentIndex);
+            let endIndex = StringIndexOf(textDrawer.text, lineEnd, currentIndex);
             if (endIndex == -1) {
                 endIndex = textDrawer.text.length;
             }
 
-            var lineText = StringSubstring(textDrawer.text, currentIndex, endIndex - currentIndex);
-            var lineTextLength = lineText.length;
+            let lineText = StringSubstring(textDrawer.text, currentIndex, endIndex - currentIndex);
+            let lineTextLength = lineText.length;
 
             if (lineTextLength > 0) {
 
-                var textMetrics = this.render.measureText(lineText);
+                let textMetrics = this.render.measureText(lineText);
 
                 let offsetX: float;
                 if (textDrawer.horizontalTextAlignType == TextDrawerHorizontalAlignType.right) {
@@ -554,11 +551,11 @@ class CanvasDrawer {
 
         this.render.setContext(this.measuringCanvasContext);
 
-        var maxWidth = this.measuringCanvasContext.width;
-        var maxHeight = this.measuringCanvasContext.height;
+        let maxWidth = this.measuringCanvasContext.width;
+        let maxHeight = this.measuringCanvasContext.height;
 
-        var sampleLeftMargin = 5;
-        var sampleBottomMargin = 10;
+        let sampleLeftMargin = 5;
+        let sampleBottomMargin = 10;
 
         // measure scaling
 
@@ -566,17 +563,17 @@ class CanvasDrawer {
         this.render.setFontSize(textDrawer.fontHeight);
         this.render.fillText(textDrawer.mearsureSampleLetter, sampleLeftMargin, maxHeight - sampleBottomMargin);
 
-        var pixels = this.render.getImageData(0, 0, maxWidth, maxHeight);
-        var rect1 = [0, 0, 0, 0];
+        let pixels = this.render.getImageData(0, 0, maxWidth, maxHeight);
+        let rect1 = [0, 0, 0, 0];
 
         this.scanImageArea(rect1, pixels, textDrawer.fontHeight, sampleBottomMargin);
-        var left = rect1[0];
-        var right = rect1[2];
-        var top = rect1[1];
-        var bottom = rect1[3];
+        let left = rect1[0];
+        let right = rect1[2];
+        let top = rect1[1];
+        let bottom = rect1[3];
 
-        var actualWidth = (right - left) + 1;
-        var actualHeight = (bottom - top) + 1;
+        let actualWidth = (right - left) + 1;
+        let actualHeight = (bottom - top) + 1;
         textDrawer.letterHeightScale = textDrawer.fontHeight / actualHeight;
 
         // measure offset
@@ -585,8 +582,8 @@ class CanvasDrawer {
         this.render.setFontSize(textDrawer.fontHeight * textDrawer.letterHeightScale);
         this.render.fillText(textDrawer.mearsureSampleLetter, sampleLeftMargin, maxHeight - sampleBottomMargin);
 
-        var pixels2 = this.render.getImageData(0, 0, maxWidth, maxHeight);
-        var rect2 = [0, 0, 0, 0];
+        let pixels2 = this.render.getImageData(0, 0, maxWidth, maxHeight);
+        let rect2 = [0, 0, 0, 0];
 
         this.scanImageArea(rect2, pixels2, textDrawer.fontHeight, sampleBottomMargin);
         left = rect2[0];
@@ -594,8 +591,8 @@ class CanvasDrawer {
         right = rect2[2];
         bottom = rect2[3];
 
-        var adjustedWidth = (right - left) + 1;
-        var adjustedHeight = (bottom - top) + 1;
+        let adjustedWidth = (right - left) + 1;
+        let adjustedHeight = (bottom - top) + 1;
 
         textDrawer.letterOffsetLeft = sampleLeftMargin - left;
         textDrawer.letterOffsetRight = sampleLeftMargin - right;
@@ -615,19 +612,19 @@ class CanvasDrawer {
 
     private scanImageArea(out: List<number>, imageData: ImageData, fontHeight: float, bottomMargin: int) {
 
-        var data = imageData.data;
+        let data = imageData.data;
 
-        var lineByteLength = 4 * imageData.width;
-        var limitByteOffset = data.length - Math.floor(fontHeight * 1.05) * lineByteLength;
+        let lineByteLength = 4 * imageData.width;
+        let limitByteOffset = data.length - Math.floor(fontHeight * 1.05) * lineByteLength;
 
         if (limitByteOffset < 0) {
             return 1.0
         }
 
-        var left = imageData.width;
-        var top = imageData.height;
-        var right = 0;
-        var bottom = 0;
+        let left = imageData.width;
+        let top = imageData.height;
+        let right = 0;
+        let bottom = 0;
 
         let yLimit: int = Math.floor(imageData.height - bottomMargin - fontHeight * 1.05);
 
@@ -635,7 +632,7 @@ class CanvasDrawer {
 
             for (let y = imageData.height - 1; y >= yLimit; y--) {
 
-                var alpha = data[(y * 4 * imageData.width) + (x * 4) + 3];
+                let alpha = data[(y * 4 * imageData.width) + (x * 4) + 3];
 
 
                 if (alpha > 128) {
@@ -691,23 +688,23 @@ class CanvasDrawer {
 
     private drawImageDrawer(imageDrawer: ImageDrawer) {
 
-        var srcLeft = imageDrawer.sourceRect[0];
-        var srcTop = imageDrawer.sourceRect[1];
-        var srcWidth = imageDrawer.sourceRect[2] - imageDrawer.sourceRect[0];
-        var srcHeight = imageDrawer.sourceRect[3] - imageDrawer.sourceRect[1];
+        let srcLeft = imageDrawer.sourceRect[0];
+        let srcTop = imageDrawer.sourceRect[1];
+        let srcWidth = imageDrawer.sourceRect[2] - imageDrawer.sourceRect[0];
+        let srcHeight = imageDrawer.sourceRect[3] - imageDrawer.sourceRect[1];
 
-        var destLeft = imageDrawer.location[0];
-        var destTop = imageDrawer.location[1];
-        var destWidth = srcWidth * imageDrawer.scaling[0];
-        var destHeight = srcHeight * imageDrawer.scaling[1];
+        let destLeft = imageDrawer.location[0];
+        let destTop = imageDrawer.location[1];
+        let destWidth = srcWidth * imageDrawer.scaling[0];
+        let destHeight = srcHeight * imageDrawer.scaling[1];
 
-        var rotation = imageDrawer.rotation;
+        let rotation = imageDrawer.rotation;
 
-        var originX = destWidth * imageDrawer.origin[0] * Math.cos(rotation) - destHeight * (-imageDrawer.origin[1]) * Math.sin(rotation);
-        var originY = destWidth * imageDrawer.origin[0] * Math.sin(rotation) + destHeight * (-imageDrawer.origin[1]) * Math.cos(rotation);
+        let originX = destWidth * imageDrawer.origin[0] * Math.cos(rotation) - destHeight * (-imageDrawer.origin[1]) * Math.sin(rotation);
+        let originY = destWidth * imageDrawer.origin[0] * Math.sin(rotation) + destHeight * (-imageDrawer.origin[1]) * Math.cos(rotation);
 
-        var destX = destLeft - originX;
-        var destY = destTop + originY;
+        let destX = destLeft - originX;
+        let destY = destTop + originY;
 
         this.transformMatrix[0] = Math.cos(rotation) * imageDrawer.scaling[0];
         this.transformMatrix[1] = -Math.sin(rotation) * imageDrawer.scaling[0];

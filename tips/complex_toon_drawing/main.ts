@@ -153,11 +153,11 @@ namespace ComplexToonDrawing {
 
             this.loadModel(this.skinningModelLoadingState, '../temp/complex_toon_model.json');
 
-            var image = new RenderImage();
+            let image = new RenderImage();
             this.loadTexture(image, './texture.png');
             this.skinModelImageResources.push(image);
 
-            var image2 = new RenderImage();
+            let image2 = new RenderImage();
             this.loadTexture(image2, './ebisu_xmas_032.jpg');
             this.backImageResources.push(image2);
 
@@ -251,7 +251,7 @@ namespace ComplexToonDrawing {
             }
 
             // calculates camera matrix
-            var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
+            let aspect = this.logicalScreenWidth / this.logicalScreenHeight;
             mat4.perspective(this.pMatrix, 8.0 * Math.PI / 180, aspect, 0.1, 50.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
 
@@ -292,7 +292,7 @@ namespace ComplexToonDrawing {
 
         private calcNormalMatrix(out: Mat4, matrix: Mat4) {
 
-            var length = Math.sqrt(Math.pow(matrix[0], 2) + Math.pow(matrix[1], 2) + Math.pow(matrix[2], 2));
+            let length = Math.sqrt(Math.pow(matrix[0], 2) + Math.pow(matrix[1], 2) + Math.pow(matrix[2], 2));
             out[0] /= length;
             out[1] /= length;
             out[2] /= length;
@@ -318,8 +318,8 @@ namespace ComplexToonDrawing {
 
         private drawSkinningModels(modelMatrix: Mat4, modelNameList: List<string>, imageResources: List<RenderImage>) {
 
-            for (var i = 0; i < modelNameList.length; i++) {
-                var model = this.skinningModelLoadingState.models[modelNameList[i]];
+            for (let i = 0; i < modelNameList.length; i++) {
+                let model = this.skinningModelLoadingState.models[modelNameList[i]];
 
                 this.drawSkinningModel(modelMatrix, model, this.boneMatrixBuffer, imageResources);
             }
@@ -345,14 +345,14 @@ namespace ComplexToonDrawing {
             this.drawer_Bone4Shader.setNormalMatrix(this.normalMatrix, this.gl);
 
             // drawing for each part
-            var bones = skinningModel.data.bones;
-            var parts = skinningModel.data.parts;
+            let bones = skinningModel.data.bones;
+            let parts = skinningModel.data.parts;
 
-            for (var i = 0; i < parts.length; i++) {
-                var part = parts[i];
+            for (let i = 0; i < parts.length; i++) {
+                let part = parts[i];
 
                 // select shader
-                var shader: Bone2Shader;
+                let shader: Bone2Shader;
                 if (part.bone.length <= 2) {
                     shader = this.drawer_Bone2Shader;
                 }
@@ -362,7 +362,7 @@ namespace ComplexToonDrawing {
                 this.render.setShader(shader);
 
                 // set bone matrix
-                for (var boneIndex = 0; boneIndex < part.bone.length; boneIndex++) {
+                for (let boneIndex = 0; boneIndex < part.bone.length; boneIndex++) {
                     mat4.copy(this.boneMatrix, matrixBuffer.boneMatrixList[part.bone[boneIndex]]);
                     shader.setBoneMatrix(boneIndex, this.boneMatrix, this.gl);
                 }
@@ -378,21 +378,21 @@ namespace ComplexToonDrawing {
 
         private loadModel(loadingState: SkinningModelLoadingState, url: string) {
 
-            var xhr = new XMLHttpRequest();
+            let xhr = new XMLHttpRequest();
             xhr.open('GET', url);
             xhr.responseType = 'json';
 
             xhr.addEventListener('load',
                 (e: Event) => {
-                    var data: any;
+                    let data: any;
                     if (xhr.responseType == 'json') {
                         data = xhr.response;
                     } else {
                         data = JSON.parse(xhr.response);
                     }
 
-                    for (var modelName in data) {
-                        var skinningModel = new SkinningModel();
+                    for (let modelName in data) {
+                        let skinningModel = new SkinningModel();
                         skinningModel.name = modelName;
                         skinningModel.data = data[modelName];
                         loadingState.models[modelName] = skinningModel;
@@ -407,8 +407,8 @@ namespace ComplexToonDrawing {
 
         private initializeSkinningModelBuffers(loadingState: SkinningModelLoadingState) {
 
-            for (var modelName in loadingState.models) {
-                var skinningModel = loadingState.models[modelName];
+            for (let modelName in loadingState.models) {
+                let skinningModel = loadingState.models[modelName];
 
                 console.log('initializing skin model: ' + modelName);
 
@@ -421,10 +421,10 @@ namespace ComplexToonDrawing {
         private initializeSkinningModelBuffer(skinningModel: SkinningModel) {
 
             // create buffers for each part
-            for (var i = 0; i < skinningModel.data.parts.length; i++) {
-                var part = skinningModel.data.parts[i];
+            for (let i = 0; i < skinningModel.data.parts.length; i++) {
+                let part = skinningModel.data.parts[i];
 
-                var renderModel = new RenderModel();
+                let renderModel = new RenderModel();
                 this.render.initializeModelBuffer(renderModel, part.vertex, part.index, 4 * part.vertexStride); // 4 (=size of float)
 
                 part.renderModel = renderModel;
@@ -446,13 +446,13 @@ namespace ComplexToonDrawing {
 
         private loadAnimation(loadingState: AnimationDataLoadingState, url: string) {
 
-            var xhr = new XMLHttpRequest();
+            let xhr = new XMLHttpRequest();
             xhr.open('GET', url);
             xhr.responseType = 'json';
 
             xhr.addEventListener('load',
                 (e: Event) => {
-                    var data: any;
+                    let data: any;
                     if (xhr.responseType == 'json') {
                         data = xhr.response;
                     } else {
@@ -469,10 +469,10 @@ namespace ComplexToonDrawing {
 
         private createRenderTargetBuffer(width: int, height: int): RenderTargetBuffer {
 
-            var gl = this.gl;
+            let gl = this.gl;
 
-            var textureWidth = 2;
-            var textureHeight = 2;
+            let textureWidth = 2;
+            let textureHeight = 2;
             while (textureWidth < width) {
                 textureWidth *= 2;
             }
@@ -480,10 +480,10 @@ namespace ComplexToonDrawing {
                 textureHeight *= 2;
             }
 
-            var glFrameBuffer = gl.createFramebuffer();
+            let glFrameBuffer = gl.createFramebuffer();
             gl.bindFramebuffer(gl.FRAMEBUFFER, glFrameBuffer);
 
-            var glTexture = gl.createTexture();
+            let glTexture = gl.createTexture();
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, glTexture);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -496,7 +496,7 @@ namespace ComplexToonDrawing {
 
             gl.bindTexture(gl.TEXTURE_2D, null);
 
-            var glRenderbuffer = gl.createRenderbuffer();
+            let glRenderbuffer = gl.createRenderbuffer();
             gl.bindRenderbuffer(gl.RENDERBUFFER, glRenderbuffer);
             gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, textureWidth, textureHeight);
             gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, glRenderbuffer);
@@ -504,10 +504,10 @@ namespace ComplexToonDrawing {
             gl.bindRenderbuffer(gl.RENDERBUFFER, null);
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-            var renderImage = new RenderImage();
+            let renderImage = new RenderImage();
             renderImage.texture = glTexture;
 
-            var buffer = new RenderTargetBuffer();
+            let buffer = new RenderTargetBuffer();
             buffer.framebuffer = glFrameBuffer;
             buffer.renderbuffer = glRenderbuffer;
             buffer.width = width;
@@ -841,7 +841,7 @@ namespace ComplexToonDrawing {
         }
     }
 
-    var toonFragmentShaderCode = ''
+    let toonFragmentShaderCode = ''
 
         + 'varying vec2 vTexCoord;'
         + 'varying vec3 vTransformedNormal;'
@@ -935,11 +935,11 @@ namespace ComplexToonDrawing {
         }
     }
 
-    var _Main: Main;
+    let _Main: Main;
 
     window.onload = () => {
 
-        var canvas = <HTMLCanvasElement>document.getElementById('canvas');
+        let canvas = <HTMLCanvasElement>document.getElementById('canvas');
         _Main = new Main();
         _Main.initialize(canvas);
 

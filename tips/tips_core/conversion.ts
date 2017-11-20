@@ -1,5 +1,6 @@
 ﻿
-// declarations for language conversion
+// Detailed type declarations
+
 var List = Array;
 var Dictionary = Array;
 
@@ -17,6 +18,8 @@ type ulong = number;
 type float = number;
 type double = number;
 
+// List methods
+
 function ListAddRange<T>(destList: List<T>, addList: List<T>) {
     Array.prototype.push.apply(destList, addList);
 }
@@ -29,9 +32,13 @@ function ListRemoveAt<T>(destList: List<T>, index: int) {
     destList.splice(index, 1);
 }
 
+// Dictionary methods
+
 function DictionaryContainsKey<T>(dic: Dictionary<T>, key: string): boolean {
     return (key in dic);
 }
+
+// String methods
 
 function StringIsNullOrEmpty(str: string): boolean {
     return (str == null || str == undefined || str == "");

@@ -76,7 +76,7 @@ namespace SkinModelDrawing {
             this.skinModel = new SkinModel();
             this.loadSkinModel(this.skinModel, '../temp/sample_skin_model.json', 'SkinModel1');
 
-            var image = new RenderImage();
+            let image = new RenderImage();
             this.loadTexture(image, './texture.png');
             this.images.push(image);
         }
@@ -115,7 +115,7 @@ namespace SkinModelDrawing {
 
         draw() {
 
-            var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
+            let aspect = this.logicalScreenWidth / this.logicalScreenHeight;
             mat4.perspective(this.projectionMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 50.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
 
@@ -134,8 +134,8 @@ namespace SkinModelDrawing {
 
         private calculateBoneMatrix(boneMatrixList: List<Mat4>, skinModel: SkinModel) {
 
-            for (var i = 0; i < skinModel.data.bones.length; i++) {
-                var bone = skinModel.data.bones[i];
+            for (let i = 0; i < skinModel.data.bones.length; i++) {
+                let bone = skinModel.data.bones[i];
 
                 if (bone.parent == -1) {
                     // root parent
@@ -166,13 +166,13 @@ namespace SkinModelDrawing {
             this.render.setProjectionMatrix(this.projectionMatrix);
 
             // drawing for each part
-            var parts = skinModel.data.parts;
+            let parts = skinModel.data.parts;
 
-            for (var i = 0; i < parts.length; i++) {
-                var part = parts[i];
+            for (let i = 0; i < parts.length; i++) {
+                let part = parts[i];
 
                 // select shader
-                var shader: Bone2Shader;
+                let shader: Bone2Shader;
                 if (part.bone.length <= 2) {
                     shader = this.bone2Shader;
                 }
@@ -182,7 +182,7 @@ namespace SkinModelDrawing {
                 this.render.setShader(shader);
 
                 // set bone matrix
-                for (var boneIndex = 0; boneIndex < part.bone.length; boneIndex++) {
+                for (let boneIndex = 0; boneIndex < part.bone.length; boneIndex++) {
                     mat4.copy(this.boneMatrix, boneMatrixList[part.bone[boneIndex]]);
                     shader.setBoneMatrix(boneIndex, this.boneMatrix, this.render.gl);
                 }
@@ -220,14 +220,14 @@ namespace SkinModelDrawing {
 
         private loadSkinModel(resultModel: SkinModel, url: string, modelName: string) {
 
-            var xhr = new XMLHttpRequest();
+            let xhr = new XMLHttpRequest();
             xhr.open('GET', url);
             xhr.responseType = 'json';
 
             xhr.addEventListener('load',
                 (e: Event) => {
 
-                    var data: any;
+                    let data: any;
                     if (xhr.responseType == 'json') {
                         data = xhr.response;
                     }
@@ -249,10 +249,10 @@ namespace SkinModelDrawing {
         private initializeSkinModelBuffer(skinModel: SkinModel) {
 
             // create buffers for each part
-            for (var i = 0; i < skinModel.data.parts.length; i++) {
-                var part = skinModel.data.parts[i];
+            for (let i = 0; i < skinModel.data.parts.length; i++) {
+                let part = skinModel.data.parts[i];
 
-                var renderModel = new RenderModel();
+                let renderModel = new RenderModel();
                 this.render.initializeModelBuffer(renderModel, part.vertex, part.index, 4 * part.vertexStride); // 4 (=size of float)
 
                 part.renderModel = renderModel;
@@ -260,7 +260,7 @@ namespace SkinModelDrawing {
 
             // create bone matrix
             this.boneMatrixList = new List<Mat4>();
-            for (var i = 0; i < skinModel.data.bones.length; i++) {
+            for (let i = 0; i < skinModel.data.bones.length; i++) {
                 this.boneMatrixList.push(mat4.create());
             }
         }
@@ -484,11 +484,11 @@ namespace SkinModelDrawing {
         }
     }
 
-    var _Main: Main;
+    let _Main: Main;
 
     window.onload = () => {
 
-        var canvas = <HTMLCanvasElement>document.getElementById('canvas');
+        let canvas = <HTMLCanvasElement>document.getElementById('canvas');
         _Main = new Main();
         _Main.initialize(canvas);
 

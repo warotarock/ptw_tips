@@ -16,7 +16,7 @@ var CanvasContext = (function () {
                 this.height = this.canvas.height;
             }
             else {
-                throw ("Faild to initialize canvas 2d.");
+                throw ('Faild to initialize canvas 2d.');
             }
         }
         catch (e) {

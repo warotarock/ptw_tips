@@ -152,17 +152,17 @@ namespace Converters {
 
         private parseStaticGeometries(): List<StaticMeshModel> {
 
-            var geometries = this.collada.dae.geometries;
+            let geometries = this.collada.dae.geometries;
 
-            var result = new List<StaticMeshModel>();
-            for (var geometryName in geometries) {
-                var geometry = geometries[geometryName];
+            let result = new List<StaticMeshModel>();
+            for (let geometryName in geometries) {
+                let geometry = geometries[geometryName];
 
                 if (this.isSkinGeometry(geometry)) {
                     continue;
                 }
 
-                var parsedGeometry = this.parseStaticGeometry(geometryName, geometry);
+                let parsedGeometry = this.parseStaticGeometry(geometryName, geometry);
 
                 result.push(parsedGeometry);
             }
@@ -172,20 +172,20 @@ namespace Converters {
 
         private parseStaticGeometry(geometryName: string, geometry: any): StaticMeshModel {
 
-            var geometry3js = geometry.mesh.geometry3js;
+            let geometry3js = geometry.mesh.geometry3js;
 
             // Extract mesh data
-            var vertices = this.extractVertices(geometry3js);
+            let vertices = this.extractVertices(geometry3js);
 
-            var faces = this.extractFaces(geometry3js);
+            let faces = this.extractFaces(geometry3js);
 
             this.overwriteVertexUV(faces, vertices);
 
-            var meshSufixIndex = geometryName.lastIndexOf('-mesh');
-            var meshName = geometryName.substr(0, meshSufixIndex);
+            let meshSufixIndex = geometryName.lastIndexOf('-mesh');
+            let meshName = geometryName.substr(0, meshSufixIndex);
 
             // Build a static mesh model
-            var result = new StaticMeshModel();
+            let result = new StaticMeshModel();
             result.name = meshName;
             result.vertices = vertices;
             result.faces = faces;
@@ -195,11 +195,11 @@ namespace Converters {
 
         private extractVertices(geometry3js: any): List<MeshVertex> {
 
-            var vertices = new List<MeshVertex>();
-            for (var i = 0; i < geometry3js.vertices.length; i++) {
-                var vartexData = geometry3js.vertices[i];
+            let vertices = new List<MeshVertex>();
+            for (let i = 0; i < geometry3js.vertices.length; i++) {
+                let vartexData = geometry3js.vertices[i];
 
-                var vertex = new MeshVertex();
+                let vertex = new MeshVertex();
                 vec3.set(vertex.position, vartexData.x, vartexData.y, vartexData.z);
                 vec3.set(vertex.normal, 0.0, 0.0, 0.0);
                 vertex.texcoords = new List<Vec2>();
@@ -212,12 +212,12 @@ namespace Converters {
 
         private extractFaces(geometry3js: any): List<MeshFace> {
 
-            var faces = new List<MeshFace>();
+            let faces = new List<MeshFace>();
 
-            for (var i = 0; i < geometry3js.faces.length; i++) {
-                var faceData = geometry3js.faces[i];
+            for (let i = 0; i < geometry3js.faces.length; i++) {
+                let faceData = geometry3js.faces[i];
 
-                var face = new MeshFace();
+                let face = new MeshFace();
                 face.vertexIndeces = [
                     faceData.a,
                     faceData.b,
@@ -238,13 +238,13 @@ namespace Converters {
 
             if (geometry3js.faceVertexUvs.length > 0) {
 
-                for (var i = 0; i < geometry3js.faces.length; i++) {
-                    var face = faces[i];
+                for (let i = 0; i < geometry3js.faces.length; i++) {
+                    let face = faces[i];
 
                     face.texcoords = new List<List<Vec2>>();
 
-                    for (var k = 0; k < geometry3js.faceVertexUvs.length; k++) {
-                        var faceVertexUv = geometry3js.faceVertexUvs[k][i];
+                    for (let k = 0; k < geometry3js.faceVertexUvs.length; k++) {
+                        let faceVertexUv = geometry3js.faceVertexUvs[k][i];
 
                         face.texcoords.push([
                             vec2.fromValues(faceVertexUv[0].x, faceVertexUv[0].y),
@@ -261,17 +261,17 @@ namespace Converters {
         private overwriteVertexUV(faces: List<MeshFace>, vertices: List<MeshVertex>) {
 
             // overwrite vretex texture coord data by face data (may be conflicted...)
-            for (var i = 0; i < faces.length; i++) {
-                var face = faces[i];
+            for (let i = 0; i < faces.length; i++) {
+                let face = faces[i];
 
-                for (var faceVertexIndex = 0; faceVertexIndex < face.vertexIndeces.length; faceVertexIndex++) {
-                    var vertex = vertices[face.vertexIndeces[faceVertexIndex]];
-                    var vertexNormals = face.vertexNormals[faceVertexIndex];
+                for (let faceVertexIndex = 0; faceVertexIndex < face.vertexIndeces.length; faceVertexIndex++) {
+                    let vertex = vertices[face.vertexIndeces[faceVertexIndex]];
+                    let vertexNormals = face.vertexNormals[faceVertexIndex];
 
                     vec3.copy(vertex.normal, vertexNormals);
 
                     if (face.texcoords != null && face.texcoords.length > 0) {
-                        for (var uvMapIndex = 0; uvMapIndex < face.texcoords.length; uvMapIndex++) {
+                        for (let uvMapIndex = 0; uvMapIndex < face.texcoords.length; uvMapIndex++) {
                             if (vertex.texcoords.length <= uvMapIndex) {
                                 vertex.texcoords.push(vec2.create());
                             }
@@ -286,18 +286,18 @@ namespace Converters {
 
         private parseSkinGeometries(): List<PartedSkinMeshModel> {
 
-            var geometries = this.collada.dae.geometries;
+            let geometries = this.collada.dae.geometries;
 
-            var result = new List<PartedSkinMeshModel>();
+            let result = new List<PartedSkinMeshModel>();
 
-            for (var geometryName in geometries) {
-                var geometry = geometries[geometryName];
+            for (let geometryName in geometries) {
+                let geometry = geometries[geometryName];
 
                 if (!this.isSkinGeometry(geometry)) {
                     continue;
                 }
 
-                var parsedGeometry = this.parseSkinGeometry(geometryName, geometry);
+                let parsedGeometry = this.parseSkinGeometry(geometryName, geometry);
 
                 result.push(parsedGeometry);
             }
@@ -307,24 +307,24 @@ namespace Converters {
 
         private parseSkinGeometry(geometryName: string, geometry: any): PartedSkinMeshModel {
 
-            var geometry3js = geometry.mesh.geometry3js;
+            let geometry3js = geometry.mesh.geometry3js;
 
             // Extract mesh data
-            var vertices = this.extractVertices(geometry3js);
+            let vertices = this.extractVertices(geometry3js);
 
-            var faces = this.extractFaces(geometry3js);
+            let faces = this.extractFaces(geometry3js);
 
             this.overwriteVertexUV(faces, vertices);
 
-            var bones = this.extractBones(geometry3js);
+            let bones = this.extractBones(geometry3js);
 
-            var faceGroups = this.collectFaceGroups(geometry3js, vertices, faces);
+            let faceGroups = this.collectFaceGroups(geometry3js, vertices, faces);
 
-            var meshSufixIndex = geometryName.lastIndexOf('-mesh');
-            var meshName = geometryName.substr(0, meshSufixIndex);
+            let meshSufixIndex = geometryName.lastIndexOf('-mesh');
+            let meshName = geometryName.substr(0, meshSufixIndex);
 
             // Build a parted skin mesh model
-            var skinMeshModel = this.buildPartedSkinMeshModel(faceGroups, vertices, faces, bones);
+            let skinMeshModel = this.buildPartedSkinMeshModel(faceGroups, vertices, faces, bones);
 
             skinMeshModel.name = meshName;
 
@@ -333,21 +333,21 @@ namespace Converters {
 
         private extractBones(geometry3js: any): List<SkinMeshBone> {
 
-            var tempVec3 = vec3.create();
+            let tempVec3 = vec3.create();
 
-            var result = new List<SkinMeshBone>();
+            let result = new List<SkinMeshBone>();
 
-            for (var i = 0; i < geometry3js.bones.length; i++) {
-                var bone = geometry3js.bones[i];
+            for (let i = 0; i < geometry3js.bones.length; i++) {
+                let bone = geometry3js.bones[i];
 
-                var skiningBone = new SkinMeshBone();
+                let skiningBone = new SkinMeshBone();
                 skiningBone.name = bone.name.replace(/_/g, '.');
                 skiningBone.originalBoneIndex = i;
                 mat4.copy(skiningBone.localMatrix, bone.matrix.elements);
 
                 mat4.copy(skiningBone.worldMatrix, skiningBone.localMatrix);
                 if (typeof (bone.parent) == 'number' && bone.parent != -1) {
-                    var parent = result[bone.parent];
+                    let parent = result[bone.parent];
                     skiningBone.parent = parent;
                     mat4.multiply(skiningBone.worldMatrix, parent.worldMatrix, skiningBone.worldMatrix);
                 }
@@ -361,8 +361,8 @@ namespace Converters {
                 result.push(skiningBone);
             }
 
-            for (var i = 0; i < result.length; i++) {
-                var skiningBone = result[i];
+            for (let i = 0; i < result.length; i++) {
+                let skiningBone = result[i];
 
                 if (skiningBone.parent == null) {
                     skiningBone.nestLevel = 0;
@@ -392,7 +392,7 @@ namespace Converters {
 
         private normalizeMat4Part(mat: Mat4, offset: int) {
 
-            var length = Math.sqrt(mat[offset + 0] * mat[offset + 0] + mat[offset + 1] * mat[offset + 1] + mat[offset + 2] * mat[offset + 2]);
+            let length = Math.sqrt(mat[offset + 0] * mat[offset + 0] + mat[offset + 1] * mat[offset + 1] + mat[offset + 2] * mat[offset + 2]);
             if (length > 0) {
                 mat[offset + 0] /= length;
                 mat[offset + 1] /= length;
@@ -407,21 +407,21 @@ namespace Converters {
             }
 
             // add weight data to vertex and face data
-            for (var i = 0; i < faces.length; i++) {
-                var face = faces[i];
+            for (let i = 0; i < faces.length; i++) {
+                let face = faces[i];
 
                 face.sortingIndeces = new List<int>();
 
-                for (var k = 0; k < face.vertexIndeces.length; k++) {
+                for (let k = 0; k < face.vertexIndeces.length; k++) {
 
-                    var vertexIndex = face.vertexIndeces[k]
-                    var vertex = vertices[vertexIndex];
-                    var skinIndex = geometry3js.skinIndices[vertexIndex];
-                    var skinWeight = geometry3js.skinWeights[vertexIndex];
+                    let vertexIndex = face.vertexIndeces[k]
+                    let vertex = vertices[vertexIndex];
+                    let skinIndex = geometry3js.skinIndices[vertexIndex];
+                    let skinWeight = geometry3js.skinWeights[vertexIndex];
 
                     vertex.boneWeights = new List<BoneIndexWeight>();
 
-                    var boneWeight = new BoneIndexWeight();
+                    let boneWeight = new BoneIndexWeight();
                     boneWeight.index = skinIndex.x;
                     boneWeight.weight = skinWeight.x;
                     vertex.boneWeights.push(boneWeight);
@@ -460,12 +460,12 @@ namespace Converters {
                 face.boneCount = face.sortingIndeces.length;
 
                 if (face.boneCount > 4) {
-                    console.log("more than 4 bone count detected.");
+                    console.log('more than 4 bone count detected.');
                 }
             }
 
             // grouping by bone and material
-            var faceGoups: List<SkinFaceGroup> = Enumerable.From(faces)
+            let faceGoups: List<SkinFaceGroup> = Enumerable.From(faces)
                 .GroupBy(face => getFaceGroupKey(face.materialIndex, face.sortingIndeces))
                 .Select(group => ({
                     key: group.Key(),
@@ -479,21 +479,21 @@ namespace Converters {
                 .ToArray();
 
             // compress all one-bone groups
-            for (var i = 0; i < faceGoups.length; i++) {
-                var group = faceGoups[i];
+            for (let i = 0; i < faceGoups.length; i++) {
+                let group = faceGoups[i];
 
                 if (group.boneCount != 1) {
                     continue;
                 }
                 else {
-                    var compress_to_group: SkinFaceGroup = null;
-                    var newBone = false;
+                    let compress_to_group: SkinFaceGroup = null;
+                    let newBone = false;
 
                     // search another group wihich same bone have
-                    for (var k = 0; k < faceGoups.length; k++) {
-                        var toGroup = faceGoups[k];
+                    for (let k = 0; k < faceGoups.length; k++) {
+                        let toGroup = faceGoups[k];
                         if (k != i && toGroup.materialIndex == group.materialIndex && toGroup.boneCount >= 2) {
-                            for (var m = 0; m < toGroup.boneIndices.length; m++) {
+                            for (let m = 0; m < toGroup.boneIndices.length; m++) {
                                 if (toGroup.boneIndices[m] == group.boneIndices[0]) {
                                     compress_to_group = toGroup;
                                     break;
@@ -505,8 +505,8 @@ namespace Converters {
                     // search another one bone group
                     // or search three bone group
                     if (compress_to_group == null) {
-                        for (var k = 0; k < faceGoups.length; k++) {
-                            var toGroup = faceGoups[k];
+                        for (let k = 0; k < faceGoups.length; k++) {
+                            let toGroup = faceGoups[k];
                             if (k != i && toGroup.materialIndex == group.materialIndex && toGroup.boneCount == 1) {
                                 compress_to_group = toGroup;
                                 newBone = true;
@@ -515,8 +515,8 @@ namespace Converters {
                         }
                     }
                     if (compress_to_group == null) {
-                        for (var k = 0; k < faceGoups.length; k++) {
-                            var toGroup = faceGoups[k];
+                        for (let k = 0; k < faceGoups.length; k++) {
+                            let toGroup = faceGoups[k];
                             if (k != i && toGroup.materialIndex == group.materialIndex && toGroup.boneCount == 3) {
                                 compress_to_group = toGroup;
                                 newBone = true;
@@ -543,8 +543,8 @@ namespace Converters {
             }
 
             // adjust boneIndices array size
-            for (var i = 0; i < faceGoups.length; i++) {
-                var group = faceGoups[i];
+            for (let i = 0; i < faceGoups.length; i++) {
+                let group = faceGoups[i];
                 if (group.boneIndices.length == 1 || group.boneIndices.length == 3) {
                     group.boneIndices.push(-1);
                 }
@@ -561,24 +561,24 @@ namespace Converters {
 
         private buildPartedSkinMeshModel(faceGoups: List<SkinFaceGroup>, vertices: List<MeshVertex>, faces: List<MeshFace>, bones: List<SkinMeshBone>): PartedSkinMeshModel {
 
-            var vertexIndexTable = new Array(vertices.length);
+            let vertexIndexTable = new Array(vertices.length);
 
             // create a part data for each groups
-            var parts = new List<SkinMeshPart>();
-            for (var i = 0; i < faceGoups.length; i++) {
-                var group = faceGoups[i];
+            let parts = new List<SkinMeshPart>();
+            for (let i = 0; i < faceGoups.length; i++) {
+                let group = faceGoups[i];
 
                 // assign new vertex index in the part
-                var new_vertex_count = 0;
-                for (var k = 0; k < vertexIndexTable.length; k++) {
+                let new_vertex_count = 0;
+                for (let k = 0; k < vertexIndexTable.length; k++) {
                     vertexIndexTable[k] = -1;
                 }
 
-                for (var k = 0; k < group.faces.length; k++) {
-                    var face: MeshFace = group.faces[k];
+                for (let k = 0; k < group.faces.length; k++) {
+                    let face: MeshFace = group.faces[k];
 
-                    for (var m = 0; m < face.vertexIndeces.length; m++) {
-                        var vertexIndex = face.vertexIndeces[m];
+                    for (let m = 0; m < face.vertexIndeces.length; m++) {
+                        let vertexIndex = face.vertexIndeces[m];
 
                         if (vertexIndexTable[vertexIndex] == -1) {
                             vertexIndexTable[vertexIndex] = new_vertex_count;
@@ -588,29 +588,29 @@ namespace Converters {
                 }
 
                 // create vertices
-                var part_vertices = new List<SkinVertex>(new_vertex_count);
-                for (var k = 0; k < vertexIndexTable.length; k++) {
+                let part_vertices = new List<SkinVertex>(new_vertex_count);
+                for (let k = 0; k < vertexIndexTable.length; k++) {
 
                     if (vertexIndexTable[k] != -1) {
 
-                        var src_vertex = vertices[k];
+                        let src_vertex = vertices[k];
 
-                        var skinVertex = new SkinVertex();
+                        let skinVertex = new SkinVertex();
                         skinVertex.texcoords = src_vertex.texcoords;
 
                         skinVertex.positions = new List<SkinVertexPosition>();
-                        for (var m = 0; m < group.boneIndices.length; m++) {
-                            var boneIndex = group.boneIndices[m];
+                        for (let m = 0; m < group.boneIndices.length; m++) {
+                            let boneIndex = group.boneIndices[m];
 
                             if (boneIndex == -1) {
                                 continue;
                             }
 
-                            var vpos = new SkinVertexPosition();
+                            let vpos = new SkinVertexPosition();
                             vec3.copy(vpos.position, src_vertex.position);
                             vec3.copy(vpos.normal, src_vertex.normal);
                             vpos.boneWeight = 0.0;
-                            for (var n = 0; n < src_vertex.boneWeights.length; n++) {
+                            for (let n = 0; n < src_vertex.boneWeights.length; n++) {
                                 if (src_vertex.boneWeights[n].index == boneIndex) {
                                     vpos.boneWeight = src_vertex.boneWeights[n].weight;
                                     break;
@@ -625,11 +625,11 @@ namespace Converters {
                 }
 
                 // create faces
-                var part_faces = new List<MeshFace>();
-                for (var k = 0; k < group.faces.length; k++) {
-                    var face: MeshFace = group.faces[k];
+                let part_faces = new List<MeshFace>();
+                for (let k = 0; k < group.faces.length; k++) {
+                    let face: MeshFace = group.faces[k];
 
-                    var skinFace = new MeshFace();
+                    let skinFace = new MeshFace();
                     skinFace.vertexIndeces = Enumerable.From(face.vertexIndeces)
                         .Select(index => vertexIndexTable[index])
                         .ToArray();
@@ -643,7 +643,7 @@ namespace Converters {
                 }
 
                 // create part
-                var part = new SkinMeshPart();
+                let part = new SkinMeshPart();
                 part.boneIndices = group.boneIndices;
                 part.materialIndex = group.materialIndex;
                 part.vertices = part_vertices;
@@ -653,16 +653,16 @@ namespace Converters {
             }
 
             // replace bone index to re-ordered one
-            var boneIndexTable = [];
-            for (var i = 0; i < bones.length; i++) {
+            let boneIndexTable = [];
+            for (let i = 0; i < bones.length; i++) {
 
                 boneIndexTable[bones[i].originalBoneIndex] = i;
             }
 
-            for (var i = 0; i < parts.length; i++) {
-                var part = parts[i];
+            for (let i = 0; i < parts.length; i++) {
+                let part = parts[i];
 
-                for (var k = 0; k < part.boneIndices.length; k++) {
+                for (let k = 0; k < part.boneIndices.length; k++) {
                     if (part.boneIndices[k] != -1) {
                         part.boneIndices[k] = boneIndexTable[part.boneIndices[k]];
                     }
@@ -670,16 +670,16 @@ namespace Converters {
             }
 
             // transform vertex positions into bone local
-            for (var i = 0; i < parts.length; i++) {
-                var part = parts[i];
+            for (let i = 0; i < parts.length; i++) {
+                let part = parts[i];
 
-                for (var k = 0; k < part.vertices.length; k++) {
-                    var vertex = part.vertices[k];
+                for (let k = 0; k < part.vertices.length; k++) {
+                    let vertex = part.vertices[k];
 
-                    for (var m = 0; m < vertex.positions.length; m++) {
-                        var vpos = vertex.positions[m];
-                        var boneIndex = part.boneIndices[m];
-                        var bone = bones[boneIndex];
+                    for (let m = 0; m < vertex.positions.length; m++) {
+                        let vpos = vertex.positions[m];
+                        let boneIndex = part.boneIndices[m];
+                        let bone = bones[boneIndex];
 
                         vec3.transformMat4(vpos.position, vpos.position, bone.worldInvMatrix);
 
@@ -690,7 +690,7 @@ namespace Converters {
             }
 
             // create a model
-            var result = new PartedSkinMeshModel();
+            let result = new PartedSkinMeshModel();
             result.bones = bones;
             result.parts = parts;
 

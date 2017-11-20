@@ -77,7 +77,7 @@ namespace Game {
         }
 
         remove(task: TaskClass) {
-            for (var i = 0; i < this.TaskList.length; i++) {
+            for (let i = 0; i < this.TaskList.length; i++) {
                 if (this.TaskList[i] == task) {
                     ListRemoveAt(this.TaskList, i);
                     break;
@@ -115,7 +115,7 @@ namespace Game {
 
         get(): T {
 
-            var obj = super.get();
+            let obj = super.get();
 
             if (obj != null) {
                 obj.recyclePool = this;
@@ -138,9 +138,9 @@ namespace Game {
 
             this.clearTasks();
 
-            var maxLayer = <int>TaskGroupID.maxGroupCount;
+            let maxLayer = <int>TaskGroupID.maxGroupCount;
 
-            for (var i = 0; i <= maxLayer; i++) {
+            for (let i = 0; i <= maxLayer; i++) {
 
                 this.taskGroups.push(new TaskGroup());
             }
@@ -150,16 +150,16 @@ namespace Game {
 
         clearTasks() {
 
-            for (var i = this.tasks.length - 1; i >= 0; i--) {
-                var task = this.tasks[i];
+            for (let i = this.tasks.length - 1; i >= 0; i--) {
+                let task = this.tasks[i];
 
                 this.deleteOrRecycleTask(task);
             }
 
             this.tasks = new List<TaskClass>();
 
-            for (var i = 0; i < this.taskGroups.length; i++) {
-                var taskGroup = this.taskGroups[i];
+            for (let i = 0; i < this.taskGroups.length; i++) {
+                let taskGroup = this.taskGroups[i];
 
                 taskGroup.clear();
             }
@@ -178,7 +178,7 @@ namespace Game {
 
         addTaskToGroup(task: TaskClass, taskGroupID: Game.TaskGroupID): TaskClass {
 
-            var taskGroup = this.taskGroups[<int>taskGroupID];
+            let taskGroup = this.taskGroups[<int>taskGroupID];
 
             taskGroup.add(task);
 
@@ -192,10 +192,10 @@ namespace Game {
 
         destroyTaskGroupTasks(taskGroupID: Game.TaskGroupID) {
 
-            var taskGroup = this.taskGroups[<int>taskGroupID];
+            let taskGroup = this.taskGroups[<int>taskGroupID];
 
-            for (var i = 0; i < taskGroup.TaskList.length; i++) {
-                var task = taskGroup.TaskList[i];
+            for (let i = 0; i < taskGroup.TaskList.length; i++) {
+                let task = taskGroup.TaskList[i];
 
                 this.destroyTask(task);
             }
@@ -203,8 +203,8 @@ namespace Game {
 
         destroyTaskPoolTasks(taskPool: ITaskRecyclePool) {
 
-            for (var i = 0; i < taskPool.getCount(); i++) {
-                var task = taskPool.getAt(i);
+            for (let i = 0; i < taskPool.getCount(); i++) {
+                let task = taskPool.getAt(i);
 
                 this.destroyTask(task);
             }
@@ -214,8 +214,8 @@ namespace Game {
 
         executeDestroyTask() {
 
-            for (var i = this.tasks.length - 1; i >= 0; i--) {
-                var task = this.tasks[i];
+            for (let i = this.tasks.length - 1; i >= 0; i--) {
+                let task = this.tasks[i];
 
                 if (task.state == TaskState.waitingForDestroy) {
 
@@ -230,8 +230,8 @@ namespace Game {
 
             task.onDestroy(this.environment);
 
-            for (var i = 0; i < this.taskGroups.length; i++) {
-                var taskGroup = this.taskGroups[i];
+            for (let i = 0; i < this.taskGroups.length; i++) {
+                let taskGroup = this.taskGroups[i];
 
                 taskGroup.remove(task);
             }
@@ -246,8 +246,8 @@ namespace Game {
 
         runTasks_run() {
 
-            for (var i = this.tasks.length - 1; i >= 0; i--) {
-                var task = this.tasks[i];
+            for (let i = this.tasks.length - 1; i >= 0; i--) {
+                let task = this.tasks[i];
 
                 if (task.state != TaskState.waitingForDestroy) {
 
@@ -258,8 +258,8 @@ namespace Game {
 
         runTasks_onBeforeRendering() {
 
-            for (var i = this.tasks.length - 1; i >= 0; i--) {
-                var task = this.tasks[i];
+            for (let i = this.tasks.length - 1; i >= 0; i--) {
+                let task = this.tasks[i];
 
                 if (task.state != TaskState.waitingForDestroy) {
 
@@ -270,8 +270,8 @@ namespace Game {
 
         runTasks_OnSampleEvent1() {
 
-            for (var i = this.tasks.length - 1; i >= 0; i--) {
-                var task = this.tasks[i];
+            for (let i = this.tasks.length - 1; i >= 0; i--) {
+                let task = this.tasks[i];
 
                 if (task.state != TaskState.waitingForDestroy) {
 
@@ -282,8 +282,8 @@ namespace Game {
 
         runTasks_OnSampleEvent2() {
 
-            for (var i = this.tasks.length - 1; i >= 0; i--) {
-                var task = this.tasks[i];
+            for (let i = this.tasks.length - 1; i >= 0; i--) {
+                let task = this.tasks[i];
 
                 if (task.state != TaskState.waitingForDestroy) {
 

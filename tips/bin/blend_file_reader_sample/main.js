@@ -23,8 +23,8 @@ var BlendFileReaderSample;
         result.push(".blend version: " + blendFile.fileHeader.version_number);
         file_element.innerHTML = result.join('<br/>');
         // DNA
-        result.push('[DNA]');
         result = [];
+        result.push('[DNA]');
         for (var i = 0; i < blendFile.dna.structureTypeInfoList.length; i++) {
             var typeInfo = blendFile.dna.structureTypeInfoList[i];
             result.push(typeInfo.name);
@@ -35,24 +35,24 @@ var BlendFileReaderSample;
             result.push('');
         }
         dna_element.innerHTML = result.join('<br/>');
-        // data blocks
-        result.push('[All data blocks]');
+        // Data blocks
         result = [];
+        result.push('[All data blocks]');
         for (var i = 0; i < blendFile.bheadList.length; i++) {
             var bhead = blendFile.bheadList[i];
             var typeInfo = blendFile.dna.structureTypeInfoList[bhead.SDNAnr];
             result.push(bhead.code + ' ' + typeInfo.name + ' ' + getAddressText(bhead.old) + ' (' + bhead.nr.toString() + ')');
         }
         blocks_element.innerHTML = result.join('<br/>');
-        // detail data samples
-        result.push('[Data samples]');
+        // Detail data samples
         result = [];
+        result.push('[Data samples]');
         var material_TypeInfo = blendFile.dna.getStructureTypeInfo('Material');
         for (var i = 0; i < blendFile.bheadList.length; i++) {
             var bHead = blendFile.bheadList[i];
             if (bHead.SDNAnr == material_TypeInfo.sdnaIndex) {
                 var dataset = blendFile.dna.createDataSet(bHead);
-                var out = 'Material ' + getAddressText(bHead.old) + ' (' + bhead.nr.toString() + ')' + '<br/>'
+                var out = 'Material ' + getAddressText(bHead.old) + ' (' + bHead.nr.toString() + ')' + '<br/>'
                     + '&emsp;name: ' + dataset.id.name + '<br/>'
                     + '&emsp;r: ' + dataset.r.toFixed(4) + '<br/>'
                     + '&emsp;g: ' + dataset.g.toFixed(4) + '<br/>'
@@ -65,7 +65,7 @@ var BlendFileReaderSample;
             var bHead = blendFile.bheadList[i];
             if (bHead.SDNAnr == object_TypeInfo.sdnaIndex) {
                 var dataset = blendFile.dna.createDataSet(bHead);
-                var out = 'Object ' + getAddressText(bHead.old) + ' (' + bhead.nr.toString() + ')' + '<br/>'
+                var out = 'Object ' + getAddressText(bHead.old) + ' (' + bHead.nr.toString() + ')' + '<br/>'
                     + '&emsp;name: ' + dataset.id.name + '<br/>'
                     + '&emsp;loc: (' + dataset.loc[0].toFixed(4)
                     + ', ' + dataset.loc[1].toFixed(4)

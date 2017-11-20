@@ -142,7 +142,7 @@ namespace PTWTipsSound_HTML5_Audio {
 
         isAvailable(): boolean {
 
-            var tempAudio = document.createElement('audio');
+            let tempAudio = document.createElement('audio');
 
             return (
                 (tempAudio.canPlayType('audio/mpeg;') != '') && (tempAudio.canPlayType('audio/wav;') != '')
@@ -156,7 +156,7 @@ namespace PTWTipsSound_HTML5_Audio {
 
         createSoundSource(maxPlayingUnitCount: int): PTWTipsSound.SoundSource {
 
-            var soundSource = new SoundSource();
+            let soundSource = new SoundSource();
 
             soundSource.device = this;
 
@@ -169,16 +169,16 @@ namespace PTWTipsSound_HTML5_Audio {
 
         loadSound(soundSource: SoundSource, url: string) {
 
-            var audio: HTMLAudioElement = new Audio();
+            let audio: HTMLAudioElement = new Audio();
             audio.preload = 'auto';
             audio.src = url;
 
             soundSource.masterAudio = audio;
 
-            var loadedCount = 0;
+            let loadedCount = 0;
 
             // Function for recursive loading
-            var canplaythrough = (ev) => {
+            let canplaythrough = (ev) => {
 
                 // Gurding for over called event
                 if (soundSource.isLoaded) {
@@ -189,7 +189,7 @@ namespace PTWTipsSound_HTML5_Audio {
                 audio.removeEventListener('canplaythrough', canplaythrough);
 
                 // Setup playing unit
-                var playingUnit = soundSource.playingUnits[loadedCount];
+                let playingUnit = soundSource.playingUnits[loadedCount];
                 playingUnit.audio = audio;
 
                 loadedCount++;

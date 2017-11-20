@@ -278,9 +278,9 @@ var Converters;
                 mat4.copy(skiningBone.localMatrix, bone.matrix.elements);
                 mat4.copy(skiningBone.worldMatrix, skiningBone.localMatrix);
                 if (typeof (bone.parent) == 'number' && bone.parent != -1) {
-                    var parent = result[bone.parent];
-                    skiningBone.parent = parent;
-                    mat4.multiply(skiningBone.worldMatrix, parent.worldMatrix, skiningBone.worldMatrix);
+                    var parent_1 = result[bone.parent];
+                    skiningBone.parent = parent_1;
+                    mat4.multiply(skiningBone.worldMatrix, parent_1.worldMatrix, skiningBone.worldMatrix);
                 }
                 mat4.invert(skiningBone.worldInvMatrix, skiningBone.worldMatrix);
                 mat4.copy(skiningBone.worldInvNormalMatrix, skiningBone.worldMatrix);
@@ -366,7 +366,7 @@ var Converters;
                     .ToArray();
                 face.boneCount = face.sortingIndeces.length;
                 if (face.boneCount > 4) {
-                    console.log("more than 4 bone count detected.");
+                    console.log('more than 4 bone count detected.');
                 }
             }
             // grouping by bone and material

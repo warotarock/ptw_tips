@@ -35,7 +35,7 @@ namespace ObjectAnimationDrawing {
 
             this.render.initializeShader(this.shader);
 
-            var image = new RenderImage();
+            let image = new RenderImage();
             this.loadTexture(image, './texture.png');
             this.images.push(image);
 
@@ -73,7 +73,7 @@ namespace ObjectAnimationDrawing {
 
         draw() {
 
-            var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
+            let aspect = this.logicalScreenWidth / this.logicalScreenHeight;
             mat4.perspective(this.projectionMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 100.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
 
@@ -114,13 +114,13 @@ namespace ObjectAnimationDrawing {
 
         private loadModel(resultModel: RenderModel, url: string, modelName: string) {
 
-            var xhr = new XMLHttpRequest();
+            let xhr = new XMLHttpRequest();
             xhr.open('GET', url);
             xhr.responseType = 'json';
 
             xhr.addEventListener('load',
                 (e: Event) => {
-                    var data: any;
+                    let data: any;
                     if (xhr.responseType == 'json') {
                         data = xhr.response;
                     }
@@ -128,7 +128,7 @@ namespace ObjectAnimationDrawing {
                         data = JSON.parse(xhr.response);
                     }
 
-                    var modelData = data['models'][modelName];
+                    let modelData = data['models'][modelName];
 
                     this.render.initializeModelBuffer(resultModel, modelData.vertex, modelData.index, 4 * modelData.vertexStride); // 4 = size of float
                 }
@@ -138,11 +138,11 @@ namespace ObjectAnimationDrawing {
         }
     }
 
-    var _Main: Main;
+    let _Main: Main;
 
     window.onload = () => {
 
-        var canvas = <HTMLCanvasElement>document.getElementById('canvas');
+        let canvas = <HTMLCanvasElement>document.getElementById('canvas');
         _Main = new Main();
         _Main.initialize(canvas);
 

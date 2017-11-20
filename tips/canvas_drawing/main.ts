@@ -82,7 +82,7 @@ namespace CanvasDrawing {
 
             this.prepareDrawers();
 
-            var div = document.getElementById('debug_container');
+            let div = document.getElementById('debug_container');
             div.appendChild(this.canvasDrawer.getCanvas());
             div.appendChild(this.canvasDrawer.getMeasuringCanvas());
 
@@ -158,7 +158,7 @@ namespace CanvasDrawing {
             mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.animationTime * 0.02);
 
             // Text animation
-            var now = new Date();
+            let now = new Date();
             let dateTimeText = '' + (now.getHours()) + ':' + (now.getMinutes()) + ':' + (now.getSeconds());
             this.textDrawer.setText(dateTimeText);
 
@@ -179,7 +179,7 @@ namespace CanvasDrawing {
             }
 
             // Draw a cube
-            var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
+            let aspect = this.logicalScreenWidth / this.logicalScreenHeight;
             mat4.perspective(this.projectionMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 100.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
 
@@ -220,13 +220,13 @@ namespace CanvasDrawing {
 
         private loadModel(resultModel: RenderModel, url: string, modelName: string) {
 
-            var xhr = new XMLHttpRequest();
+            let xhr = new XMLHttpRequest();
             xhr.open('GET', url);
             xhr.responseType = 'json';
 
             xhr.addEventListener('load',
                 (e: Event) => {
-                    var data: any;
+                    let data: any;
                     if (xhr.responseType == 'json') {
                         data = xhr.response;
                     }
@@ -234,7 +234,7 @@ namespace CanvasDrawing {
                         data = JSON.parse(xhr.response);
                     }
 
-                    var modelData = data['models'][modelName];
+                    let modelData = data['models'][modelName];
 
                     this.render.initializeModelBuffer(resultModel, modelData.vertex, modelData.index, 4 * modelData.vertexStride); // 4 = size of float
                 }
@@ -244,11 +244,11 @@ namespace CanvasDrawing {
         }
     }
 
-    var _Main: Main;
+    let _Main: Main;
 
     window.onload = () => {
 
-        var canvas = <HTMLCanvasElement>document.getElementById('canvas');
+        let canvas = <HTMLCanvasElement>document.getElementById('canvas');
         _Main = new Main();
         _Main.initialize(canvas);
 

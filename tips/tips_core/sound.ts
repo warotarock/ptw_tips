@@ -271,7 +271,7 @@ namespace PTWTipsSound {
                             }
                             else {
 
-                                var rate = playUnit.fadeTime / playUnit.fadeDuration;
+                                let rate = playUnit.fadeTime / playUnit.fadeDuration;
                                 playUnit.setVolume(playUnit.fadeStartVolume * (1.0 - rate) + playUnit.fadeEndVolume * rate);
                             }
                         }

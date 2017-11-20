@@ -68,7 +68,7 @@ class RenderShader {
 
     protected getAttribLocation(name: string, gl: WebGLRenderingContext): int {
 
-        var attribLocation = gl.getAttribLocation(this.program, name);
+        let attribLocation = gl.getAttribLocation(this.program, name);
         this.attribLocationList.push(attribLocation);
 
         return attribLocation;
@@ -86,14 +86,14 @@ class RenderShader {
 
     enableVertexAttributes(gl: WebGLRenderingContext) {
 
-        for (var i = 0; i < this.attribLocationList.length; i++) {
+        for (let i = 0; i < this.attribLocationList.length; i++) {
             gl.enableVertexAttribArray(this.attribLocationList[i]);
         }
     }
 
     disableVertexAttributes(gl: WebGLRenderingContext) {
 
-        for (var i = 0; i < this.attribLocationList.length; i++) {
+        for (let i = 0; i < this.attribLocationList.length; i++) {
             gl.disableVertexAttribArray(this.attribLocationList[i]);
         }
     }
@@ -143,9 +143,9 @@ class WebGLRender {
     initializeWebGL(canvas: HTMLCanvasElement): boolean {
 
         try {
-            var option = { preserveDrawingBuffer: true, antialias: true };
+            let option = { preserveDrawingBuffer: true, antialias: true };
 
-            var gl = <WebGLRenderingContext>(
+            let gl = <WebGLRenderingContext>(
                 canvas.getContext('webgl', option)
                 || canvas.getContext('experimental-webgl', option)
             );
@@ -154,7 +154,7 @@ class WebGLRender {
                 this.attach(gl);
             }
             else {
-                throw ("Faild to initialize WebGL.");
+                throw ('Faild to initialize WebGL.');
             }
         }
         catch (e) {
@@ -168,7 +168,7 @@ class WebGLRender {
 
         this.gl = gl;
 
-        var format = this.gl.getShaderPrecisionFormat(this.gl.FRAGMENT_SHADER, this.gl.HIGH_FLOAT);
+        let format = this.gl.getShaderPrecisionFormat(this.gl.FRAGMENT_SHADER, this.gl.HIGH_FLOAT);
         this.floatPrecisionText = format.precision != 0 ? 'highp' : 'mediump';
 
         this.resetBasicParameters();
@@ -187,7 +187,7 @@ class WebGLRender {
 
     private createVertexBuffer(data: List<float>, gl: WebGLRenderingContext): WebGLBuffer {
 
-        var glBuffer = gl.createBuffer();
+        let glBuffer = gl.createBuffer();
 
         gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
@@ -198,7 +198,7 @@ class WebGLRender {
 
     private createIndexBuffer(data: List<int>, gl: WebGLRenderingContext): WebGLBuffer {
 
-        var glBuffer = gl.createBuffer();
+        let glBuffer = gl.createBuffer();
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, glBuffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(data), gl.STATIC_DRAW);
@@ -209,7 +209,7 @@ class WebGLRender {
 
     releaseModelBuffer(model: RenderModel) {
 
-        var gl = this.gl;
+        let gl = this.gl;
 
         if (model.vertexBuffer != null) {
 
@@ -232,9 +232,9 @@ class WebGLRender {
 
     initializeImageTexture(image: RenderImage) {
 
-        var gl = this.gl;
+        let gl = this.gl;
 
-        var glTexture = gl.createTexture();
+        let glTexture = gl.createTexture();
 
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
         gl.bindTexture(gl.TEXTURE_2D, glTexture);
@@ -256,7 +256,7 @@ class WebGLRender {
 
     releaseImageTexture(image: RenderImage) {
 
-        var gl = this.gl;
+        let gl = this.gl;
 
         if (image.texture != null) {
 
@@ -270,7 +270,7 @@ class WebGLRender {
 
     setTextureImageFromCanvas(image: RenderImage, canvas: HTMLCanvasElement) {
 
-        var gl = this.gl;
+        let gl = this.gl;
 
         gl.bindTexture(gl.TEXTURE_2D, image.texture);
 
@@ -281,13 +281,13 @@ class WebGLRender {
 
     initializeShader(shader: RenderShader) {
 
-        var gl = this.gl;
+        let gl = this.gl;
 
         shader.initializeSourceCode(this.floatPrecisionText);
 
-        var program = gl.createProgram();
-        var vertexShader = this.createShader(shader.vertexShaderSourceCode, true, gl);
-        var fragmentShader = this.createShader(shader.fragmentShaderSourceCode, false, gl);
+        let program = gl.createProgram();
+        let vertexShader = this.createShader(shader.vertexShaderSourceCode, true, gl);
+        let fragmentShader = this.createShader(shader.fragmentShaderSourceCode, false, gl);
 
         gl.attachShader(program, vertexShader);
         gl.attachShader(program, fragmentShader);
@@ -310,7 +310,7 @@ class WebGLRender {
 
     private createShader(glslSourceCode: string, isVertexShader: boolean, gl: WebGLRenderingContext): WebGLShader {
 
-        var shader: WebGLShader;
+        let shader: WebGLShader;
         if (isVertexShader) {
             shader = gl.createShader(gl.VERTEX_SHADER);
         }
@@ -331,7 +331,7 @@ class WebGLRender {
 
     releaseShader(shader: RenderShader) {
 
-        var gl = this.gl;
+        let gl = this.gl;
 
         if (shader.program != null) {
 
@@ -352,7 +352,7 @@ class WebGLRender {
 
     setShader(shader: RenderShader) {
 
-        var lastShader = this.currentShader;
+        let lastShader = this.currentShader;
 
         this.gl.useProgram(shader.program);
         this.currentShader = shader;
@@ -398,7 +398,7 @@ class WebGLRender {
 
     setDepthTest(enable: boolean): WebGLRender {
 
-        var gl = this.gl;
+        let gl = this.gl;
 
         if (enable) {
             gl.enable(gl.DEPTH_TEST);
@@ -419,7 +419,7 @@ class WebGLRender {
 
     setCulling(enable: boolean): WebGLRender {
 
-        var gl = this.gl;
+        let gl = this.gl;
 
         if (enable) {
             gl.enable(gl.CULL_FACE);
@@ -433,7 +433,7 @@ class WebGLRender {
 
     setBlendType(blendType: WebGLRenderBlendType): WebGLRender {
 
-        var gl = this.gl;
+        let gl = this.gl;
 
         gl.enable(gl.BLEND);
 

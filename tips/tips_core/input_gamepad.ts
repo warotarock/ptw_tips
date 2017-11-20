@@ -32,9 +32,9 @@ module PTWTipsInput {
 
         protected getMappingTypeForEnvironment(): int {
 
-            var userAgent = window.navigator.userAgent.toLowerCase();
+            let userAgent = window.navigator.userAgent.toLowerCase();
 
-            var browerType = 0;
+            let browerType = 0;
 
             if (userAgent.indexOf('msie') != -1 || userAgent.indexOf('trident') != -1) {
 
@@ -196,7 +196,7 @@ module PTWTipsInput {
 
         processPollingCrossButton(crossButtons: List<ButtonInputControl>, buttons: List<ButtonInputControl>, gamepad: HTMLGamepad, time: float, doublePressMilliSecond: float) {
 
-            var povAxisIndex = this.axesMappings[4];
+            let povAxisIndex = this.axesMappings[4];
 
             if (povAxisIndex >= gamepad.axes.length) {
                 return;
@@ -206,17 +206,17 @@ module PTWTipsInput {
             let verticalPressedIndex = -1;
             let horizontalPressedIndex = -1;
 
-            var axisValue = gamepad.axes[povAxisIndex];
+            let axisValue = gamepad.axes[povAxisIndex];
 
             if (axisValue >= -1.0 && axisValue <= 1.0) {
 
                 // POV value takes -1.0 when angle is PI * 0.5) , and takes 1.0 when angle is PI * 0.75
-                var angle = (1.625 - (axisValue * 0.875));
+                let angle = (1.625 - (axisValue * 0.875));
                 if (angle >= 2.0) {
                     angle -= 2.0;
                 }
 
-                var limitAngle = 0.3;
+                let limitAngle = 0.3;
 
                 // Up direction
                 if (angle >= (0.5 - limitAngle) && angle <= (0.5 + limitAngle)) {
@@ -243,8 +243,8 @@ module PTWTipsInput {
                 }
             }
 
-            for (var i = 0; i < crossButtons.length; i++) {
-                var button = crossButtons[i];
+            for (let i = 0; i < crossButtons.length; i++) {
+                let button = crossButtons[i];
 
                 if (i == verticalPressedIndex || i == horizontalPressedIndex) {
 
@@ -288,21 +288,21 @@ module PTWTipsInput {
             this.connected = false;
 
             this.buttons = new List<ButtonInputControl>(this.maxButtonCount);
-            for (var i = 0; i < this.buttons.length; i++) {
+            for (let i = 0; i < this.buttons.length; i++) {
 
                 this.buttons[i] = new ButtonInputControl();
                 this.buttons[i].name = ('button' + (1 + i));
             }
 
             this.sticks = new List<AxisInputControl>(this.maxAxisCount);
-            for (var i = 0; i < this.sticks.length; i++) {
+            for (let i = 0; i < this.sticks.length; i++) {
 
                 this.sticks[i] = new AxisInputControl();
                 this.sticks[i].name = ('stick' + (1 + i));
             }
 
             this.crossButtons = new List<ButtonInputControl>(4);
-            for (var i = 0; i < this.crossButtons.length; i++) {
+            for (let i = 0; i < this.crossButtons.length; i++) {
 
                 this.crossButtons[i] = new ButtonInputControl();
                 this.crossButtons[i].name = ('crossButton' + (1 + i));
@@ -314,12 +314,12 @@ module PTWTipsInput {
 
         setEvents(canvas: HTMLCanvasElement) {
 
-            var gamepadconnected = (e) => {
+            let gamepadconnected = (e) => {
 
                 this.gamepadconnected(e);
             };
 
-            var gamepaddisconnected = (e) => {
+            let gamepaddisconnected = (e) => {
 
                 this.gamepaddisconnected(e);
             };
@@ -379,18 +379,18 @@ module PTWTipsInput {
                 this.processPollingCrossButton(time);
             }
 
-            //var debugbuttonTexts = [];
-            //for (var i = 0; i < this.gamepad.buttons.length; i++) {
+            //let debugbuttonTexts = [];
+            //for (let i = 0; i < this.gamepad.buttons.length; i++) {
 
             //    let button = this.gamepad.buttons[i];
-            //    for (var prop in button) {
+            //    for (let prop in button) {
             //        debugbuttonTexts.push(button[prop]);
             //    }
             //}
             //console.log(debugbuttonTexts.join(', '));
 
-            //var debugAxisTexts = [];
-            //for (var i = 0; i < this.gamepad.axes.length; i++) {
+            //let debugAxisTexts = [];
+            //for (let i = 0; i < this.gamepad.axes.length; i++) {
 
             //    debugAxisTexts.push(this.gamepad.axes[i].toFixed(2));
             //}
@@ -401,21 +401,21 @@ module PTWTipsInput {
 
             let gamepad = this.gamepad;
 
-            for (var i = 0; i < this.buttons.length; i++) {
+            for (let i = 0; i < this.buttons.length; i++) {
 
-                var button = this.buttons[i];
+                let button = this.buttons[i];
 
                 if (i >= this.currentDeviceLayout.buttonMappings.length) {
                     break;
                 }
 
-                var mappedIndex = this.currentDeviceLayout.buttonMappings[i];
+                let mappedIndex = this.currentDeviceLayout.buttonMappings[i];
 
                 if (mappedIndex >= gamepad.buttons.length) {
                     continue;
                 }
 
-                var gamepadButton = gamepad.buttons[mappedIndex];
+                let gamepadButton = gamepad.buttons[mappedIndex];
 
                 if (this.isGamepadButtonPressed(gamepadButton)) {
 
@@ -438,28 +438,28 @@ module PTWTipsInput {
 
             let gamepad = this.gamepad;
 
-            for (var i = 0; i < this.sticks.length; i++) {
-                var axis = this.sticks[i];
+            for (let i = 0; i < this.sticks.length; i++) {
+                let axis = this.sticks[i];
 
                 if (i >= this.currentDeviceLayout.StickIndexMappings.length) {
                     break;
                 }
 
-                var mapping = this.currentDeviceLayout.StickIndexMappings[i];
+                let mapping = this.currentDeviceLayout.StickIndexMappings[i];
 
                 if (mapping.xIndex >= gamepad.axes.length || mapping.yIndex >= gamepad.axes.length) {
                     continue;
                 }
 
-                var mappedIndexX = this.currentDeviceLayout.axesMappings[mapping.xIndex];
-                var mappedIndexY = this.currentDeviceLayout.axesMappings[mapping.yIndex];
+                let mappedIndexX = this.currentDeviceLayout.axesMappings[mapping.xIndex];
+                let mappedIndexY = this.currentDeviceLayout.axesMappings[mapping.yIndex];
 
                 if (mappedIndexX >= gamepad.axes.length || mappedIndexY >= gamepad.axes.length) {
                     continue;
                 }
 
-                var gamepadAxisValueX = 0.0;
-                var gamepadAxisValueY = 0.0;
+                let gamepadAxisValueX = 0.0;
+                let gamepadAxisValueY = 0.0;
 
                 if (mapping.xIndex < gamepad.axes.length) {
 
@@ -483,8 +483,8 @@ module PTWTipsInput {
         private processCrossButtonEmulation(time: float) {
 
             // If any cross button is inputed, cancel emulation
-            for (var i = 0; i < this.crossButtons.length; i++) {
-                var button = this.crossButtons[i];
+            for (let i = 0; i < this.crossButtons.length; i++) {
+                let button = this.crossButtons[i];
 
                 if (button.isInputed) {
                     return;
@@ -577,8 +577,8 @@ module PTWTipsInput {
                 }
             }
 
-            for (var i = 0; i < this.crossButtons.length; i++) {
-                var button = this.crossButtons[i];
+            for (let i = 0; i < this.crossButtons.length; i++) {
+                let button = this.crossButtons[i];
 
                 button.processPollingDoublePress(time, this.doublePressMilliSecond);
             }
@@ -586,14 +586,14 @@ module PTWTipsInput {
 
         updateStates() {
 
-            for (var i = 0; i < this.buttons.length; i++) {
-                var button = this.buttons[i];
+            for (let i = 0; i < this.buttons.length; i++) {
+                let button = this.buttons[i];
 
                 button.updateStates();
             }
 
-            for (var i = 0; i < this.crossButtons.length; i++) {
-                var button = this.crossButtons[i];
+            for (let i = 0; i < this.crossButtons.length; i++) {
+                let button = this.crossButtons[i];
 
                 button.updateStates();
             }
@@ -601,16 +601,16 @@ module PTWTipsInput {
 
         getButtonControlByName(name: string): ButtonInputControl {
 
-            for (var i = 0; i < this.buttons.length; i++) {
-                var button = this.buttons[i];
+            for (let i = 0; i < this.buttons.length; i++) {
+                let button = this.buttons[i];
 
                 if (button.name == name) {
                     return button;
                 }
             }
 
-            for (var i = 0; i < this.crossButtons.length; i++) {
-                var button = this.crossButtons[i];
+            for (let i = 0; i < this.crossButtons.length; i++) {
+                let button = this.crossButtons[i];
 
                 if (button.name == name) {
                     return button;
@@ -622,8 +622,8 @@ module PTWTipsInput {
 
         getAxisControlByName(name: string): AxisInputControl {
 
-            for (var i = 0; i < this.sticks.length; i++) {
-                var axis = this.sticks[i];
+            for (let i = 0; i < this.sticks.length; i++) {
+                let axis = this.sticks[i];
 
                 if (axis.name == name) {
                     return axis;
@@ -641,9 +641,9 @@ module PTWTipsInput {
         private checkGamepads(): boolean {
 
             if ('getGamepads' in navigator) {
-                var gamepads: List<HTMLGamepad> = navigator.getGamepads();
+                let gamepads: List<HTMLGamepad> = navigator.getGamepads();
 
-                for (var i = 0; i < gamepads.length; i++) {
+                for (let i = 0; i < gamepads.length; i++) {
                     if (gamepads[i]) {
                         return true;
                     }
@@ -653,9 +653,9 @@ module PTWTipsInput {
 
         private getFirstGamepad(): HTMLGamepad {
 
-            var gamepads: List<HTMLGamepad> = navigator.getGamepads();
+            let gamepads: List<HTMLGamepad> = navigator.getGamepads();
 
-            for (var i = 0; i < gamepads.length; i++) {
+            for (let i = 0; i < gamepads.length; i++) {
                 if (gamepads[i]) {
                     return gamepads[i]
                 }

@@ -112,7 +112,7 @@ var WebGLRender = (function () {
                 this.attach(gl);
             }
             else {
-                throw ("Faild to initialize WebGL.");
+                throw ('Faild to initialize WebGL.');
             }
         }
         catch (e) {

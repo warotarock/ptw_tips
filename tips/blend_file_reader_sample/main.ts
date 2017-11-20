@@ -2,12 +2,12 @@
 
     window.onload = () => {
 
-        var xhr = new XMLHttpRequest();
+        let xhr = new XMLHttpRequest();
         xhr.open('GET', 'sample.blend');
         xhr.responseType = 'arraybuffer';
         xhr.addEventListener('load',
             (e: Event) => {
-                var blendFile = BlendFileReader.readBlendFile(xhr.response);
+                let blendFile = BlendFileReader.readBlendFile(xhr.response);
                 ouputSample(blendFile);
             }
         );
@@ -16,34 +16,34 @@
 
     function getAddressText(address: ulong): string {
 
-        var tempText = '00000000' + address.toString(16);
+        let tempText = '00000000' + address.toString(16);
 
         return tempText.substr(tempText.length - 8);
     }
 
     function ouputSample(blendFile: BlendFileReader.ReadBlendFileResult) {
 
-        var file_element = document.getElementById('file');
-        var dna_element = document.getElementById('dna');
-        var blocks_element = document.getElementById('blocks');
-        var content_element = document.getElementById('content');
+        let file_element = document.getElementById('file');
+        let dna_element = document.getElementById('dna');
+        let blocks_element = document.getElementById('blocks');
+        let content_element = document.getElementById('content');
 
-        var result: List<string> = [];
+        let result: List<string> = [];
 
         result.push(".blend version: " + blendFile.fileHeader.version_number);
         file_element.innerHTML = result.join('<br/>');
 
         // DNA
-        result.push('[DNA]');
         result = [];
+        result.push('[DNA]');
 
-        for (var i = 0; i < blendFile.dna.structureTypeInfoList.length; i++) {
-            var typeInfo = blendFile.dna.structureTypeInfoList[i];
+        for (let i = 0; i < blendFile.dna.structureTypeInfoList.length; i++) {
+            let typeInfo = blendFile.dna.structureTypeInfoList[i];
 
             result.push(typeInfo.name);
 
-            for (var k = 0; k < typeInfo.fieldInfoList.length; k++) {
-                var fieldInfo = typeInfo.fieldInfoList[k];
+            for (let k = 0; k < typeInfo.fieldInfoList.length; k++) {
+                let fieldInfo = typeInfo.fieldInfoList[k];
 
                 result.push('&emsp;' + fieldInfo.definitionName + ': ' + fieldInfo.typeName + ' ' + fieldInfo.offset);
             }
@@ -53,32 +53,32 @@
 
         dna_element.innerHTML = result.join('<br/>');
 
-        // data blocks
-        result.push('[All data blocks]');
+        // Data blocks
         result = [];
+        result.push('[All data blocks]');
 
-        for (var i = 0; i < blendFile.bheadList.length; i++) {
-            var bhead = blendFile.bheadList[i];
-            var typeInfo = blendFile.dna.structureTypeInfoList[bhead.SDNAnr];
+        for (let i = 0; i < blendFile.bheadList.length; i++) {
+            let bhead = blendFile.bheadList[i];
+            let typeInfo = blendFile.dna.structureTypeInfoList[bhead.SDNAnr];
 
             result.push(bhead.code + ' ' + typeInfo.name + ' ' + getAddressText(bhead.old) + ' (' + bhead.nr.toString() + ')');
         }
 
         blocks_element.innerHTML = result.join('<br/>');
 
-        // detail data samples
-        result.push('[Data samples]');
+        // Detail data samples
         result = [];
+        result.push('[Data samples]');
 
-        var material_TypeInfo = blendFile.dna.getStructureTypeInfo('Material');
+        let material_TypeInfo = blendFile.dna.getStructureTypeInfo('Material');
 
-        for (var i = 0; i < blendFile.bheadList.length; i++) {
-            var bHead = blendFile.bheadList[i];
+        for (let i = 0; i < blendFile.bheadList.length; i++) {
+            let bHead = blendFile.bheadList[i];
             if (bHead.SDNAnr == material_TypeInfo.sdnaIndex) {
 
-                var dataset: any = blendFile.dna.createDataSet(bHead);
+                let dataset: any = blendFile.dna.createDataSet(bHead);
 
-                var out = 'Material ' + getAddressText(bHead.old) + ' (' + bhead.nr.toString() + ')' + '<br/>'
+                let out = 'Material ' + getAddressText(bHead.old) + ' (' + bHead.nr.toString() + ')' + '<br/>'
                     + '&emsp;name: ' + dataset.id.name + '<br/>'
                     + '&emsp;r: ' + dataset.r.toFixed(4) + '<br/>'
                     + '&emsp;g: ' + dataset.g.toFixed(4) + '<br/>'
@@ -88,15 +88,15 @@
             }
         }
 
-        var object_TypeInfo = blendFile.dna.getStructureTypeInfo('Object');
+        let object_TypeInfo = blendFile.dna.getStructureTypeInfo('Object');
 
-        for (var i = 0; i < blendFile.bheadList.length; i++) {
-            var bHead = blendFile.bheadList[i];
+        for (let i = 0; i < blendFile.bheadList.length; i++) {
+            let bHead = blendFile.bheadList[i];
             if (bHead.SDNAnr == object_TypeInfo.sdnaIndex) {
 
-                var dataset: any = blendFile.dna.createDataSet(bHead);
+                let dataset: any = blendFile.dna.createDataSet(bHead);
 
-                var out = 'Object ' + getAddressText(bHead.old) + ' (' + bhead.nr.toString() + ')' + '<br/>'
+                let out = 'Object ' + getAddressText(bHead.old) + ' (' + bHead.nr.toString() + ')' + '<br/>'
                     + '&emsp;name: ' + dataset.id.name + '<br/>'
                     + '&emsp;loc: (' + dataset.loc[0].toFixed(4)
                     + ', ' + dataset.loc[1].toFixed(4)

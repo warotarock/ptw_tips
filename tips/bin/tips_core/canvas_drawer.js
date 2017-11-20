@@ -287,8 +287,6 @@ var CanvasDrawer = (function () {
         var letterHeight = textDrawer.fontHeight * textDrawer.letterHeightScale;
         var lineWidth = letterHeight + textDrawer.lineSpan;
         var lineEnd = '\n';
-        var lineText = textDrawer.text;
-        var textLength = lineText.length;
         var topPos = textDrawer.location[1];
         var x = textDrawer.location[0];
         var offsetX;
@@ -315,8 +313,8 @@ var CanvasDrawer = (function () {
         this.render.setFontSize(letterHeight);
         this.render.setFillColor(textDrawer.color);
         var currentIndex = 0;
-        var textLength = textDrawer.text.length;
-        while (currentIndex < textLength) {
+        var allTextLength = textDrawer.text.length;
+        while (currentIndex < allTextLength) {
             var endIndex = StringIndexOf(textDrawer.text, lineEnd, currentIndex);
             if (endIndex == -1) {
                 endIndex = textDrawer.text.length;
@@ -373,8 +371,8 @@ var CanvasDrawer = (function () {
         this.render.setFontSize(letterHeight);
         this.render.setFillColor(textDrawer.color);
         var currentIndex = 0;
-        var textLength = textDrawer.text.length;
-        while (currentIndex < textLength) {
+        var allTextLength = textDrawer.text.length;
+        while (currentIndex < allTextLength) {
             var endIndex = StringIndexOf(textDrawer.text, lineEnd, currentIndex);
             if (endIndex == -1) {
                 endIndex = textDrawer.text.length;

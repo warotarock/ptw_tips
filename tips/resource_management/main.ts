@@ -124,26 +124,26 @@ namespace ResourceManagement {
 
         protected startLoadingResourceItem(resourceItem: SceneResource) {
 
-            var xhr = new XMLHttpRequest();
+            let xhr = new XMLHttpRequest();
             xhr.open('GET', resourceItem.filePath);
             xhr.responseType = 'json';
 
             xhr.addEventListener('load',
                 (e: Event) => {
 
-                    var data: any;
+                    let data: any;
                     if (xhr.responseType == 'json') {
                         data = xhr.response;
                     } else {
                         data = JSON.parse(xhr.response);
                     }
 
-                    var models = data['models'];
+                    let models = data['models'];
 
-                    for (var modelName in models) {
-                        var modelData = models[modelName];
+                    for (let modelName in models) {
+                        let modelData = models[modelName];
 
-                        var modelResource = new ModelResource();
+                        let modelResource = new ModelResource();
 
                         this.render.initializeModelBuffer(modelResource.model
                             , modelData.vertex, modelData.index, 4 * modelData.vertexStride); // 4 = size of float
@@ -160,8 +160,8 @@ namespace ResourceManagement {
 
         protected unloadResource(resourceItem: SceneResource) {
 
-            for (var modelName in resourceItem.modelResources) {
-                var modelResource = resourceItem.modelResources[modelName];
+            for (let modelName in resourceItem.modelResources) {
+                let modelResource = resourceItem.modelResources[modelName];
 
                 this.render.releaseModelBuffer(modelResource.model);
             }
@@ -229,7 +229,7 @@ namespace ResourceManagement {
             this.context2D = drawer_canvas.getContext('2d');
 
             // Image resource settings
-            var imageResources = new List<ImageResource>(ImageResourceID.MaxID + 1);
+            let imageResources = new List<ImageResource>(ImageResourceID.MaxID + 1);
 
             imageResources[ImageResourceID.None] = new ImageResource();
             imageResources[ImageResourceID.Image00] = new ImageResource().path('image00.png').mipmap(true).weight(1.0);
@@ -240,7 +240,7 @@ namespace ResourceManagement {
             this.imageResources = imageResources;
 
             // Scene resource settings
-            var sceneResources = new List<SceneResource>(SceneResourceID.MaxID + 1);
+            let sceneResources = new List<SceneResource>(SceneResourceID.MaxID + 1);
 
             sceneResources[SceneResourceID.None] = new SceneResource();
             sceneResources[SceneResourceID.Common] = new SceneResource().path('scene00.json').image(ImageResourceID.Image00).weight(1.0);
@@ -250,7 +250,7 @@ namespace ResourceManagement {
             this.sceneResources = sceneResources;
 
             // Loading settings
-            var loadingSettings = new List<Game.ResourceItemLoadingSettingSet>(SceneID.MaxID + 1);
+            let loadingSettings = new List<Game.ResourceItemLoadingSettingSet>(SceneID.MaxID + 1);
 
             loadingSettings[SceneID.None] = new Game.ResourceItemLoadingSettingSet();
 
@@ -316,7 +316,7 @@ namespace ResourceManagement {
         processLoading() {
 
             // Process loading
-            var continueLoading = this.resourceManager.processLoading();
+            let continueLoading = this.resourceManager.processLoading();
 
             // Draw Progress
             this.animateLoadingProgress();
@@ -340,7 +340,7 @@ namespace ResourceManagement {
 
         private animateLoadingProgress() {
 
-            var loadingProgress = this.resourceManager.getLoadingProgress();
+            let loadingProgress = this.resourceManager.getLoadingProgress();
 
             if (loadingProgress == -1.0) {
                 // Already loaded
@@ -361,9 +361,9 @@ namespace ResourceManagement {
         private showLoadingProgress() {
 
             // Draw
-            var centerX = this.logicalScreenWidth * 0.5;
-            var centerY = this.logicalScreenHeight * 0.5;
-            var size = Math.min(this.logicalScreenWidth, this.logicalScreenHeight);
+            let centerX = this.logicalScreenWidth * 0.5;
+            let centerY = this.logicalScreenHeight * 0.5;
+            let size = Math.min(this.logicalScreenWidth, this.logicalScreenHeight);
 
             this.context2D.clearRect(0, 0, this.logicalScreenWidth, this.logicalScreenHeight);
 
@@ -381,34 +381,34 @@ namespace ResourceManagement {
                 , false);
             this.context2D.stroke();
 
-            var percentage = this.loadingAnimationTime * 100.0;
+            let percentage = this.loadingAnimationTime * 100.0;
             if (percentage >= 99.0) {
                 // Shows 100% virtualy...
                 percentage = 100.0;
             }
-            this.context2D.font = "bold 16px";
+            this.context2D.font = 'bold 16px';
             this.context2D.textAlign = 'center';
             this.context2D.fillText(percentage.toFixed(2) + '%', centerX, centerY);
         }
 
         private linkResources() {
 
-            for (var i = 0; i < this.sceneResources.length; i++) {
-                var sceneResource = this.sceneResources[i];
+            for (let i = 0; i < this.sceneResources.length; i++) {
+                let sceneResource = this.sceneResources[i];
 
                 if (sceneResource.loadingState != Game.ResourceLoadingstate.finished) {
                     continue;
                 }
 
-                for (var modelName in sceneResource.modelResources) {
-                    var modelResource: ModelResource = sceneResource.modelResources[modelName];
+                for (let modelName in sceneResource.modelResources) {
+                    let modelResource: ModelResource = sceneResource.modelResources[modelName];
 
                     if (modelResource.images == null) {
                         modelResource.images = new List<RenderImage>(sceneResource.imageIDs.length);
                     }
 
-                    for (var k = 0; k < sceneResource.imageIDs.length; k++) {
-                        var imageID = sceneResource.imageIDs[k];
+                    for (let k = 0; k < sceneResource.imageIDs.length; k++) {
+                        let imageID = sceneResource.imageIDs[k];
 
                         modelResource.images[k] = this.imageResources[imageID].image;
                     }
@@ -461,7 +461,7 @@ namespace ResourceManagement {
                 return;
             }
 
-            var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
+            let aspect = this.logicalScreenWidth / this.logicalScreenHeight;
             mat4.perspective(this.projectionMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 100.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
 
@@ -500,12 +500,12 @@ namespace ResourceManagement {
         }
     }
 
-    var _Main: Main;
+    let _Main: Main;
 
     window.onload = () => {
 
-        var webgl_canvas = <HTMLCanvasElement>document.getElementById('webgl_canvas');
-        var drawer_canvas = <HTMLCanvasElement>document.getElementById('drawer_canvas');
+        let webgl_canvas = <HTMLCanvasElement>document.getElementById('webgl_canvas');
+        let drawer_canvas = <HTMLCanvasElement>document.getElementById('drawer_canvas');
         _Main = new Main();
         _Main.initialize(webgl_canvas, drawer_canvas);
 

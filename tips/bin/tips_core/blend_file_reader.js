@@ -302,11 +302,10 @@ var BlendFileReader;
                 for (var k = 0; k < fields; k++) {
                     var filedTypeIndex = reader.readUInt16();
                     var filedNameIndex = reader.readUInt16();
-                    // TODO: ClothSimSettingsのgravity[3]が"gravity" と "[3]"に分かれて取得される。blenderではdna_genfile.cでパッチ的に修正されている。
-                    var fieldInfo_1 = this.createStructureFieldInfo(typeList[filedTypeIndex], nameList[filedNameIndex], lengthList[filedTypeIndex], reader.getPointerByteSize(), offset);
-                    structureInfo.fieldInfoList.push(fieldInfo_1);
-                    structureInfo.fieldInfos[fieldInfo_1.name] = fieldInfo_1;
-                    offset += fieldInfo_1.size;
+                    var fieldInfo = this.createStructureFieldInfo(typeList[filedTypeIndex], nameList[filedNameIndex], lengthList[filedTypeIndex], reader.getPointerByteSize(), offset);
+                    structureInfo.fieldInfoList.push(fieldInfo);
+                    structureInfo.fieldInfos[fieldInfo.name] = fieldInfo;
+                    offset += fieldInfo.size;
                 }
             }
             // フィールドが構造体であるかの設定
@@ -383,7 +382,7 @@ var BlendFileReader;
                         }
                         else {
                             dataSet.reader.seekTo(dataSet.baseOffset + fieldInfo.offset);
-                            var value;
+                            var value = void 0;
                             if (fieldInfo.isPointer) {
                                 if (fieldInfo.elementCount == 1) {
                                     value = dataSet.reader.readPointerWord();

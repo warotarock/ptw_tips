@@ -294,16 +294,16 @@ var PTWTipsInput;
             else {
                 this.processPollingCrossButton(time);
             }
-            //var debugbuttonTexts = [];
-            //for (var i = 0; i < this.gamepad.buttons.length; i++) {
+            //let debugbuttonTexts = [];
+            //for (let i = 0; i < this.gamepad.buttons.length; i++) {
             //    let button = this.gamepad.buttons[i];
-            //    for (var prop in button) {
+            //    for (let prop in button) {
             //        debugbuttonTexts.push(button[prop]);
             //    }
             //}
             //console.log(debugbuttonTexts.join(', '));
-            //var debugAxisTexts = [];
-            //for (var i = 0; i < this.gamepad.axes.length; i++) {
+            //let debugAxisTexts = [];
+            //for (let i = 0; i < this.gamepad.axes.length; i++) {
             //    debugAxisTexts.push(this.gamepad.axes[i].toFixed(2));
             //}
             //console.log(debugAxisTexts.join(', '));

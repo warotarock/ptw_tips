@@ -302,7 +302,7 @@ var ResourceManagement;
                 // Shows 100% virtualy...
                 percentage = 100.0;
             }
-            this.context2D.font = "bold 16px";
+            this.context2D.font = 'bold 16px';
             this.context2D.textAlign = 'center';
             this.context2D.fillText(percentage.toFixed(2) + '%', centerX, centerY);
         };

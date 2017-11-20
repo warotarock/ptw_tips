@@ -13,7 +13,7 @@ namespace TaskManagement {
 
         onCreate_RenderObjectTask(env: Game.TaskEnvironment) {
 
-            var renderObject = env.renderObjectManager.createObject();
+            let renderObject = env.renderObjectManager.createObject();
 
             if (renderObject != null) {
 
@@ -159,8 +159,8 @@ namespace TaskManagement {
         renderObjectManager = new Game.RenderObjectManager();
         MAX_RENDER_OBJECT = 100;
 
-        sampleTask1Pool = new Game.TaskRecyclePool<SampleTask1>(SampleTask1, 50, "SampleTask1");
-        sampleTask2Pool = new Game.TaskRecyclePool<SampleTask2>(SampleTask2, 50, "SampleTask2");
+        sampleTask1Pool = new Game.TaskRecyclePool<SampleTask1>(SampleTask1, 50, 'SampleTask1');
+        sampleTask2Pool = new Game.TaskRecyclePool<SampleTask2>(SampleTask2, 50, 'SampleTask2');
 
         taskManager = new Game.TaskManager();
 
@@ -181,11 +181,11 @@ namespace TaskManagement {
 
             this.render.initializeShader(this.shader);
 
-            var image1 = new RenderImage();
+            let image1 = new RenderImage();
             this.loadTexture(image1, './texture1.png');
             this.images1.push(image1);
 
-            var image2 = new RenderImage();
+            let image2 = new RenderImage();
             this.loadTexture(image2, './texture2.png');
             this.images2.push(image2);
 
@@ -198,8 +198,8 @@ namespace TaskManagement {
         processLoading() {
 
             // Waiting for data
-            for (var i = 0; i < this.images1.length; i++) {
-                var image = this.images1[i];
+            for (let i = 0; i < this.images1.length; i++) {
+                let image = this.images1[i];
 
                 if (image.texture == null) {
                     return;
@@ -244,17 +244,17 @@ namespace TaskManagement {
 
             this.animationTime = 0.0;
 
-            var generateTask1 = (Math.random() > 0.5);
+            let generateTask1 = (Math.random() > 0.5);
 
             if (generateTask1) {
 
-                var task1 = this.sampleTask1Pool.get();
+                let task1 = this.sampleTask1Pool.get();
 
                 if (task1 != null) {
 
                     task1.main = this;
 
-                    var locationRange = 6.0;
+                    let locationRange = 6.0;
                     task1.initialLocation = vec3.set(this.location
                         , (-0.5 + Math.random()) * locationRange
                         , (-0.5 + Math.random()) * locationRange
@@ -266,13 +266,13 @@ namespace TaskManagement {
             }
             else {
 
-                var task2 = this.sampleTask2Pool.get();
+                let task2 = this.sampleTask2Pool.get();
 
                 if (task2 != null) {
 
                     task2.main = this;
 
-                    var locationRange = 30.0;
+                    let locationRange = 30.0;
                     task2.initialLocation = vec3.set(this.location
                         , (-0.5 + Math.random()) * locationRange
                         , (-0.5 + Math.random()) * locationRange
@@ -300,10 +300,10 @@ namespace TaskManagement {
 
         private calclateRenderObjectMatrix() {
 
-            var renderObjects = this.renderObjectManager.getObjectList();
+            let renderObjects = this.renderObjectManager.getObjectList();
 
-            for (var i = 0; i < renderObjects.length; i++) {
-                var renderObject = renderObjects[i];
+            for (let i = 0; i < renderObjects.length; i++) {
+                let renderObject = renderObjects[i];
 
                 mat4.identity(renderObject.matrix);
                 mat4.translate(renderObject.matrix, renderObject.matrix, renderObject.location);
@@ -316,7 +316,7 @@ namespace TaskManagement {
 
         draw() {
 
-            var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
+            let aspect = this.logicalScreenWidth / this.logicalScreenHeight;
             mat4.perspective(this.projectionMatrix, 45.0 * Math.PI / 180, aspect, 0.1, 100.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
 
@@ -343,10 +343,10 @@ namespace TaskManagement {
 
         private updateRenderObjectSorting() {
 
-            var objectList = this.renderObjectManager.getObjectList();
+            let objectList = this.renderObjectManager.getObjectList();
 
-            for (var i = 0; i < objectList.length; i++) {
-                var renderObject = objectList[i];
+            for (let i = 0; i < objectList.length; i++) {
+                let renderObject = objectList[i];
 
                 renderObject.sortingValue = this.renderObjectManager.calcObjectSortingValue(renderObject, this.viewMatrix, Game.RenderObjectSortingMode.z);
             }
@@ -354,10 +354,10 @@ namespace TaskManagement {
 
         private drawLayer(layerID: Game.RenderObjectLayerID) {
 
-            var objects = this.renderObjectManager.getZsortedObjectList(layerID)
+            let objects = this.renderObjectManager.getZsortedObjectList(layerID)
 
-            for (var i = 0; i < objects.length; i++) {
-                var renderObject = objects[i];
+            for (let i = 0; i < objects.length; i++) {
+                let renderObject = objects[i];
 
                 this.drawRenderObject(renderObject);
             }
@@ -395,13 +395,13 @@ namespace TaskManagement {
 
         private loadModel(resultModel: RenderModel, url: string, modelName: string) {
 
-            var xhr = new XMLHttpRequest();
+            let xhr = new XMLHttpRequest();
             xhr.open('GET', url);
             xhr.responseType = 'json';
 
             xhr.addEventListener('load',
                 (e: Event) => {
-                    var data: any;
+                    let data: any;
                     if (xhr.responseType == 'json') {
                         data = xhr.response;
                     }
@@ -409,7 +409,7 @@ namespace TaskManagement {
                         data = JSON.parse(xhr.response);
                     }
 
-                    var modelData = data['models'][modelName];
+                    let modelData = data['models'][modelName];
 
                     this.render.initializeModelBuffer(this.model, modelData.vertex, modelData.index, 4 * modelData.vertexStride); // 4 = size of float
                 }
@@ -419,11 +419,11 @@ namespace TaskManagement {
         }
     }
 
-    var _Main: Main;
+    let _Main: Main;
 
     window.onload = () => {
 
-        var canvas = <HTMLCanvasElement>document.getElementById('canvas');
+        let canvas = <HTMLCanvasElement>document.getElementById('canvas');
         _Main = new Main();
         _Main.initialize(canvas);
 

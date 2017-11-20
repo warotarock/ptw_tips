@@ -1,9 +1,9 @@
 ﻿
 namespace BasicModelConverting {
 
-    declare var THREE: any;
+    declare let THREE: any;
 
-    var fs = (typeof (require) != 'undefined') ? require('fs') : {
+    let fs = (typeof (require) != 'undefined') ? require('fs') : {
         writeFile(fileName, text) {
             document.getElementById('content').innerHTML = text;
         }
@@ -24,23 +24,23 @@ namespace BasicModelConverting {
 
         execute() {
 
-            var fileName = 'sample_basic_model.dae';
-            var outFileName = this.getExtensionChangedFileName('../temp/' + fileName, 'json');
+            let fileName = 'sample_basic_model.dae';
+            let outFileName = this.getExtensionChangedFileName('../temp/' + fileName, 'json');
 
             document.getElementById('message').innerHTML = 'Out put will be located ' + outFileName;
 
-            var collada_loader = new THREE.ColladaLoader();
+            let collada_loader = new THREE.ColladaLoader();
 
             // Parsing by collada loader
             collada_loader.load(
                 fileName,
                 (threeJSCollada) => {
 
-                    var parser = new Converters.ThreeJSColladaParser();
+                    let parser = new Converters.ThreeJSColladaParser();
                     let sceneData = parser.parse(threeJSCollada);
 
                     // Converting
-                    var convetedModels = this.convert(sceneData.staticMeshModels);
+                    let convetedModels = this.convert(sceneData.staticMeshModels);
 
                     // Output
                     this.output(convetedModels, outFileName);
@@ -53,13 +53,13 @@ namespace BasicModelConverting {
 
         convert(staticMeshes: List<Converters.StaticMeshModel>): List<ConvertedModel> {
 
-            var convetedModels = new List<ConvertedModel>();
-            for (var meshIndex = 0; meshIndex < staticMeshes.length; meshIndex++) {
-                var mesh = staticMeshes[meshIndex];
+            let convetedModels = new List<ConvertedModel>();
+            for (let meshIndex = 0; meshIndex < staticMeshes.length; meshIndex++) {
+                let mesh = staticMeshes[meshIndex];
 
-                var vertexData = [];
-                for (var i = 0; i < mesh.vertices.length; i++) {
-                    var modelVertex = mesh.vertices[i];
+                let vertexData = [];
+                for (let i = 0; i < mesh.vertices.length; i++) {
+                    let modelVertex = mesh.vertices[i];
 
                     vertexData.push(modelVertex.position[0]);
                     vertexData.push(modelVertex.position[1]);
@@ -69,24 +69,24 @@ namespace BasicModelConverting {
                     vertexData.push(modelVertex.normal[1]);
                     vertexData.push(modelVertex.normal[2]);
 
-                    for (var k = 0; k < modelVertex.texcoords.length; k++) {
+                    for (let k = 0; k < modelVertex.texcoords.length; k++) {
                         vertexData.push(modelVertex.texcoords[k][0]);
                         vertexData.push(modelVertex.texcoords[k][1]);
                     }
                 }
 
-                var indexData = [];
-                for (var i = 0; i < mesh.faces.length; i++) {
-                    var modelFace = mesh.faces[i];
+                let indexData = [];
+                for (let i = 0; i < mesh.faces.length; i++) {
+                    let modelFace = mesh.faces[i];
 
-                    for (var k = 0; k < modelFace.vertexIndeces.length; k++) {
+                    for (let k = 0; k < modelFace.vertexIndeces.length; k++) {
                         indexData.push(modelFace.vertexIndeces[k]);
                     }
                 }
 
-                var uvMapCount = mesh.vertices[0].texcoords.length;
+                let uvMapCount = mesh.vertices[0].texcoords.length;
 
-                var vertexStride = (3 + 3) + (2 * uvMapCount);
+                let vertexStride = (3 + 3) + (2 * uvMapCount);
 
                 convetedModels.push({
                     name: mesh.name,
@@ -101,20 +101,20 @@ namespace BasicModelConverting {
 
         output(convetedMeshes: List<ConvertedModel>, outFileName: string) {
 
-            var tab1 = '  ';
-            var tab2 = '    ';
-            var tab3 = '      ';
+            let tab1 = '  ';
+            let tab2 = '    ';
+            let tab3 = '      ';
 
-            var formatedOutputForSample = false;
+            let formatedOutputForSample = false;
 
-            var out = [];
+            let out = [];
 
             out.push('{')
 
             out.push(tab1 + '\"models\": {')
 
-            for (var i = 0; i < convetedMeshes.length; i++) {
-                var convetedMesh = convetedMeshes[i];
+            for (let i = 0; i < convetedMeshes.length; i++) {
+                let convetedMesh = convetedMeshes[i];
 
                 if (formatedOutputForSample) {
 
