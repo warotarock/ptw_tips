@@ -129,7 +129,7 @@ namespace SoundMnagement {
         }
     }
 
-    var _Main: Main;
+    let _Main: Main;
 
     window.onload = () => {
 

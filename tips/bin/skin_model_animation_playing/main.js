@@ -19,7 +19,7 @@ var SkinModelAnimationPlaying;
     }());
     var AnimationData = (function () {
         function AnimationData() {
-            this.data = null;
+            this.data = new Dictionary();
             this.loaded = false;
         }
         return AnimationData;
@@ -84,8 +84,9 @@ var SkinModelAnimationPlaying;
                 return;
             }
             // Loading finished
-            this.boneAnimation = this.animationData.data['ArmatureAction'];
-            this.objectAnimation = this.animationData.data['ArmatureAction']['Object'];
+            var animation = this.animationData.data['ArmatureAction'];
+            this.boneAnimation = animation.boneAnimations;
+            this.objectAnimation = animation.objectAnimation;
             this.boneAnimationBuffer = this.animationSolver.createBoneAnimationBuffer(this.skinModel.data.bones);
             this.boneMatrixBuffer = this.animationSolver.createBoneMatrixBuffer(this.skinModel.data.bones);
             this.isLoaded = true;
@@ -149,11 +150,11 @@ var SkinModelAnimationPlaying;
             // drawing for each part
             var bones = skinModel.data.bones;
             var parts = skinModel.data.parts;
-            for (var i = 0; i < parts.length; i++) {
-                var part = parts[i];
+            for (var _i = 0, parts_1 = parts; _i < parts_1.length; _i++) {
+                var part = parts_1[_i];
                 // select shader
-                var shader;
-                if (part.bone.length <= 2) {
+                var shader = void 0;
+                if (part.boneIndices.length <= 2) {
                     shader = this.bone2Shader;
                 }
                 else {
@@ -161,9 +162,10 @@ var SkinModelAnimationPlaying;
                 }
                 this.render.setShader(shader);
                 // set bone matrix
-                for (var boneIndex = 0; boneIndex < part.bone.length; boneIndex++) {
-                    mat4.copy(this.boneMatrix, matrixBuffer.animatedBoneMatrixList[part.bone[boneIndex]]);
-                    shader.setBoneMatrix(boneIndex, this.boneMatrix, this.render.gl);
+                for (var part_BoneIndex = 0; part_BoneIndex < part.boneIndices.length; part_BoneIndex++) {
+                    var model_BoneIndex = part.boneIndices[part_BoneIndex];
+                    mat4.copy(this.boneMatrix, matrixBuffer.boneMatrixList[model_BoneIndex]);
+                    shader.setBoneMatrix(part_BoneIndex, this.boneMatrix, this.render.gl);
                 }
                 // set material
                 if (part.material == 0) {
@@ -208,8 +210,8 @@ var SkinModelAnimationPlaying;
         };
         Main.prototype.initializeSkinModelBuffer = function (skinModel) {
             // create buffers for each part
-            for (var i = 0; i < skinModel.data.parts.length; i++) {
-                var part = skinModel.data.parts[i];
+            for (var _i = 0, _a = skinModel.data.parts; _i < _a.length; _i++) {
+                var part = _a[_i];
                 var renderModel = new RenderModel();
                 this.render.initializeModelBuffer(renderModel, part.vertex, part.index, 4 * part.vertexStride); // 4 (=size of float)
                 part.renderModel = renderModel;
@@ -227,9 +229,7 @@ var SkinModelAnimationPlaying;
                 else {
                     data = JSON.parse(xhr.response);
                 }
-                for (var key in data) {
-                    animationData.data = data;
-                }
+                animationData.data = data;
                 animationData.loaded = true;
             });
             xhr.send();

@@ -22,7 +22,7 @@ namespace CodeConverter {
 
         toString(): string {
 
-            return this.LineNumber + " " + this.Type.toString() + " " + this.Text;
+            return this.LineNumber + ' ' + this.Type.toString() + ' ' + this.Text;
         }
 
         static joinToString(tokens: List<TextToken>): string {
@@ -424,7 +424,7 @@ namespace CodeConverter {
         angleNestCount: int = 0;
 
         toString(): string {
-            return "(): " + this.parenthesisNestCount + " {}: " + this.braceNestCount + " <>: " + this.angleNestCount;
+            return '(): ' + this.parenthesisNestCount + ' {}: ' + this.braceNestCount + ' <>: ' + this.angleNestCount;
         }
 
         reset() {
@@ -477,7 +477,7 @@ namespace CodeConverter {
         NestingCounter: NestingCounter;
 
         toString(): string {
-            return "length: " + this.length;
+            return 'length: ' + this.length;
         }
 
         static create(): TextTokenCollection {
@@ -499,7 +499,7 @@ namespace CodeConverter {
             target.findIndexInZeroLevel = TextTokenCollection.prototype.findIndexInZeroLevel;
             target.getRange = TextTokenCollection.prototype.getRange;
 
-            Object.defineProperty(target, 'endIndex', Object.getOwnPropertyDescriptor(TextTokenCollection.prototype, "endIndex"));
+            Object.defineProperty(target, 'endIndex', Object.getOwnPropertyDescriptor(TextTokenCollection.prototype, 'endIndex'));
 
             return <TextTokenCollection>target;
         }

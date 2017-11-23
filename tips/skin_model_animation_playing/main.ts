@@ -1,19 +1,16 @@
 
 namespace SkinModelAnimationPlaying {
 
-    interface SkinModelData {
-        bones: List<SkinModelBoneData>;
-        parts: List<SkinModelPartData>;
-    }
-
     interface SkinModelBoneData {
+
         name: string;
         parent: int;
         matrix: List<float>;
     }
 
     interface SkinModelPartData {
-        bone: List<int>;
+
+        boneIndices: List<int>;
         material: int;
         vertexStride: int;
         vertex: List<float>;
@@ -22,13 +19,27 @@ namespace SkinModelAnimationPlaying {
         renderModel: RenderModel;
     }
 
+    interface SkinModelData {
+
+        bones: List<SkinModelBoneData>;
+        parts: List<SkinModelPartData>;
+    }
+
     class SkinModel {
+
         data: SkinModelData = null;
         loaded = false;
     }
 
+    interface AnimationSet {
+
+        boneAnimations: Dictionary<BoneAnimation>;
+        objectAnimation: ObjectAnimationCurveSet;
+    }
+
     class AnimationData {
-        data: Dictionary<IPOObjectAnimation> = null;
+
+        data = new Dictionary<AnimationSet>();
         loaded = false;
     }
 
@@ -46,8 +57,8 @@ namespace SkinModelAnimationPlaying {
         redColor = vec4.fromValues(0.8, 0.0, 0.0, 1.0);
 
         animationData = new AnimationData();
-        objectAnimation: IPOObjectAnimation = null;
-        boneAnimation: IPOBoneAnimation = null;
+        objectAnimation: ObjectAnimationCurveSet = null;
+        boneAnimation: BoneAnimation = null;
 
         eyeLocation = vec3.create();
         lookatLocation = vec3.create();
@@ -86,7 +97,7 @@ namespace SkinModelAnimationPlaying {
             this.render.initializeShader(this.bone2Shader);
             this.render.initializeShader(this.bone4Shader);
 
-            var image = new RenderImage();
+            let image = new RenderImage();
             this.loadTexture(image, '../skinning_model_converting/texture.png');
             this.images.push(image);
 
@@ -112,8 +123,9 @@ namespace SkinModelAnimationPlaying {
             }
 
             // Loading finished
-            this.boneAnimation = this.animationData.data['ArmatureAction'];
-            this.objectAnimation = this.animationData.data['ArmatureAction']['Object'];
+            let animation: AnimationSet = this.animationData.data['ArmatureAction'];
+            this.boneAnimation = animation.boneAnimations;
+            this.objectAnimation = animation.objectAnimation;
 
             this.boneAnimationBuffer = this.animationSolver.createBoneAnimationBuffer(this.skinModel.data.bones);
             this.boneMatrixBuffer = this.animationSolver.createBoneMatrixBuffer(this.skinModel.data.bones);
@@ -150,7 +162,7 @@ namespace SkinModelAnimationPlaying {
 
         draw() {
 
-            var aspect = this.logicalScreenWidth / this.logicalScreenHeight;
+            let aspect = this.logicalScreenWidth / this.logicalScreenHeight;
             mat4.perspective(this.projectionMatrix, 30.0 * Math.PI / 180, aspect, 0.1, 100.0);
             mat4.lookAt(this.viewMatrix, this.eyeLocation, this.lookatLocation, this.upVector);
 
@@ -161,7 +173,7 @@ namespace SkinModelAnimationPlaying {
             this.drawSkinModel(this.objectMatrix, this.skinModel, this.images, this.boneMatrixBuffer);
         }
 
-        private calculateObjectMatrix(objectMatrix: Mat4, objectAnimation: IPOObjectAnimation, animationTime: float) {
+        private calculateObjectMatrix(objectMatrix: Mat4, objectAnimation: ObjectAnimationCurveSet, animationTime: float) {
 
             let solver = this.animationSolver;
 
@@ -189,7 +201,7 @@ namespace SkinModelAnimationPlaying {
             mat4.scale(objectMatrix, objectMatrix, this.modelScaling);
         }
 
-        private calculateBoneMatrix(boneMatrixBuffer: BoneAnimationMatrixBuffer, boneAnimationBuffer: BoneAnimationBuffer, skinModel: SkinModel, boneAnimation: IPOBoneAnimation, animationTime: float) {
+        private calculateBoneMatrix(boneMatrixBuffer: BoneAnimationMatrixBuffer, boneAnimationBuffer: BoneAnimationBuffer, skinModel: SkinModel, boneAnimation: BoneAnimation, animationTime: float) {
 
             let solver = this.animationSolver;
 
@@ -212,15 +224,14 @@ namespace SkinModelAnimationPlaying {
             this.render.setProjectionMatrix(this.projectionMatrix);
 
             // drawing for each part
-            var bones = skinModel.data.bones;
-            var parts = skinModel.data.parts;
+            let bones = skinModel.data.bones;
+            let parts = skinModel.data.parts;
 
-            for (var i = 0; i < parts.length; i++) {
-                var part = parts[i];
+            for (let part of parts) {
 
                 // select shader
-                var shader: Bone2Shader;
-                if (part.bone.length <= 2) {
+                let shader: Bone2Shader;
+                if (part.boneIndices.length <= 2) {
                     shader = this.bone2Shader;
                 }
                 else {
@@ -229,9 +240,12 @@ namespace SkinModelAnimationPlaying {
                 this.render.setShader(shader);
 
                 // set bone matrix
-                for (var boneIndex = 0; boneIndex < part.bone.length; boneIndex++) {
-                    mat4.copy(this.boneMatrix, matrixBuffer.animatedBoneMatrixList[part.bone[boneIndex]]);
-                    shader.setBoneMatrix(boneIndex, this.boneMatrix, this.render.gl);
+                for (let part_BoneIndex = 0; part_BoneIndex < part.boneIndices.length; part_BoneIndex++) {
+
+                    let model_BoneIndex = part.boneIndices[part_BoneIndex];
+
+                    mat4.copy(this.boneMatrix, matrixBuffer.boneMatrixList[model_BoneIndex]);
+                    shader.setBoneMatrix(part_BoneIndex, this.boneMatrix, this.render.gl);
                 }
 
                 // set material
@@ -267,14 +281,14 @@ namespace SkinModelAnimationPlaying {
 
         private loadSkinModel(resultModel: SkinModel, url: string, modelName: string) {
 
-            var xhr = new XMLHttpRequest();
+            let xhr = new XMLHttpRequest();
             xhr.open('GET', url);
             xhr.responseType = 'json';
 
             xhr.addEventListener('load',
                 (e: Event) => {
 
-                    var data: any;
+                    let data: any;
                     if (xhr.responseType == 'json') {
                         data = xhr.response;
                     }
@@ -296,10 +310,9 @@ namespace SkinModelAnimationPlaying {
         private initializeSkinModelBuffer(skinModel: SkinModel) {
 
             // create buffers for each part
-            for (var i = 0; i < skinModel.data.parts.length; i++) {
-                var part = skinModel.data.parts[i];
+            for (let part of skinModel.data.parts) {
 
-                var renderModel = new RenderModel();
+                let renderModel = new RenderModel();
                 this.render.initializeModelBuffer(renderModel, part.vertex, part.index, 4 * part.vertexStride); // 4 (=size of float)
 
                 part.renderModel = renderModel;
@@ -308,14 +321,14 @@ namespace SkinModelAnimationPlaying {
 
         private loadAnimation(animationData: AnimationData, url: string) {
 
-            var xhr = new XMLHttpRequest();
+            let xhr = new XMLHttpRequest();
             xhr.open('GET', url);
             xhr.responseType = 'json';
 
             xhr.addEventListener('load',
                 (e: Event) => {
 
-                    var data: any;
+                    let data: any;
                     if (xhr.responseType == 'json') {
                         data = xhr.response;
                     }
@@ -323,10 +336,7 @@ namespace SkinModelAnimationPlaying {
                         data = JSON.parse(xhr.response);
                     }
 
-                    for (let key in data) {
-                        animationData.data = data;
-                    }
-
+                    animationData.data = data;
                     animationData.loaded = true;
                 }
             );
@@ -552,11 +562,11 @@ namespace SkinModelAnimationPlaying {
         }
     }
 
-    var _Main: Main;
+    let _Main: Main;
 
     window.onload = () => {
 
-        var canvas = <HTMLCanvasElement>document.getElementById('canvas');
+        let canvas = <HTMLCanvasElement>document.getElementById('canvas');
         _Main = new Main();
         _Main.initialize(canvas);
 

@@ -36,8 +36,8 @@ var ObjectAnimationConverter;
                 .ToArray();
             var result = new List();
             // for each bAction
-            for (var i = 0; i < bAction_BHeads.length; i++) {
-                var bAction_BHead = bAction_BHeads[i];
+            for (var _i = 0, bAction_BHeads_1 = bAction_BHeads; _i < bAction_BHeads_1.length; _i++) {
+                var bAction_BHead = bAction_BHeads_1[_i];
                 var bAction = blendFile.dna.createDataSet(bAction_BHead);
                 var animation = {
                     name: bAction.id.name.substr(2),
@@ -55,8 +55,8 @@ var ObjectAnimationConverter;
                     var bezTriple_Bhead = bheadDictionary[fCurve.bezt];
                     var bezTriple = blendFile.dna.createDataSet(bezTriple_Bhead);
                     var points = [];
-                    for (var k = 0; k < bezTriple.elementCount; k++) {
-                        var bezt = bezTriple[k];
+                    for (var i = 0; i < bezTriple.elementCount; i++) {
+                        var bezt = bezTriple[i];
                         points.push([
                             [bezt.vec[0], bezt.vec[1], bezt.vec[2]],
                             [bezt.vec[3], bezt.vec[4], bezt.vec[5]],
@@ -64,8 +64,8 @@ var ObjectAnimationConverter;
                         ]);
                     }
                     var isBoneAction = StringIsNullOrEmpty(this.getCurveName(bActionGroup.name, fCurve.array_index));
-                    var groupName;
-                    var channelName;
+                    var groupName = void 0;
+                    var channelName = void 0;
                     if (isBoneAction) {
                         groupName = bActionGroup.name;
                         if (lastGroupName != groupName) {
@@ -76,7 +76,7 @@ var ObjectAnimationConverter;
                         channelIndex++;
                     }
                     else {
-                        groupName = "Object";
+                        groupName = 'Object';
                         channelName = this.getCurveName(bActionGroup.name, fCurve.array_index);
                     }
                     var curve = {
@@ -99,10 +99,10 @@ var ObjectAnimationConverter;
         };
         Main.prototype.output = function (convetedData, outFileName) {
             var out = [];
-            out.push("{");
-            for (var i = 0; i < convetedData.length; i++) {
-                var animation = convetedData[i];
-                out.push("  \"" + animation.name + "\": {");
+            out.push('{');
+            for (var animationIndex = 0; animationIndex < convetedData.length; animationIndex++) {
+                var animation = convetedData[animationIndex];
+                out.push('  \"' + animation.name + '\": {');
                 var channelGroup = Enumerable.From(animation.curves)
                     .GroupBy(function (curve) { return curve.group; })
                     .Select(function (group) { return ({
@@ -113,24 +113,32 @@ var ObjectAnimationConverter;
                     .ToArray();
                 for (var groupIndex = 0; groupIndex < channelGroup.length; groupIndex++) {
                     var group = channelGroup[groupIndex];
-                    out.push("    \"" + group.name + "\": {");
-                    for (var k = 0; k < group.curves.length; k++) {
-                        var curve = group.curves[k];
+                    out.push('    \"' + group.name + '\": {');
+                    for (var curveIndex = 0; curveIndex < group.curves.length; curveIndex++) {
+                        var curve = group.curves[curveIndex];
                         var output_carve = {
                             ipoType: 2,
                             lastTime: 0.0,
                             lastIndex: 0,
                             curve: curve.points
                         };
-                        out.push("      \"" + curve.channel + "\": "
-                            + JSON.stringify(output_carve, this.jsonStringifyReplacer)
-                            + (k < group.curves.length - 1 ? ',' : ''));
+                        out.push('      \"' + curve.channel + '\": '
+                            + JSON.stringify(output_carve, this.jsonStringifyReplacer));
+                        if (curveIndex < group.curves.length - 1) {
+                            out[out.length - 1] += ',';
+                        }
                     }
-                    out.push("    }" + (groupIndex < channelGroup.length - 1 ? ',' : ''));
+                    out.push('    }');
+                    if (groupIndex < channelGroup.length - 1) {
+                        out[out.length - 1] += ',';
+                    }
                 }
-                out.push("  }" + (i < convetedData.length - 1 ? ',' : ''));
+                out.push('  }');
+                if (animationIndex < convetedData.length - 1) {
+                    out[out.length - 1] += ',';
+                }
             }
-            out.push("}");
+            out.push('}');
             fs.writeFile(outFileName, out.join('\r\n'), function (error) {
                 if (error != null) {
                     alert('error : ' + error);
@@ -138,62 +146,62 @@ var ObjectAnimationConverter;
             });
         };
         Main.prototype.getCurveName = function (actionGroupName, array_index) {
-            if (actionGroupName == "Location") {
+            if (actionGroupName == 'Location') {
                 if (array_index == 0) {
-                    return "locationX";
+                    return 'locationX';
                 }
                 else if (array_index == 1) {
-                    return "locationY";
+                    return 'locationY';
                 }
                 else if (array_index == 2) {
-                    return "locationZ";
+                    return 'locationZ';
                 }
             }
-            else if (actionGroupName == "Rotation") {
+            else if (actionGroupName == 'Rotation') {
                 if (array_index == 0) {
-                    return "rotationX";
+                    return 'rotationX';
                 }
                 else if (array_index == 1) {
-                    return "rotationY";
+                    return 'rotationY';
                 }
                 else if (array_index == 2) {
-                    return "rotationZ";
+                    return 'rotationZ';
                 }
             }
-            else if (actionGroupName == "Scaling") {
+            else if (actionGroupName == 'Scaling') {
                 if (array_index == 0) {
-                    return "scalingX";
+                    return 'scalingX';
                 }
                 else if (array_index == 1) {
-                    return "scalingY";
+                    return 'scalingY';
                 }
                 else if (array_index == 2) {
-                    return "scalingZ";
+                    return 'scalingZ';
                 }
             }
             return null;
         };
         Main.prototype.getBoneCurveName = function (array_index) {
             if (array_index == 0) {
-                return "quatW";
+                return 'quatW';
             }
             else if (array_index == 1) {
-                return "quatX";
+                return 'quatX';
             }
             else if (array_index == 2) {
-                return "quatY";
+                return 'quatY';
             }
             else if (array_index == 3) {
-                return "quatZ";
+                return 'quatZ';
             }
             else if (array_index == 4) {
-                return "locX";
+                return 'locX';
             }
             else if (array_index == 5) {
-                return "locY";
+                return 'locY';
             }
             else if (array_index == 6) {
-                return "locZ";
+                return 'locZ';
             }
         };
         Main.prototype.getExtensionChangedFileName = function (fileName, newExtension) {

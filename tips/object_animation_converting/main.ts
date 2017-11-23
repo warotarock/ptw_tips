@@ -1,7 +1,7 @@
 ﻿
 namespace ObjectAnimationConverter {
 
-    var fs = (typeof (require) != 'undefined') ? require('fs') : {
+    let fs = (typeof (require) != 'undefined') ? require('fs') : {
         writeFile(fileName, text) {
             document.getElementById('content').innerHTML = text;
         }
@@ -11,21 +11,21 @@ namespace ObjectAnimationConverter {
 
         execute() {
 
-            var fileName = 'sample_obj_animation.blend';
-            var outFileName = this.getExtensionChangedFileName('../temp/' + fileName, 'json');
+            let fileName = 'sample_obj_animation.blend';
+            let outFileName = this.getExtensionChangedFileName('../temp/' + fileName, 'json');
 
             document.getElementById('content').innerHTML = 'Out put will be located ' + outFileName;
 
-            var request = new XMLHttpRequest();
+            let request = new XMLHttpRequest();
             request.open('GET', fileName, true);
             request.responseType = 'arraybuffer';
             request.addEventListener('load',
                 (e: Event) => {
                     // read a blend file
-                    var blendFile = BlendFileReader.readBlendFile(request.response);
+                    let blendFile = BlendFileReader.readBlendFile(request.response);
 
                     // execute converting
-                    var convetedData = this.convert(blendFile);
+                    let convetedData = this.convert(blendFile);
                     this.output(convetedData, outFileName);
 
                     document.getElementById('content').innerHTML = 'Out put done ' + outFileName;
@@ -36,45 +36,46 @@ namespace ObjectAnimationConverter {
 
         convert(blendFile: BlendFileReader.ReadBlendFileResult): Dictionary<any> {
 
-            var bheadDictionary = new Dictionary<BlendFileReader.BHead>();
+            let bheadDictionary = new Dictionary<BlendFileReader.BHead>();
             Enumerable.From(blendFile.bheadList)
                 .ForEach(bhead => bheadDictionary[bhead.old] = bhead);
 
-            var bAction_TypeInfo = blendFile.dna.getStructureTypeInfo('bAction');
-            var bAction_BHeads = Enumerable.From(blendFile.bheadList)
+            let bAction_TypeInfo = blendFile.dna.getStructureTypeInfo('bAction');
+            let bAction_BHeads = Enumerable.From(blendFile.bheadList)
                 .Where(bh => bh.SDNAnr == bAction_TypeInfo.sdnaIndex)
                 .ToArray();
 
-            var result = new List<any>();
+            let result = new List<any>();
 
             // for each bAction
-            for (var i = 0; i < bAction_BHeads.length; i++) {
-                var bAction_BHead = bAction_BHeads[i];
-                var bAction = blendFile.dna.createDataSet(bAction_BHead);
+            for (let bAction_BHead of bAction_BHeads) {
 
-                var animation = {
+                let bAction = blendFile.dna.createDataSet(bAction_BHead);
+
+                let animation = {
                     name: bAction.id.name.substr(2),
                     curves: []
                 };
 
-                var lastGroupName = null;
-                var channelIndex = 0;
+                let lastGroupName = null;
+                let channelIndex = 0;
 
                 // for each fCurve in bAction
-                var fCurve_Address = bAction.curves.first;
+                let fCurve_Address = bAction.curves.first;
                 while (true) {
-                    var fCurve_BHead = bheadDictionary[fCurve_Address];
-                    var fCurve = blendFile.dna.createDataSet(fCurve_BHead);
+                    let fCurve_BHead = bheadDictionary[fCurve_Address];
+                    let fCurve = blendFile.dna.createDataSet(fCurve_BHead);
 
-                    var bActionGroup_BHead = bheadDictionary[fCurve.grp];
-                    var bActionGroup = blendFile.dna.createDataSet(bActionGroup_BHead);
+                    let bActionGroup_BHead = bheadDictionary[fCurve.grp];
+                    let bActionGroup = blendFile.dna.createDataSet(bActionGroup_BHead);
 
-                    var bezTriple_Bhead = bheadDictionary[fCurve.bezt];
-                    var bezTriple = blendFile.dna.createDataSet(bezTriple_Bhead);
+                    let bezTriple_Bhead = bheadDictionary[fCurve.bezt];
+                    let bezTriple = blendFile.dna.createDataSet(bezTriple_Bhead);
 
-                    var points = [];
-                    for (var k = 0; k < bezTriple.elementCount; k++) {
-                        var bezt = bezTriple[k];
+                    let points = [];
+                    for (let i = 0; i < bezTriple.elementCount; i++) {
+                        let bezt = bezTriple[i];
+
                         points.push(
                             [
                                 [bezt.vec[0], bezt.vec[1], bezt.vec[2]],
@@ -84,10 +85,10 @@ namespace ObjectAnimationConverter {
                         );
                     }
 
-                    var isBoneAction = StringIsNullOrEmpty(this.getCurveName(bActionGroup.name, fCurve.array_index));
+                    let isBoneAction = StringIsNullOrEmpty(this.getCurveName(bActionGroup.name, fCurve.array_index));
 
-                    var groupName: string;
-                    var channelName: string;
+                    let groupName: string;
+                    let channelName: string;
                     if (isBoneAction) {
                         groupName = bActionGroup.name
                         if (lastGroupName != groupName) {
@@ -98,11 +99,11 @@ namespace ObjectAnimationConverter {
                         channelIndex++;
                     }
                     else {
-                        groupName = "Object";
+                        groupName = 'Object';
                         channelName = this.getCurveName(bActionGroup.name, fCurve.array_index);
                     }
 
-                    var curve = {
+                    let curve = {
                         group: groupName.replace(/_/g, '.'),
                         channel: channelName,
                         array_index: fCurve.array_index,
@@ -126,16 +127,16 @@ namespace ObjectAnimationConverter {
 
         output(convetedData: List<any>, outFileName: string) {
 
-            var out = [];
+            let out = [];
 
-            out.push("{");
+            out.push('{');
 
-            for (var i = 0; i < convetedData.length; i++) {
-                var animation = convetedData[i];
+            for (let animationIndex = 0; animationIndex < convetedData.length; animationIndex++) {
+                let animation = convetedData[animationIndex];
 
-                out.push("  \"" + animation.name + "\": {");
+                out.push('  \"' + animation.name + '\": {');
 
-                var channelGroup = Enumerable.From(<List<any>>animation.curves)
+                let channelGroup = Enumerable.From(<List<any>>animation.curves)
                     .GroupBy(curve => curve.group)
                     .Select(group => ({
                         name: group.Key(),
@@ -144,34 +145,48 @@ namespace ObjectAnimationConverter {
                     .OrderBy(group => group.name)
                     .ToArray();
 
-                for (var groupIndex = 0; groupIndex < channelGroup.length; groupIndex++) {
-                    var group = channelGroup[groupIndex];
+                for (let groupIndex = 0; groupIndex < channelGroup.length; groupIndex++) {
+                    let group = channelGroup[groupIndex];
 
-                    out.push("    \"" + group.name + "\": {");
+                    out.push('    \"' + group.name + '\": {');
 
-                    for (var k = 0; k < group.curves.length; k++) {
-                        var curve = group.curves[k];
+                    for (let curveIndex = 0; curveIndex < group.curves.length; curveIndex++) {
+                        let curve = group.curves[curveIndex];
 
-                        var output_carve = {
+                        let output_carve = {
                             ipoType: 2,
                             lastTime: 0.0,
                             lastIndex: 0,
                             curve: curve.points
                         };
 
-                        out.push("      \"" + curve.channel + "\": "
+                        out.push('      \"' + curve.channel + '\": '
                             + JSON.stringify(output_carve, this.jsonStringifyReplacer)
-                            + (k < group.curves.length - 1 ? ',' : '')
                         );
+
+                        if (curveIndex < group.curves.length - 1) {
+
+                            out[out.length - 1] += ',';
+                        }
                     }
 
-                    out.push("    }" + (groupIndex < channelGroup.length - 1 ? ',' : ''));
+                    out.push('    }');
+
+                    if (groupIndex < channelGroup.length - 1) {
+
+                        out[out.length - 1] += ',';
+                    }
                 }
 
-                out.push("  }" + (i < convetedData.length - 1 ? ',' : ''));
+                out.push('  }');
+
+                if (animationIndex < convetedData.length - 1) {
+
+                    out[out.length - 1] += ',';
+                }
             }
 
-            out.push("}");
+            out.push('}');
 
             fs.writeFile(outFileName, out.join('\r\n'), function (error) {
                 if (error != null) {
@@ -182,37 +197,37 @@ namespace ObjectAnimationConverter {
 
         getCurveName(actionGroupName: string, array_index: int) {
 
-            if (actionGroupName == "Location") {
+            if (actionGroupName == 'Location') {
                 if (array_index == 0) {
-                    return "locationX";
+                    return 'locationX';
                 }
                 else if (array_index == 1) {
-                    return "locationY";
+                    return 'locationY';
                 }
                 else if (array_index == 2) {
-                    return "locationZ";
+                    return 'locationZ';
                 }
             }
-            else if (actionGroupName == "Rotation") {
+            else if (actionGroupName == 'Rotation') {
                 if (array_index == 0) {
-                    return "rotationX";
+                    return 'rotationX';
                 }
                 else if (array_index == 1) {
-                    return "rotationY";
+                    return 'rotationY';
                 }
                 else if (array_index == 2) {
-                    return "rotationZ";
+                    return 'rotationZ';
                 }
             }
-            else if (actionGroupName == "Scaling") {
+            else if (actionGroupName == 'Scaling') {
                 if (array_index == 0) {
-                    return "scalingX";
+                    return 'scalingX';
                 }
                 else if (array_index == 1) {
-                    return "scalingY";
+                    return 'scalingY';
                 }
                 else if (array_index == 2) {
-                    return "scalingZ";
+                    return 'scalingZ';
                 }
             }
 
@@ -222,25 +237,25 @@ namespace ObjectAnimationConverter {
         getBoneCurveName(array_index: int) {
 
             if (array_index == 0) {
-                return "quatW";
+                return 'quatW';
             }
             else if (array_index == 1) {
-                return "quatX";
+                return 'quatX';
             }
             else if (array_index == 2) {
-                return "quatY";
+                return 'quatY';
             }
             else if (array_index == 3) {
-                return "quatZ";
+                return 'quatZ';
             }
             else if (array_index == 4) {
-                return "locX";
+                return 'locX';
             }
             else if (array_index == 5) {
-                return "locY";
+                return 'locY';
             }
             else if (array_index == 6) {
-                return "locZ";
+                return 'locZ';
             }
         }
 
@@ -260,8 +275,8 @@ namespace ObjectAnimationConverter {
         }
 
         floatArrayToArray(array: Float32Array) {
-            var result = [];
-            for (var i = 0; i < array.length; i++) {
+            let result = [];
+            for (let i = 0; i < array.length; i++) {
                 result.push(array[i]);
             }
             return result;

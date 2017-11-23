@@ -19,6 +19,8 @@
 
 ![](./skin_model_animation_playing_fig001.png)
 
+<br />
+
 
 ## アニメーショの再生
 
@@ -28,6 +30,7 @@
 
 ![](./skin_model_animation_playing_fig002.png)
 
+<br />
 
 ### Fカーブの値の計算
 
@@ -37,11 +40,13 @@
 
 ![プログラムの構成](skin_model_animation_playing_fig003.png)
 
+<br />
 
 ### スキンモデルの描画
 
 スキンモデルの描画については[スキンモデルの描画](./skinning_model_drawing/)を参照してください。
 
+<br />
 
 ## サンプルプログラム
 
@@ -51,6 +56,7 @@
 
 上の図はクラスと関数の呼び出し関係を表しています。基本的には[スキンモデルの描画](./skinning_model_drawing/)と同じですが、アニメーションデータのロードが追加され、calcObjectMatrixとcalcBoneMatrixがアニメーションを利用するようになっています。
 
+<br />
 
 ### 処理の流れ
 
@@ -66,10 +72,13 @@
     4. *ボーンのアニメーションと行列の計算*
 6. 描画処理ループ (draw関数)
 
+<br />
 
 ## クラスの解説
 
 ※アニメーション以外の部分については[スキンモデルの描画](./skinning_model_drawing/)を参照してください。
+
+<br />
 
 ### AnimationSolver (animation.ts)
 
@@ -84,7 +93,7 @@ AnimationSolverはFカーブの値を計算する関数を持ちます。これ�
 AnimationSolverはFカーブをもとにボーンの位置、回転、拡大縮小の値することでボーンのアニメーションの計算を行います。計算の結果はアニメーションバッファ(BoneAnimationBuffer)に保存されます。２つのアニメーションバッファの内容を合成することもできます。
 
 また、AnimationSolverはアニメーションバッファをもとにボーンの行列を計算します。計算の結果はマトリックスバッファ(BoneAnimationMatrixBuffer)に保存されます。ボーン行列はボーンの親子関係を加味したモデル座標系の値が計算されます。
-<br />
+
 <br />
 
 ### BoneAnimationBuffer (animation.ts)
@@ -96,7 +105,7 @@ AnimationSolverはFカーブをもとにボーンの位置、回転、拡大縮�
 BoneAnimationBufferはボーンのアニメーションの計算結果を保存するためのクラスです。保存するのはボーンの位置、回転、拡大縮小の値です。これらの値をもとにアニメーションの合成やボーン行列の計算を行います。
 
 ２つのBoneAnimationBufferがあれば、それらの中間の値を線形補間で計算し、再びBoneAnimationBufferに計算結果を保存することができます。これにより、例えばあるアニメーションから別のアニメーションへのシームレスな遷移を行ったり、上半身と下半身で別のアニメーションを組み合わせたりすることができます。
-<br />
+
 <br />
 
 ### BoneAnimationMatrixBuffer (animation.ts)
@@ -105,7 +114,7 @@ BoneAnimationBufferはボーンのアニメーションの計算結果を保存�
 - インデクスとボーン名でボーン行列にアクセスが可能
 
 BoneAnimationMatrixBufferはBoneAnimationBufferをもとに計算したボーン行列を保存するためのクラスです。インデクスと名前のどちらでもボーン行列にアクセスできるようになっています。
-<br />
+
 <br />
 
 ## 関連情報
@@ -113,3 +122,5 @@ BoneAnimationMatrixBufferはBoneAnimationBufferをもとに計算したボーン
 - [モデルの描画](../basic_model_drawing/)
 - [オブジェクトアニメーションデータの作成](../object_animation_converter/) 
 - [スキンモデルの描画](./skinning_model_drawing/)
+
+<br />

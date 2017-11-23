@@ -124,15 +124,15 @@ var PTWTipsSound_HTML5_WebAudio;
         };
         // own methods
         SoundSource.prototype.initializePlayingUnits = function (maxPlayingUnitCount) {
-            for (var i = 0; i < maxPlayingUnitCount; i++) {
+            for (var count = 0; count < maxPlayingUnitCount; count++) {
                 var playingUnit = this.device.createSoundPlayingUnit();
                 this.playingUnits.push(playingUnit);
             }
         };
         SoundSource.prototype.setAudioBuffer = function (audioBuffer) {
             this.masterAudioBuffer = audioBuffer;
-            for (var i = 0; i < this.playingUnits.length; i++) {
-                var playingUnit = this.playingUnits[i];
+            for (var _i = 0, _a = this.playingUnits; _i < _a.length; _i++) {
+                var playingUnit = _a[_i];
                 playingUnit.audioBuffer = audioBuffer;
             }
         };

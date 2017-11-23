@@ -245,8 +245,9 @@ var ComplexToonDrawing;
             out[16] = 1;
         };
         Main.prototype.drawSkinningModels = function (modelMatrix, modelNameList, imageResources) {
-            for (var i = 0; i < modelNameList.length; i++) {
-                var model = this.skinningModelLoadingState.models[modelNameList[i]];
+            for (var _i = 0, modelNameList_1 = modelNameList; _i < modelNameList_1.length; _i++) {
+                var modelName = modelNameList_1[_i];
+                var model = this.skinningModelLoadingState.models[modelName];
                 this.drawSkinningModel(modelMatrix, model, this.boneMatrixBuffer, imageResources);
             }
         };
@@ -267,10 +268,10 @@ var ComplexToonDrawing;
             // drawing for each part
             var bones = skinningModel.data.bones;
             var parts = skinningModel.data.parts;
-            for (var i = 0; i < parts.length; i++) {
-                var part = parts[i];
+            for (var _i = 0, parts_1 = parts; _i < parts_1.length; _i++) {
+                var part = parts_1[_i];
                 // select shader
-                var shader;
+                var shader = void 0;
                 if (part.bone.length <= 2) {
                     shader = this.drawer_Bone2Shader;
                 }
@@ -280,7 +281,7 @@ var ComplexToonDrawing;
                 this.render.setShader(shader);
                 // set bone matrix
                 for (var boneIndex = 0; boneIndex < part.bone.length; boneIndex++) {
-                    mat4.copy(this.boneMatrix, matrixBuffer.animatedBoneMatrixList[part.bone[boneIndex]]);
+                    mat4.copy(this.boneMatrix, matrixBuffer.boneMatrixList[part.bone[boneIndex]]);
                     shader.setBoneMatrix(boneIndex, this.boneMatrix, this.gl);
                 }
                 // draw
@@ -321,8 +322,8 @@ var ComplexToonDrawing;
         };
         Main.prototype.initializeSkinningModelBuffer = function (skinningModel) {
             // create buffers for each part
-            for (var i = 0; i < skinningModel.data.parts.length; i++) {
-                var part = skinningModel.data.parts[i];
+            for (var _i = 0, _a = skinningModel.data.parts; _i < _a.length; _i++) {
+                var part = _a[_i];
                 var renderModel = new RenderModel();
                 this.render.initializeModelBuffer(renderModel, part.vertex, part.index, 4 * part.vertexStride); // 4 (=size of float)
                 part.renderModel = renderModel;

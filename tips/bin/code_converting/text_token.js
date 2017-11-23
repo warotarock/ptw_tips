@@ -28,7 +28,7 @@ var CodeConverter;
         function TextToken() {
         }
         TextToken.prototype.toString = function () {
-            return this.LineNumber + " " + this.Type.toString() + " " + this.Text;
+            return this.LineNumber + ' ' + this.Type.toString() + ' ' + this.Text;
         };
         TextToken.joinToString = function (tokens) {
             var result = new List();
@@ -324,7 +324,7 @@ var CodeConverter;
             this.angleNestCount = 0;
         }
         NestingCounter.prototype.toString = function () {
-            return "(): " + this.parenthesisNestCount + " {}: " + this.braceNestCount + " <>: " + this.angleNestCount;
+            return '(): ' + this.parenthesisNestCount + ' {}: ' + this.braceNestCount + ' <>: ' + this.angleNestCount;
         };
         NestingCounter.prototype.reset = function () {
             this.parenthesisNestCount = 0;
@@ -373,7 +373,7 @@ var CodeConverter;
             return _super !== null && _super.apply(this, arguments) || this;
         }
         TextTokenCollection.prototype.toString = function () {
-            return "length: " + this.length;
+            return 'length: ' + this.length;
         };
         TextTokenCollection.create = function () {
             return TextTokenCollection.createFrom(new List());
@@ -387,7 +387,7 @@ var CodeConverter;
             target.ParenthesisCounter = null;
             target.findIndexInZeroLevel = TextTokenCollection.prototype.findIndexInZeroLevel;
             target.getRange = TextTokenCollection.prototype.getRange;
-            Object.defineProperty(target, 'endIndex', Object.getOwnPropertyDescriptor(TextTokenCollection.prototype, "endIndex"));
+            Object.defineProperty(target, 'endIndex', Object.getOwnPropertyDescriptor(TextTokenCollection.prototype, 'endIndex'));
             return target;
         };
         Object.defineProperty(TextTokenCollection.prototype, "endIndex", {

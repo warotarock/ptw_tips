@@ -48,7 +48,7 @@ module PTWTipsInput {
 
             this.buttons = new List<ButtonInputControl>(this.maxButtonCount);
 
-            for (var i = 0; i < this.buttons.length; i++) {
+            for (let i = 0; i < this.buttons.length; i++) {
 
                 this.buttons[i] = new ButtonInputControl();
                 this.buttons[i].name = ('button' + (1 + i));
@@ -64,12 +64,12 @@ module PTWTipsInput {
             this.initialWidth = canvas.clientWidth;
             this.initialHeight = canvas.clientHeight;
 
-            var onMouseMove = (e) => {
+            let onMouseMove = (e) => {
 
                 this.inputMouseLocation(this.location, e);
             };
 
-            var onMouseDown = (e) => {
+            let onMouseDown = (e) => {
 
                 this.buttons[e.button].inputPress();
 
@@ -78,7 +78,7 @@ module PTWTipsInput {
                 return this.preventDefaultEvent(e);
             };
 
-            var onMouseUp = (e) => {
+            let onMouseUp = (e) => {
 
                 this.buttons[e.button].inputRelease();
 
@@ -87,9 +87,9 @@ module PTWTipsInput {
                 return this.preventDefaultEvent(e);
             };
 
-            var onMouseWheel = (e) => {
+            let onMouseWheel = (e) => {
 
-                var delta = 0;
+                let delta = 0;
 
                 if (!e) {
                     e = window.event // IE
@@ -110,7 +110,7 @@ module PTWTipsInput {
                 return this.preventDefaultEvent(e);
             };
 
-            var onTouchStart = (e) => {
+            let onTouchStart = (e) => {
 
                 this.buttons[0].inputRelease();
 
@@ -119,7 +119,7 @@ module PTWTipsInput {
                 return this.preventDefaultEvent(e);
             };
 
-            var onTouchEnd = (e) => {
+            let onTouchEnd = (e) => {
 
                 this.buttons[0].inputRelease();
 
@@ -128,26 +128,26 @@ module PTWTipsInput {
                 return this.preventDefaultEvent(e);
             };
 
-            var ontTouchMove = (e) => {
+            let ontTouchMove = (e) => {
 
                 this.inputMouseLocation(this.location, e);
 
                 return this.preventDefaultEvent(e);
             };
 
-            canvas.addEventListener("mousemove", onMouseMove);
-            canvas.addEventListener("mousedown", onMouseDown);
-            canvas.addEventListener("mouseup", onMouseUp);
-            canvas.addEventListener("wheel", onMouseWheel);
-            canvas.addEventListener("touchstart", onTouchStart);
-            canvas.addEventListener("touchend", onTouchEnd);
-            canvas.addEventListener("touchmove", ontTouchMove);
+            canvas.addEventListener('mousemove', onMouseMove);
+            canvas.addEventListener('mousedown', onMouseDown);
+            canvas.addEventListener('mouseup', onMouseUp);
+            canvas.addEventListener('wheel', onMouseWheel);
+            canvas.addEventListener('touchstart', onTouchStart);
+            canvas.addEventListener('touchend', onTouchEnd);
+            canvas.addEventListener('touchmove', ontTouchMove);
             canvas.addEventListener('contextmenu', this.preventDefaultEvent);
         }
 
         private inputMouseLocation(control: PointingInputControl, e: HTMLMouseEvent) {
 
-            var scale = (this.initialWidth / e.target.clientWidth);
+            let scale = (this.initialWidth / e.target.clientWidth);
 
             control.inputLocation(
                 (e.pageX - e.target.offsetLeft) * scale
@@ -169,8 +169,8 @@ module PTWTipsInput {
 
         processPolling(time: float) {
 
-            for (var i = 0; i < this.buttons.length; i++) {
-                var button = this.buttons[i];
+            for (let i = 0; i < this.buttons.length; i++) {
+                let button = this.buttons[i];
 
                 button.processPollingDoublePress(time, this.doublePressMilliSecond);
             }
@@ -178,8 +178,8 @@ module PTWTipsInput {
 
         updateStates() {
 
-            for (var i = 0; i < this.buttons.length; i++) {
-                var button = this.buttons[i];
+            for (let i = 0; i < this.buttons.length; i++) {
+                let button = this.buttons[i];
 
                 button.updateStates();
             }
@@ -189,8 +189,8 @@ module PTWTipsInput {
 
         getButtonControlByName(name: string): ButtonInputControl {
 
-            for (var i = 0; i < this.buttons.length; i++) {
-                var button = this.buttons[i];
+            for (let i = 0; i < this.buttons.length; i++) {
+                let button = this.buttons[i];
 
                 if (button.name == name) {
                     return button;

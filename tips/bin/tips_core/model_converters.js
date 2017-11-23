@@ -172,8 +172,8 @@ var Converters;
         };
         ThreeJSColladaParser.prototype.extractVertices = function (geometry3js) {
             var vertices = new List();
-            for (var i = 0; i < geometry3js.vertices.length; i++) {
-                var vartexData = geometry3js.vertices[i];
+            for (var _i = 0, _a = geometry3js.vertices; _i < _a.length; _i++) {
+                var vartexData = _a[_i];
                 var vertex = new MeshVertex();
                 vec3.set(vertex.position, vartexData.x, vartexData.y, vartexData.z);
                 vec3.set(vertex.normal, 0.0, 0.0, 0.0);
@@ -184,8 +184,8 @@ var Converters;
         };
         ThreeJSColladaParser.prototype.extractFaces = function (geometry3js) {
             var faces = new List();
-            for (var i = 0; i < geometry3js.faces.length; i++) {
-                var faceData = geometry3js.faces[i];
+            for (var _i = 0, _a = geometry3js.faces; _i < _a.length; _i++) {
+                var faceData = _a[_i];
                 var face = new MeshFace();
                 face.vertexIndeces = [
                     faceData.a,
@@ -204,11 +204,11 @@ var Converters;
                 faces.push(face);
             }
             if (geometry3js.faceVertexUvs.length > 0) {
-                for (var i = 0; i < geometry3js.faces.length; i++) {
-                    var face = faces[i];
+                for (var faceIndex = 0; faceIndex < geometry3js.faces.length; faceIndex++) {
+                    var face = faces[faceIndex];
                     face.texcoords = new List();
-                    for (var k = 0; k < geometry3js.faceVertexUvs.length; k++) {
-                        var faceVertexUv = geometry3js.faceVertexUvs[k][i];
+                    for (var uvLayerIndex = 0; uvLayerIndex < geometry3js.faceVertexUvs.length; uvLayerIndex++) {
+                        var faceVertexUv = geometry3js.faceVertexUvs[uvLayerIndex][faceIndex];
                         face.texcoords.push([
                             vec2.fromValues(faceVertexUv[0].x, faceVertexUv[0].y),
                             vec2.fromValues(faceVertexUv[1].x, faceVertexUv[1].y),
@@ -221,8 +221,8 @@ var Converters;
         };
         ThreeJSColladaParser.prototype.overwriteVertexUV = function (faces, vertices) {
             // overwrite vretex texture coord data by face data (may be conflicted...)
-            for (var i = 0; i < faces.length; i++) {
-                var face = faces[i];
+            for (var _i = 0, faces_1 = faces; _i < faces_1.length; _i++) {
+                var face = faces_1[_i];
                 for (var faceVertexIndex = 0; faceVertexIndex < face.vertexIndeces.length; faceVertexIndex++) {
                     var vertex = vertices[face.vertexIndeces[faceVertexIndex]];
                     var vertexNormals = face.vertexNormals[faceVertexIndex];
@@ -270,17 +270,17 @@ var Converters;
         ThreeJSColladaParser.prototype.extractBones = function (geometry3js) {
             var tempVec3 = vec3.create();
             var result = new List();
-            for (var i = 0; i < geometry3js.bones.length; i++) {
-                var bone = geometry3js.bones[i];
+            for (var boneIndex = 0; boneIndex < geometry3js.bones.length; boneIndex++) {
+                var bone = geometry3js.bones[boneIndex];
                 var skiningBone = new SkinMeshBone();
                 skiningBone.name = bone.name.replace(/_/g, '.');
-                skiningBone.originalBoneIndex = i;
+                skiningBone.originalBoneIndex = boneIndex;
                 mat4.copy(skiningBone.localMatrix, bone.matrix.elements);
                 mat4.copy(skiningBone.worldMatrix, skiningBone.localMatrix);
                 if (typeof (bone.parent) == 'number' && bone.parent != -1) {
-                    var parent = result[bone.parent];
-                    skiningBone.parent = parent;
-                    mat4.multiply(skiningBone.worldMatrix, parent.worldMatrix, skiningBone.worldMatrix);
+                    var parent_1 = result[bone.parent];
+                    skiningBone.parent = parent_1;
+                    mat4.multiply(skiningBone.worldMatrix, parent_1.worldMatrix, skiningBone.worldMatrix);
                 }
                 mat4.invert(skiningBone.worldInvMatrix, skiningBone.worldMatrix);
                 mat4.copy(skiningBone.worldInvNormalMatrix, skiningBone.worldMatrix);
@@ -288,8 +288,8 @@ var Converters;
                 mat4.invert(skiningBone.worldInvNormalMatrix, skiningBone.worldInvNormalMatrix);
                 result.push(skiningBone);
             }
-            for (var i = 0; i < result.length; i++) {
-                var skiningBone = result[i];
+            for (var _i = 0, result_1 = result; _i < result_1.length; _i++) {
+                var skiningBone = result_1[_i];
                 if (skiningBone.parent == null) {
                     skiningBone.nestLevel = 0;
                 }
@@ -323,12 +323,12 @@ var Converters;
             if (geometry3js.skinIndices == undefined || geometry3js.skinIndices == null) {
                 return null;
             }
-            // add weight data to vertex and face data
-            for (var i = 0; i < faces.length; i++) {
-                var face = faces[i];
+            // Adds weight data to vertex and face data
+            for (var _i = 0, faces_2 = faces; _i < faces_2.length; _i++) {
+                var face = faces_2[_i];
                 face.sortingIndeces = new List();
-                for (var k = 0; k < face.vertexIndeces.length; k++) {
-                    var vertexIndex = face.vertexIndeces[k];
+                for (var _a = 0, _b = face.vertexIndeces; _a < _b.length; _a++) {
+                    var vertexIndex = _b[_a];
                     var vertex = vertices[vertexIndex];
                     var skinIndex = geometry3js.skinIndices[vertexIndex];
                     var skinWeight = geometry3js.skinWeights[vertexIndex];
@@ -366,10 +366,10 @@ var Converters;
                     .ToArray();
                 face.boneCount = face.sortingIndeces.length;
                 if (face.boneCount > 4) {
-                    console.log("more than 4 bone count detected.");
+                    console.log('more than 4 bone count detected.');
                 }
             }
-            // grouping by bone and material
+            // Grouping by bone and material
             var faceGoups = Enumerable.From(faces)
                 .GroupBy(function (face) { return getFaceGroupKey(face.materialIndex, face.sortingIndeces); })
                 .Select(function (group) { return ({
@@ -382,69 +382,62 @@ var Converters;
             }); })
                 .OrderBy(function (group) { return group.key; })
                 .ToArray();
-            // compress all one-bone groups
-            for (var i = 0; i < faceGoups.length; i++) {
-                var group = faceGoups[i];
-                if (group.boneCount != 1) {
+            // Combine all groups witch has only 1 bone to another group
+            for (var sourceGroupIndex = 0; sourceGroupIndex < faceGoups.length; sourceGroupIndex++) {
+                var sourceGroup = faceGoups[sourceGroupIndex];
+                if (sourceGroup.boneCount != 1) {
                     continue;
                 }
                 else {
-                    var compress_to_group = null;
-                    var newBone = false;
-                    // search another group wihich same bone have
-                    for (var k = 0; k < faceGoups.length; k++) {
-                        var toGroup = faceGoups[k];
-                        if (k != i && toGroup.materialIndex == group.materialIndex && toGroup.boneCount >= 2) {
-                            for (var m = 0; m < toGroup.boneIndices.length; m++) {
-                                if (toGroup.boneIndices[m] == group.boneIndices[0]) {
-                                    compress_to_group = toGroup;
+                    var combineTo_Group = null;
+                    var ndeedsNewBoneSlot = false;
+                    // Search another group wihich has same bone combination
+                    for (var candidate_GroupIndex = 0; candidate_GroupIndex < faceGoups.length; candidate_GroupIndex++) {
+                        var candidate_Group = faceGoups[candidate_GroupIndex];
+                        if (candidate_GroupIndex != sourceGroupIndex && candidate_Group.materialIndex == sourceGroup.materialIndex && candidate_Group.boneCount >= 2) {
+                            for (var boneSlotIndex = 0; boneSlotIndex < candidate_Group.boneIndices.length; boneSlotIndex++) {
+                                if (candidate_Group.boneIndices[boneSlotIndex] == sourceGroup.boneIndices[0]) {
+                                    combineTo_Group = candidate_Group;
                                     break;
                                 }
                             }
                         }
                     }
-                    // search another one bone group
+                    // Search another one bone group
                     // or search three bone group
-                    if (compress_to_group == null) {
-                        for (var k = 0; k < faceGoups.length; k++) {
-                            var toGroup = faceGoups[k];
-                            if (k != i && toGroup.materialIndex == group.materialIndex && toGroup.boneCount == 1) {
-                                compress_to_group = toGroup;
-                                newBone = true;
+                    if (combineTo_Group == null) {
+                        for (var candidate_GroupIndex = 0; candidate_GroupIndex < faceGoups.length; candidate_GroupIndex++) {
+                            var candidate_Group = faceGoups[candidate_GroupIndex];
+                            if (candidate_GroupIndex != sourceGroupIndex && candidate_Group.materialIndex == sourceGroup.materialIndex && candidate_Group.boneCount == 1) {
+                                combineTo_Group = candidate_Group;
+                                ndeedsNewBoneSlot = true;
                                 break;
                             }
                         }
                     }
-                    if (compress_to_group == null) {
-                        for (var k = 0; k < faceGoups.length; k++) {
-                            var toGroup = faceGoups[k];
-                            if (k != i && toGroup.materialIndex == group.materialIndex && toGroup.boneCount == 3) {
-                                compress_to_group = toGroup;
-                                newBone = true;
+                    if (combineTo_Group == null) {
+                        for (var candidate_GroupIndex = 0; candidate_GroupIndex < faceGoups.length; candidate_GroupIndex++) {
+                            var candidate_Group = faceGoups[candidate_GroupIndex];
+                            if (candidate_GroupIndex != sourceGroupIndex && candidate_Group.materialIndex == sourceGroup.materialIndex && candidate_Group.boneCount == 3) {
+                                combineTo_Group = candidate_Group;
+                                ndeedsNewBoneSlot = true;
                                 break;
                             }
                         }
                     }
-                    if (compress_to_group != null) {
-                        if (newBone) {
-                            compress_to_group.boneIndices.push(group.boneIndices[0]);
-                            compress_to_group.boneCount++;
+                    if (combineTo_Group != null) {
+                        if (ndeedsNewBoneSlot) {
+                            combineTo_Group.boneIndices.push(sourceGroup.boneIndices[0]);
+                            combineTo_Group.boneCount++;
                         }
-                        compress_to_group.key = getFaceGroupKey(compress_to_group.materialIndex, compress_to_group.boneIndices);
+                        combineTo_Group.key = getFaceGroupKey(combineTo_Group.materialIndex, combineTo_Group.boneIndices);
                         // combine mesh
-                        compress_to_group.faces = compress_to_group.faces.concat(group.faces);
-                        group.combined = true;
+                        combineTo_Group.faces = combineTo_Group.faces.concat(sourceGroup.faces);
+                        sourceGroup.combined = true;
                     }
                 }
             }
-            // adjust boneIndices array size
-            for (var i = 0; i < faceGoups.length; i++) {
-                var group = faceGoups[i];
-                if (group.boneIndices.length == 1 || group.boneIndices.length == 3) {
-                    group.boneIndices.push(-1);
-                }
-            }
-            // filter and ordering
+            // Filter and ordering
             faceGoups = Enumerable.From(faceGoups)
                 .Where(function (group) { return !group.combined; })
                 .OrderBy(function (group) { return group.key; })
@@ -452,62 +445,69 @@ var Converters;
             return faceGoups;
         };
         ThreeJSColladaParser.prototype.buildPartedSkinMeshModel = function (faceGoups, vertices, faces, bones) {
+            // Creates vertex index table
             var vertexIndexTable = new Array(vertices.length);
-            // create a part data for each groups
+            // Create bone index table to replace bone index to re-ordered one
+            var boneIndexTable = new List(bones.length);
+            for (var i = 0; i < bones.length; i++) {
+                var bone = bones[i];
+                boneIndexTable[bone.originalBoneIndex] = i;
+            }
+            // Creates a part data for each groups
             var parts = new List();
-            for (var i = 0; i < faceGoups.length; i++) {
-                var group = faceGoups[i];
-                // assign new vertex index in the part
+            for (var _i = 0, faceGoups_1 = faceGoups; _i < faceGoups_1.length; _i++) {
+                var group = faceGoups_1[_i];
+                // Assigns new index for face's vertex
                 var new_vertex_count = 0;
-                for (var k = 0; k < vertexIndexTable.length; k++) {
-                    vertexIndexTable[k] = -1;
+                for (var i = 0; i < vertexIndexTable.length; i++) {
+                    vertexIndexTable[i] = -1;
                 }
-                for (var k = 0; k < group.faces.length; k++) {
-                    var face = group.faces[k];
-                    for (var m = 0; m < face.vertexIndeces.length; m++) {
-                        var vertexIndex = face.vertexIndeces[m];
+                for (var _a = 0, _b = group.faces; _a < _b.length; _a++) {
+                    var face = _b[_a];
+                    for (var _c = 0, _d = face.vertexIndeces; _c < _d.length; _c++) {
+                        var vertexIndex = _d[_c];
                         if (vertexIndexTable[vertexIndex] == -1) {
                             vertexIndexTable[vertexIndex] = new_vertex_count;
                             new_vertex_count++;
                         }
                     }
                 }
-                // create vertices
+                // Creates vertices
                 var part_vertices = new List(new_vertex_count);
-                for (var k = 0; k < vertexIndexTable.length; k++) {
-                    if (vertexIndexTable[k] != -1) {
-                        var src_vertex = vertices[k];
+                for (var oldVertexIndex = 0; oldVertexIndex < vertexIndexTable.length; oldVertexIndex++) {
+                    var newVertexIndex = vertexIndexTable[oldVertexIndex];
+                    if (newVertexIndex != -1) {
+                        var src_vertex = vertices[oldVertexIndex];
                         var skinVertex = new SkinVertex();
                         skinVertex.texcoords = src_vertex.texcoords;
                         skinVertex.positions = new List();
-                        for (var m = 0; m < group.boneIndices.length; m++) {
-                            var boneIndex = group.boneIndices[m];
-                            if (boneIndex == -1) {
-                                continue;
-                            }
+                        for (var _e = 0, _f = group.boneIndices; _e < _f.length; _e++) {
+                            var boneIndex = _f[_e];
                             var vpos = new SkinVertexPosition();
                             vec3.copy(vpos.position, src_vertex.position);
                             vec3.copy(vpos.normal, src_vertex.normal);
                             vpos.boneWeight = 0.0;
-                            for (var n = 0; n < src_vertex.boneWeights.length; n++) {
-                                if (src_vertex.boneWeights[n].index == boneIndex) {
-                                    vpos.boneWeight = src_vertex.boneWeights[n].weight;
+                            for (var _g = 0, _h = src_vertex.boneWeights; _g < _h.length; _g++) {
+                                var boneWeight = _h[_g];
+                                if (boneWeight.index == boneIndex) {
+                                    vpos.boneWeight = boneWeight.weight;
                                     break;
                                 }
                             }
                             skinVertex.positions.push(vpos);
                         }
-                        part_vertices[vertexIndexTable[k]] = skinVertex;
+                        part_vertices[newVertexIndex] = skinVertex;
                     }
                 }
-                // create faces
+                // Creates faces
                 var part_faces = new List();
-                for (var k = 0; k < group.faces.length; k++) {
-                    var face = group.faces[k];
-                    var skinFace = new MeshFace();
-                    skinFace.vertexIndeces = Enumerable.From(face.vertexIndeces)
+                for (var _j = 0, _k = group.faces; _j < _k.length; _j++) {
+                    var face = _k[_j];
+                    var vertexIndeces = Enumerable.From(face.vertexIndeces)
                         .Select(function (index) { return vertexIndexTable[index]; })
                         .ToArray();
+                    var skinFace = new MeshFace();
+                    skinFace.vertexIndeces = vertexIndeces;
                     skinFace.vertexNormals = face.vertexNormals;
                     skinFace.texcoords = face.texcoords;
                     vec3.copy(skinFace.faceNormal, face.faceNormal);
@@ -515,35 +515,29 @@ var Converters;
                     skinFace.materialIndex = face.materialIndex;
                     part_faces.push(skinFace);
                 }
-                // create part
+                // Creates bone indices
+                var part_boneIndices = new List();
+                for (var _l = 0, _m = group.boneIndices; _l < _m.length; _l++) {
+                    var oldBoneIndex = _m[_l];
+                    var newBoneIndex = boneIndexTable[oldBoneIndex];
+                    part_boneIndices.push(newBoneIndex);
+                }
+                // Creates part
                 var part = new SkinMeshPart();
-                part.boneIndices = group.boneIndices;
+                part.boneIndices = part_boneIndices;
                 part.materialIndex = group.materialIndex;
                 part.vertices = part_vertices;
                 part.faces = part_faces;
                 parts.push(part);
             }
-            // replace bone index to re-ordered one
-            var boneIndexTable = [];
-            for (var i = 0; i < bones.length; i++) {
-                boneIndexTable[bones[i].originalBoneIndex] = i;
-            }
-            for (var i = 0; i < parts.length; i++) {
-                var part = parts[i];
-                for (var k = 0; k < part.boneIndices.length; k++) {
-                    if (part.boneIndices[k] != -1) {
-                        part.boneIndices[k] = boneIndexTable[part.boneIndices[k]];
-                    }
-                }
-            }
-            // transform vertex positions into bone local
-            for (var i = 0; i < parts.length; i++) {
-                var part = parts[i];
-                for (var k = 0; k < part.vertices.length; k++) {
-                    var vertex = part.vertices[k];
-                    for (var m = 0; m < vertex.positions.length; m++) {
-                        var vpos = vertex.positions[m];
-                        var boneIndex = part.boneIndices[m];
+            // Transforms vertex positions into bone local
+            for (var _o = 0, parts_1 = parts; _o < parts_1.length; _o++) {
+                var part = parts_1[_o];
+                for (var _p = 0, _q = part.vertices; _p < _q.length; _p++) {
+                    var vertex = _q[_p];
+                    for (var vertexIndex = 0; vertexIndex < vertex.positions.length; vertexIndex++) {
+                        var vpos = vertex.positions[vertexIndex];
+                        var boneIndex = part.boneIndices[vertexIndex];
                         var bone = bones[boneIndex];
                         vec3.transformMat4(vpos.position, vpos.position, bone.worldInvMatrix);
                         vec3.transformMat4(vpos.normal, vpos.normal, bone.worldInvNormalMatrix);
@@ -551,7 +545,7 @@ var Converters;
                     }
                 }
             }
-            // create a model
+            // Creates a model
             var result = new PartedSkinMeshModel();
             result.bones = bones;
             result.parts = parts;

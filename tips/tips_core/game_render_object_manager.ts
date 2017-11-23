@@ -11,7 +11,7 @@ namespace Game {
         nearGround = 4,
         ui = 5,
         invisible = 6,
-        maxLayerCount = 6,
+        maxLayerID = 6,
     }
 
     export enum RenderObjectBlendType {
@@ -48,8 +48,7 @@ namespace Game {
 
         billboarding: RenderObjectBillboardType = RenderObjectBillboardType.off;
 
-        locationMatrix: Mat4 = mat4.create();
-        rotationMatrix: Mat4 = mat4.create();
+        matrix: Mat4 = mat4.create();
         sortingValue = 0.0;
 
         model: RenderModel = null;
@@ -87,7 +86,9 @@ namespace Game {
 
             this.recyclePool = new RecyclePool<RenderObject>(RenderObject, maxRenderObjectCount);
 
-            for (var i = 0; i < <int>RenderObjectLayerID.maxLayerCount + 1; i++) {
+            let layerCount = <int>RenderObjectLayerID.maxLayerID + 1;
+
+            for (let i = 0; i < layerCount; i++) {
                 this.objectLayers.push(new RenderObjectLayer());
             }
 
@@ -96,8 +97,7 @@ namespace Game {
 
         clearObjects() {
 
-            for (var k = 0; k < this.objectLayers.length; k++) {
-                var layer: RenderObjectLayer = this.objectLayers[k];
+            for (let layer of this.objectLayers) {
 
                 layer.objects = new List<RenderObject>();
             }
@@ -107,7 +107,7 @@ namespace Game {
 
         createObject(): RenderObject {
 
-            var renderObject = this.recyclePool.get();
+            let renderObject = this.recyclePool.get();
             if (renderObject == null) {
                 return null;
             }
@@ -120,8 +120,7 @@ namespace Game {
 
             renderObject.billboarding = RenderObjectBillboardType.off;
 
-            mat4.identity(renderObject.locationMatrix);
-            mat4.identity(renderObject.rotationMatrix);
+            mat4.identity(renderObject.matrix);
             renderObject.sortingValue = 0.0;
 
             renderObject.model = null;
@@ -144,7 +143,7 @@ namespace Game {
 
             this.objects.push(renderObject);
 
-            var layer = this.objectLayers[<int>renderObject.layerID];
+            let layer = this.objectLayers[<int>renderObject.layerID];
             layer.objects.push(renderObject);
 
             renderObject.lastLayerID = renderObject.layerID;
@@ -152,17 +151,21 @@ namespace Game {
 
         removeObject(renderObject: RenderObject) {
 
-            for (var i = 0; i < this.objects.length; i++) {
+            for (let i = 0; i < this.objects.length; i++) {
+
                 if (this.objects[i] === renderObject) {
+
                     ListRemoveAt(this.objects, i);
                     break;
                 }
             }
 
-            var layer = this.getObjectLayer(renderObject.lastLayerID);
+            let layer = this.getObjectLayer(renderObject.lastLayerID);
 
-            for (var i = 0; i < layer.objects.length; i++) {
+            for (let i = 0; i < layer.objects.length; i++) {
+
                 if (layer.objects[i] === renderObject) {
+
                     ListRemoveAt(layer.objects, i);
                     break;
                 }
@@ -188,48 +191,36 @@ namespace Game {
             return this.getObjectLayer(layerID).objects;
         }
 
-        // Basic caluclation support
-
-        calcMatrix(renderObject: RenderObject) {
-
-            mat4.identity(renderObject.locationMatrix);
-            mat4.translate(renderObject.locationMatrix, renderObject.locationMatrix, renderObject.location);
-            mat4.rotateX(renderObject.locationMatrix, renderObject.locationMatrix, renderObject.rotation[0]);
-            mat4.rotateY(renderObject.locationMatrix, renderObject.locationMatrix, renderObject.rotation[1]);
-            mat4.rotateZ(renderObject.locationMatrix, renderObject.locationMatrix, renderObject.rotation[2]);
-            mat4.scale(renderObject.locationMatrix, renderObject.locationMatrix, renderObject.scaling);
-        }
-
         // Object sorting
 
         private matrixTranslation: Vec3 = vec3.create();
         private localLocation: Vec3 = vec3.create();
 
-        calcObjectSortingValue(renderObject: RenderObject, inverseCameraMatrix: Mat4, sortingMode: RenderObjectSortingMode) {
+        calcObjectSortingValue(renderObject: RenderObject, inverseCameraMatrix: Mat4, sortingMode: RenderObjectSortingMode): float {
 
-            vec3.set(this.matrixTranslation, renderObject.locationMatrix[12], renderObject.locationMatrix[13], renderObject.locationMatrix[14]);
+            vec3.set(this.matrixTranslation, renderObject.matrix[12], renderObject.matrix[13], renderObject.matrix[14]);
 
             vec3.transformMat4(this.localLocation, this.matrixTranslation, inverseCameraMatrix);
 
             if (sortingMode == RenderObjectSortingMode.xyz) {
 
-                var x = this.localLocation[0] / 128.0;
-                var y = this.localLocation[1] / 128.0;
-                var z = this.localLocation[2] / 128.0;
+                let x = this.localLocation[0] / 128.0;
+                let y = this.localLocation[1] / 128.0;
+                let z = this.localLocation[2] / 128.0;
 
-                renderObject.sortingValue = Math.sqrt(x * x + y * y + z * z) * 128.0;
+                return Math.sqrt(x * x + y * y + z * z) * 128.0;
             }
             else {
 
-                var z = this.localLocation[2] / 128.0;
+                let z = this.localLocation[2] / 128.0;
 
-                renderObject.sortingValue = Math.sqrt(z * z) * 128.0;
+                return Math.sqrt(z * z) * 128.0;
             }
         }
 
         getZsortedObjectList(layerID: RenderObjectLayerID): List<RenderObject> {
 
-            var layer = this.getObjectLayer(layerID);
+            let layer = this.getObjectLayer(layerID);
 
             layer.objects.sort(this.objectSortingFunction);
 
@@ -245,15 +236,14 @@ namespace Game {
 
         updateObjectLayers() {
 
-            for (var k = 0; k < this.objectLayers.length; k++) {
-                var layer = this.objectLayers[k];
+            for (let layer of this.objectLayers) {
 
-                for (var i = layer.objects.length - 1; i >= 0; i--) {
-                    var obj = layer.objects[i];
+                for (let i = layer.objects.length - 1; i >= 0; i--) {
+                    let obj = layer.objects[i];
 
                     if (obj.layerID != obj.lastLayerID) {
 
-                        var destLayer = this.getObjectLayer(obj.layerID);
+                        let destLayer = this.getObjectLayer(obj.layerID);
                         destLayer.objects.push(obj);
 
                         ListRemoveAt(layer.objects, i);

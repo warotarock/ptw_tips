@@ -32,7 +32,6 @@ namespace SkinModelConverting {
         execute() {
 
             var fileName = 'sample_skin_model.dae';
-            var blendFileName = this.getExtensionChangedFileName(fileName, 'blend');
             var outFileName = this.getExtensionChangedFileName('../temp/' + fileName, 'json');
 
             document.getElementById('message').innerHTML = 'Out put will be located ' + outFileName;
@@ -61,8 +60,7 @@ namespace SkinModelConverting {
 
             var convetedModels = new List<ConvertedSkinModel>();
 
-            for (var modelIndex = 0; modelIndex < sceneData.skinMeshModels.length; modelIndex++) {
-                var skinModel = sceneData.skinMeshModels[modelIndex];
+            for (var skinModel of sceneData.skinMeshModels) {
 
                 var sortedParts = Enumerable.From(skinModel.parts)
                     .OrderBy(part => part.boneIndices.length)
@@ -74,36 +72,28 @@ namespace SkinModelConverting {
 
                 var convetedParts = new List<ConvertedSkinModelPart>();
 
-                for (var partIndex = 0; partIndex < sortedParts.length; partIndex++) {
-                    var skinPart = sortedParts[partIndex];
+                for (var skinPart of sortedParts) {
 
                     var boneIndices = [];
-                    for (var boneIndex = 0; boneIndex < skinPart.boneIndices.length; boneIndex++) {
+                    for (var boneIndex of skinPart.boneIndices) {
 
-                        if (skinPart.boneIndices[boneIndex] == -1) {
-                            break;
-                        }
-                        else {
-                            boneIndices.push(skinPart.boneIndices[boneIndex]);
-                        }
+                        boneIndices.push(boneIndex);
                     }
 
                     var vertices = [];
-                    for (var vertexIndex = 0; vertexIndex < skinPart.vertices.length; vertexIndex++) {
-                        var skinVertex = skinPart.vertices[vertexIndex];
+                    for (var skinVertex of skinPart.vertices) {
 
-                        for (var k = 0; k < skinVertex.positions.length; k++) {
-                            var vpos = skinVertex.positions[k];
+                        for (var skinVertexPosition of skinVertex.positions) {
 
-                            vertices.push(vpos.boneWeight);
+                            vertices.push(skinVertexPosition.boneWeight);
 
-                            vertices.push(vpos.position[0]);
-                            vertices.push(vpos.position[1]);
-                            vertices.push(vpos.position[2]);
+                            vertices.push(skinVertexPosition.position[0]);
+                            vertices.push(skinVertexPosition.position[1]);
+                            vertices.push(skinVertexPosition.position[2]);
 
-                            vertices.push(vpos.normal[0]);
-                            vertices.push(vpos.normal[1]);
-                            vertices.push(vpos.normal[2]);
+                            vertices.push(skinVertexPosition.normal[0]);
+                            vertices.push(skinVertexPosition.normal[1]);
+                            vertices.push(skinVertexPosition.normal[2]);
                         }
 
                         if (skinVertex.positions.length == 1 || skinVertex.positions.length == 3) {
@@ -120,19 +110,19 @@ namespace SkinModelConverting {
                             vertices.push(0.0);
                         }
 
-                        for (var k = 0; k < skinVertex.texcoords.length; k++) {
+                        for (var texcoords of skinVertex.texcoords) {
 
-                            vertices.push(skinVertex.texcoords[k][0]);
-                            vertices.push(skinVertex.texcoords[k][1]);
+                            vertices.push(texcoords[0]);
+                            vertices.push(texcoords[1]);
                         }
                     }
 
                     var indices = [];
-                    for (var faceindex = 0; faceindex < skinPart.faces.length; faceindex++) {
-                        var meshFace = skinPart.faces[faceindex];
+                    for (var meshFace of skinPart.faces) {
 
-                        for (var k = 0; k < meshFace.vertexIndeces.length; k++) {
-                            indices.push(meshFace.vertexIndeces[k]);
+                        for (var index of meshFace.vertexIndeces) {
+
+                            indices.push(index);
                         }
                     }
 
@@ -186,7 +176,12 @@ namespace SkinModelConverting {
                         '\"name\": \"' + bone.name + '\"' +
                         ', \"parent\": ' + this.getBoneParentIndex(skinModel.bones, bone.parent) +
                         ', \"matrix\": ' + JSON.stringify(this.floatArrayToArray(bone.localMatrix), this.jsonStringifyReplacer) +
-                        '}' + (boneIndex < skinModel.bones.length - 1 ? ',' : ''));
+                        '}');
+
+                    if (boneIndex < skinModel.bones.length - 1) {
+
+                        out[out.length - 1] += ',';
+                    }
                 }
                 out.push(tab3 + '],');
 
@@ -196,16 +191,26 @@ namespace SkinModelConverting {
                     var convetedPart = skinModel.parts[partIndex];
 
                     out.push(tab4 + '{');
-                    out.push(tab4 + '  \"bone\": ' + JSON.stringify(convetedPart.boneIndices, this.jsonStringifyReplacer));
+                    out.push(tab4 + '  \"boneIndices\": ' + JSON.stringify(convetedPart.boneIndices, this.jsonStringifyReplacer));
                     out.push(tab4 + '  , \"material\": ' + convetedPart.materialIndex);
                     out.push(tab4 + '  , \"vertexStride\": ' + convetedPart.vertexStride);
                     out.push(tab4 + '  , \"vertex\": ' + JSON.stringify(convetedPart.vertices, this.jsonStringifyReplacer));
                     out.push(tab4 + '  , \"index\": ' + JSON.stringify(convetedPart.indices));
-                    out.push(tab4 + '}' + (partIndex < skinModel.parts.length - 1 ? ',' : ''));
+                    out.push(tab4 + '}');
+
+                    if (partIndex < skinModel.parts.length - 1) {
+
+                        out[out.length - 1] += ',';
+                    }
                 }
                 out.push(tab3 + ']');
 
-                out.push(tab2 + '}' + (modelIndex < skinModels.length - 1 ? ',' : ''));
+                out.push(tab2 + '}');
+
+                if (modelIndex < skinModels.length - 1) {
+
+                    out[out.length - 1] += ',';
+                }
             }
 
             out.push(tab1 + '}')

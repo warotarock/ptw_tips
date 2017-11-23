@@ -12,7 +12,7 @@ class CanvasContext {
     initialize(canvas: HTMLCanvasElement): boolean {
 
         try {
-            var context = canvas.getContext('2d');
+            let context = canvas.getContext('2d');
 
             if (context != null) {
 
@@ -23,7 +23,7 @@ class CanvasContext {
                 this.height = this.canvas.height;
             }
             else {
-                throw ("Faild to initialize canvas 2d.");
+                throw ('Faild to initialize canvas 2d.');
             }
         }
         catch (e) {

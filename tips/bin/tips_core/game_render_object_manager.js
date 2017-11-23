@@ -9,7 +9,7 @@ var Game;
         RenderObjectLayerID[RenderObjectLayerID["nearGround"] = 4] = "nearGround";
         RenderObjectLayerID[RenderObjectLayerID["ui"] = 5] = "ui";
         RenderObjectLayerID[RenderObjectLayerID["invisible"] = 6] = "invisible";
-        RenderObjectLayerID[RenderObjectLayerID["maxLayerCount"] = 6] = "maxLayerCount";
+        RenderObjectLayerID[RenderObjectLayerID["maxLayerID"] = 6] = "maxLayerID";
     })(RenderObjectLayerID = Game.RenderObjectLayerID || (Game.RenderObjectLayerID = {}));
     var RenderObjectBlendType;
     (function (RenderObjectBlendType) {
@@ -36,8 +36,7 @@ var Game;
             this.rotation = vec3.create();
             this.scaling = vec3.create();
             this.billboarding = RenderObjectBillboardType.off;
-            this.locationMatrix = mat4.create();
-            this.rotationMatrix = mat4.create();
+            this.matrix = mat4.create();
             this.sortingValue = 0.0;
             this.model = null;
             this.images = null;
@@ -74,14 +73,15 @@ var Game;
         // Object management
         RenderObjectManager.prototype.allocate = function (maxRenderObjectCount) {
             this.recyclePool = new RecyclePool(RenderObject, maxRenderObjectCount);
-            for (var i = 0; i < RenderObjectLayerID.maxLayerCount + 1; i++) {
+            var layerCount = RenderObjectLayerID.maxLayerID + 1;
+            for (var i = 0; i < layerCount; i++) {
                 this.objectLayers.push(new RenderObjectLayer());
             }
             return this;
         };
         RenderObjectManager.prototype.clearObjects = function () {
-            for (var k = 0; k < this.objectLayers.length; k++) {
-                var layer = this.objectLayers[k];
+            for (var _i = 0, _a = this.objectLayers; _i < _a.length; _i++) {
+                var layer = _a[_i];
                 layer.objects = new List();
             }
             this.recyclePool.reset();
@@ -96,8 +96,7 @@ var Game;
             vec3.set(renderObject.rotation, 0.0, 0.0, 0.0);
             vec3.set(renderObject.scaling, 1.0, 1.0, 1.0);
             renderObject.billboarding = RenderObjectBillboardType.off;
-            mat4.identity(renderObject.locationMatrix);
-            mat4.identity(renderObject.rotationMatrix);
+            mat4.identity(renderObject.matrix);
             renderObject.sortingValue = 0.0;
             renderObject.model = null;
             renderObject.images = null;
@@ -142,27 +141,18 @@ var Game;
         RenderObjectManager.prototype.getLayerObjectList = function (layerID) {
             return this.getObjectLayer(layerID).objects;
         };
-        // Basic caluclation support
-        RenderObjectManager.prototype.calcMatrix = function (renderObject) {
-            mat4.identity(renderObject.locationMatrix);
-            mat4.translate(renderObject.locationMatrix, renderObject.locationMatrix, renderObject.location);
-            mat4.rotateX(renderObject.locationMatrix, renderObject.locationMatrix, renderObject.rotation[0]);
-            mat4.rotateY(renderObject.locationMatrix, renderObject.locationMatrix, renderObject.rotation[1]);
-            mat4.rotateZ(renderObject.locationMatrix, renderObject.locationMatrix, renderObject.rotation[2]);
-            mat4.scale(renderObject.locationMatrix, renderObject.locationMatrix, renderObject.scaling);
-        };
         RenderObjectManager.prototype.calcObjectSortingValue = function (renderObject, inverseCameraMatrix, sortingMode) {
-            vec3.set(this.matrixTranslation, renderObject.locationMatrix[12], renderObject.locationMatrix[13], renderObject.locationMatrix[14]);
+            vec3.set(this.matrixTranslation, renderObject.matrix[12], renderObject.matrix[13], renderObject.matrix[14]);
             vec3.transformMat4(this.localLocation, this.matrixTranslation, inverseCameraMatrix);
             if (sortingMode == RenderObjectSortingMode.xyz) {
                 var x = this.localLocation[0] / 128.0;
                 var y = this.localLocation[1] / 128.0;
                 var z = this.localLocation[2] / 128.0;
-                renderObject.sortingValue = Math.sqrt(x * x + y * y + z * z) * 128.0;
+                return Math.sqrt(x * x + y * y + z * z) * 128.0;
             }
             else {
                 var z = this.localLocation[2] / 128.0;
-                renderObject.sortingValue = Math.sqrt(z * z) * 128.0;
+                return Math.sqrt(z * z) * 128.0;
             }
         };
         RenderObjectManager.prototype.getZsortedObjectList = function (layerID) {
@@ -175,8 +165,8 @@ var Game;
         };
         // Updating methods for each frame execution
         RenderObjectManager.prototype.updateObjectLayers = function () {
-            for (var k = 0; k < this.objectLayers.length; k++) {
-                var layer = this.objectLayers[k];
+            for (var _i = 0, _a = this.objectLayers; _i < _a.length; _i++) {
+                var layer = _a[_i];
                 for (var i = layer.objects.length - 1; i >= 0; i--) {
                     var obj = layer.objects[i];
                     if (obj.layerID != obj.lastLayerID) {

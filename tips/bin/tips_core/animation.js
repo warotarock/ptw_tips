@@ -1,21 +1,22 @@
-var IPOCurveIPOTypes;
-(function (IPOCurveIPOTypes) {
-    IPOCurveIPOTypes[IPOCurveIPOTypes["Liner"] = 1] = "Liner";
-    IPOCurveIPOTypes[IPOCurveIPOTypes["Bezier"] = 2] = "Bezier";
-})(IPOCurveIPOTypes || (IPOCurveIPOTypes = {}));
-// InterPOlation curve: combination of bezier curve for animation
-var IPOCurve = (function () {
-    function IPOCurve() {
-        this.ipoType = IPOCurveIPOTypes.Bezier;
+// Bezier curve
+// InterPOlation curve (equal to Blender F-curve)
+var AnimationCurveInterpolationType;
+(function (AnimationCurveInterpolationType) {
+    AnimationCurveInterpolationType[AnimationCurveInterpolationType["Liner"] = 1] = "Liner";
+    AnimationCurveInterpolationType[AnimationCurveInterpolationType["Bezier"] = 2] = "Bezier";
+})(AnimationCurveInterpolationType || (AnimationCurveInterpolationType = {}));
+var AnimationCurve = (function () {
+    function AnimationCurve() {
+        this.ipoType = AnimationCurveInterpolationType.Bezier;
         this.lastTime = 0.0;
         this.lastIndex = 0;
         this.curve = null;
     }
-    return IPOCurve;
+    return AnimationCurve;
 }());
-// combination of bezier curve for object animation
-var IPOObjectAnimation = (function () {
-    function IPOObjectAnimation() {
+// Object animation based on IPOCurves
+var ObjectAnimationCurveSet = (function () {
+    function ObjectAnimationCurveSet() {
         this.locationX = null;
         this.locationY = null;
         this.locationZ = null;
@@ -26,11 +27,11 @@ var IPOObjectAnimation = (function () {
         this.scalingY = null;
         this.scalingZ = null;
     }
-    return IPOObjectAnimation;
+    return ObjectAnimationCurveSet;
 }());
-// combination of bezier curve for bone animation
-var IPOBoneAnimationBone = (function () {
-    function IPOBoneAnimationBone() {
+// Bone animation based on IPOCurves
+var BoneAnimationBoneCurveSet = (function () {
+    function BoneAnimationBoneCurveSet() {
         this.locX = null;
         this.locY = null;
         this.locZ = null;
@@ -42,9 +43,8 @@ var IPOBoneAnimationBone = (function () {
         this.scaleY = null;
         this.scaleZ = null;
     }
-    return IPOBoneAnimationBone;
+    return BoneAnimationBoneCurveSet;
 }());
-// bone animation stuff
 var BoneAnimationBone = (function () {
     function BoneAnimationBone() {
     }
@@ -52,6 +52,7 @@ var BoneAnimationBone = (function () {
 }());
 var BoneAnimationBufferBone = (function () {
     function BoneAnimationBufferBone() {
+        this.name = null;
         this.transtarion = vec3.fromValues(0.0, 0.0, 0.0);
         this.quaternion = quat.fromValues(0.0, 0.0, 0.0, 1.0);
         this.scaling = vec3.fromValues(1.0, 1.0, 1.0);
@@ -61,13 +62,14 @@ var BoneAnimationBufferBone = (function () {
 var BoneAnimationBuffer = (function () {
     function BoneAnimationBuffer() {
         this.bones = null;
+        this.boneList = null;
     }
     return BoneAnimationBuffer;
 }());
 var BoneAnimationMatrixBuffer = (function () {
     function BoneAnimationMatrixBuffer() {
-        this.animatedBoneMatrixDictionary = null;
-        this.animatedBoneMatrixList = null;
+        this.boneMatrices = null;
+        this.boneMatrixList = null;
     }
     return BoneAnimationMatrixBuffer;
 }());
@@ -91,7 +93,7 @@ var AnimationSolver = (function () {
         this.animationTempMatrixForQuat = mat4.create();
         this.animationTempQuat = quat.create();
     }
-    AnimationSolver.prototype.cuberoot = function (x) {
+    AnimationSolver.prototype.cubeRoot = function (x) {
         var res = Math.pow(Math.abs(x), 1.0 / 3.0);
         return (x >= 0) ? res : -res;
     };
@@ -143,7 +145,7 @@ var AnimationSolver = (function () {
         q = (b * (c - 2 * b * b) - d) / 2;
         a = q * q - p * p * p;
         if (a == 0) {
-            q = this.cuberoot(q);
+            q = this.cubeRoot(q);
             solution[0] = 2 * q - b;
             solution[1] = -q - b;
             solution[2] = -1;
@@ -153,7 +155,7 @@ var AnimationSolver = (function () {
             if (q <= 0) {
                 sign = -1;
             }
-            a3 = this.cuberoot(q + (sign) * Math.sqrt(a));
+            a3 = this.cubeRoot(q + (sign) * Math.sqrt(a));
             b3 = p / a3;
             solution[0] = a3 + b3 - b;
             solution[1] = -1;
@@ -196,35 +198,46 @@ var AnimationSolver = (function () {
     };
     // IPOCurve value functions
     AnimationSolver.prototype.getIPOCurveValue = function (ipoCurve, time) {
+        // Start from last searched index
+        var firstIndex = ipoCurve.lastIndex;
+        var isForwardSearch = (time >= ipoCurve.lastTime);
+        // Searchs the section
         var sectionIndex = 0;
-        var timeInSection = 0.0;
-        // start from last searched index
-        var firstIndex = 0;
-        if (time >= ipoCurve.lastTime) {
-            firstIndex = ipoCurve.lastIndex;
-        }
-        // search target section
-        for (var i = firstIndex; i < ipoCurve.curve.length; i++) {
-            if (ipoCurve.curve[i][1][0] <= time) {
-                timeInSection = time - ipoCurve.curve[i][1][0];
-                sectionIndex = i;
+        var timeInSection = time;
+        if (isForwardSearch) {
+            for (var i = firstIndex; i + 1 < ipoCurve.curve.length; i++) {
+                // Compares time to section time: x of center point of BezTriple[i]
+                var sectionStartTime = ipoCurve.curve[i + 1][1][0];
+                if (sectionStartTime > time) {
+                    timeInSection = time - sectionStartTime;
+                    sectionIndex = i;
+                    break;
+                }
             }
-            else {
-                break;
+        }
+        else {
+            for (var i = firstIndex; i >= 0; i--) {
+                // Compares time to section time: x of center point of BezTriple[i]
+                var sectionStartTime = ipoCurve.curve[i][1][0];
+                if (sectionStartTime <= time) {
+                    timeInSection = time - sectionStartTime;
+                    sectionIndex = i;
+                    break;
+                }
             }
         }
         ipoCurve.lastTime = time;
         ipoCurve.lastIndex = sectionIndex;
-        // interpolation
+        // Interpolation
         var baseValue = ipoCurve.curve[sectionIndex][1][1]; // y of center point of BezTriple[sectionIndex]
         var interpolatedValue = baseValue;
         var ipoRate = 0.0;
         if (sectionIndex < ipoCurve.curve.length - 1) {
-            if (ipoCurve.ipoType == IPOCurveIPOTypes.Bezier) {
+            if (ipoCurve.ipoType == AnimationCurveInterpolationType.Bezier) {
                 ipoRate = this.calcBezierTimeInSection(ipoCurve.curve[sectionIndex][1][0], ipoCurve.curve[sectionIndex][2][0], ipoCurve.curve[sectionIndex + 1][0][0], ipoCurve.curve[sectionIndex + 1][1][0], time);
                 interpolatedValue = this.calcInterpolationBezier(ipoCurve.curve[sectionIndex][1][1], ipoCurve.curve[sectionIndex][2][1], ipoCurve.curve[sectionIndex + 1][0][1], ipoCurve.curve[sectionIndex + 1][1][1], ipoRate);
             }
-            else if (ipoCurve.ipoType == IPOCurveIPOTypes.Liner) {
+            else if (ipoCurve.ipoType == AnimationCurveInterpolationType.Liner) {
                 ipoRate = timeInSection / (ipoCurve.curve[sectionIndex + 1][1][0] - ipoCurve.curve[sectionIndex][1][0]);
                 interpolatedValue = this.calcInterpolationLiner(ipoCurve.curve[sectionIndex][1][1], ipoCurve.curve[sectionIndex + 1][1][1], ipoRate);
             }
@@ -237,31 +250,33 @@ var AnimationSolver = (function () {
         }
         return this.getIPOCurveValue(ipoCurve, time);
     };
-    // bone animation functions
+    // Bone animation functions
     AnimationSolver.prototype.createBoneAnimationBuffer = function (bones) {
         var buffer = new BoneAnimationBuffer();
         buffer.bones = new Dictionary();
-        for (var i = 0; i < bones.length; i++) {
-            var namedObject = bones[i];
+        buffer.boneList = new List(bones.length);
+        for (var boneIndex = 0; boneIndex < bones.length; boneIndex++) {
+            var bone = bones[boneIndex];
             var bufferBone = new BoneAnimationBufferBone();
-            buffer.bones[namedObject.name] = bufferBone;
+            buffer.bones[bone.name] = bufferBone;
+            buffer.boneList[boneIndex] = bufferBone;
         }
         return buffer;
     };
     AnimationSolver.prototype.createBoneMatrixBuffer = function (bones) {
         var buffer = new BoneAnimationMatrixBuffer();
-        buffer.animatedBoneMatrixDictionary = new Dictionary();
-        buffer.animatedBoneMatrixList = new List(bones.length);
-        for (var i = 0; i < bones.length; i++) {
-            var namedObject = bones[i];
-            buffer.animatedBoneMatrixList[i] = mat4.create();
-            buffer.animatedBoneMatrixDictionary[namedObject.name] = buffer.animatedBoneMatrixList[i];
+        buffer.boneMatrices = new Dictionary();
+        buffer.boneMatrixList = new List(bones.length);
+        for (var boneIndex = 0; boneIndex < bones.length; boneIndex++) {
+            var bone = bones[boneIndex];
+            buffer.boneMatrixList[boneIndex] = mat4.create();
+            buffer.boneMatrices[bone.name] = buffer.boneMatrixList[boneIndex];
         }
         return buffer;
     };
     AnimationSolver.prototype.calcBoneAnimation = function (resultBuffer, bones, animation, time) {
-        for (var i = 0; i < bones.length; i++) {
-            var bone = bones[i];
+        for (var _i = 0, bones_1 = bones; _i < bones_1.length; _i++) {
+            var bone = bones_1[_i];
             if (!DictionaryContainsKey(resultBuffer.bones, bone.name)) {
                 continue;
             }
@@ -281,7 +296,10 @@ var AnimationSolver = (function () {
         }
     };
     AnimationSolver.prototype.blendBoneAnimation = function (resultBuffer, animationBufferA, animationBufferB, blendRatio, option) {
-        for (var boneName in animationBufferA.bones) {
+        for (var _i = 0, _a = animationBufferA.boneList; _i < _a.length; _i++) {
+            var bone = _a[_i];
+            var boneName = bone.name;
+            // Filtering
             if (option != null) {
                 if (option.boneNameFilterType == BoneAnimationFilterType.SpecifyTarget) {
                     if (!DictionaryContainsKey(option.boneNameFilter, boneName) || !option.boneNameFilter[boneName]) {
@@ -294,6 +312,7 @@ var AnimationSolver = (function () {
                     }
                 }
             }
+            // Blending
             var boneA = animationBufferA.bones[boneName];
             var boneB = animationBufferB.bones[boneName];
             var boneResult = resultBuffer.bones[boneName];
@@ -303,11 +322,11 @@ var AnimationSolver = (function () {
         }
     };
     AnimationSolver.prototype.calcBoneMatrix = function (resultBuffer, bones, animationBuffer) {
-        for (var i = 0; i < bones.length; i++) {
-            var bone = bones[i];
+        for (var _i = 0, bones_2 = bones; _i < bones_2.length; _i++) {
+            var bone = bones_2[_i];
             if (bone.parent != -1) {
                 // root parent
-                mat4.multiply(this.animationTempMatrix, resultBuffer.animatedBoneMatrixList[bone.parent], bone.matrix);
+                mat4.multiply(this.animationTempMatrix, resultBuffer.boneMatrixList[bone.parent], bone.matrix);
             }
             else {
                 // child
@@ -326,7 +345,7 @@ var AnimationSolver = (function () {
                 mat4.scale(this.animationTempMatrixForQuat, this.animationTempMatrixForQuat, bufferBone.scaling);
                 mat4.multiply(this.animationTempMatrix, this.animationTempMatrix, this.animationTempMatrixForQuat);
             }
-            mat4.copy(resultBuffer.animatedBoneMatrixDictionary[bone.name], this.animationTempMatrix);
+            mat4.copy(resultBuffer.boneMatrices[bone.name], this.animationTempMatrix);
         }
     };
     return AnimationSolver;

@@ -162,7 +162,7 @@ namespace PTWTipsSound_HTML5_WebAudio {
 
         initializePlayingUnits(maxPlayingUnitCount: int) {
 
-            for (let i = 0; i < maxPlayingUnitCount; i++) {
+            for (let count = 0; count < maxPlayingUnitCount; count++) {
 
                 let playingUnit = this.device.createSoundPlayingUnit();
 
@@ -174,8 +174,7 @@ namespace PTWTipsSound_HTML5_WebAudio {
 
             this.masterAudioBuffer = audioBuffer;
 
-            for (let i = 0; i < this.playingUnits.length; i++) {
-                let playingUnit = this.playingUnits[i];
+            for (let playingUnit of this.playingUnits) {
 
                 playingUnit.audioBuffer = audioBuffer;
             }
@@ -219,7 +218,7 @@ namespace PTWTipsSound_HTML5_WebAudio {
         private createContext(): AudioContext {
 
             try {
-                var context = new ((<any>window).AudioContext || (<any>window).webkitAudioContext)();
+                let context = new ((<any>window).AudioContext || (<any>window).webkitAudioContext)();
                 return context;
             }
             catch (e) {
@@ -229,7 +228,7 @@ namespace PTWTipsSound_HTML5_WebAudio {
 
         createSoundSource(maxPlayingUnitCount: int): PTWTipsSound.SoundSource {
 
-            var soundSource = new SoundSource();
+            let soundSource = new SoundSource();
 
             soundSource.device = this;
 
@@ -248,11 +247,11 @@ namespace PTWTipsSound_HTML5_WebAudio {
                 return;
             }
 
-            var request = new XMLHttpRequest();
+            let request = new XMLHttpRequest();
             request.open('GET', url, true);
             request.responseType = 'arraybuffer';
 
-            var on_progress = (e) => {
+            let on_progress = (e) => {
 
                 soundSource.loadingDataTotal = e.total;
                 soundSource.loadingDataLoaded = e.loaded;
@@ -264,15 +263,15 @@ namespace PTWTipsSound_HTML5_WebAudio {
                 }
             };
 
-            var on_error = (e) => {
+            let on_error = (e) => {
                 console.log('Sound ' + url + ' loading faild.');
             };
 
-            var on_abort = (e) => {
+            let on_abort = (e) => {
                 console.log('Sound ' + url + ' loading aborted.');
             };
 
-            var on_load = (e) => {
+            let on_load = (e) => {
 
                 if (soundSource.isLoaded) {
                     return;

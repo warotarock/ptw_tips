@@ -294,19 +294,6 @@ var PTWTipsInput;
             else {
                 this.processPollingCrossButton(time);
             }
-            //var debugbuttonTexts = [];
-            //for (var i = 0; i < this.gamepad.buttons.length; i++) {
-            //    let button = this.gamepad.buttons[i];
-            //    for (var prop in button) {
-            //        debugbuttonTexts.push(button[prop]);
-            //    }
-            //}
-            //console.log(debugbuttonTexts.join(', '));
-            //var debugAxisTexts = [];
-            //for (var i = 0; i < this.gamepad.axes.length; i++) {
-            //    debugAxisTexts.push(this.gamepad.axes[i].toFixed(2));
-            //}
-            //console.log(debugAxisTexts.join(', '));
         };
         GamepadDevice.prototype.processPollingButtons = function (time) {
             var gamepad = this.gamepad;
@@ -365,8 +352,8 @@ var PTWTipsInput;
         };
         GamepadDevice.prototype.processCrossButtonEmulation = function (time) {
             // If any cross button is inputed, cancel emulation
-            for (var i = 0; i < this.crossButtons.length; i++) {
-                var button = this.crossButtons[i];
+            for (var _i = 0, _a = this.crossButtons; _i < _a.length; _i++) {
+                var button = _a[_i];
                 if (button.isInputed) {
                     return;
                 }
@@ -438,30 +425,30 @@ var PTWTipsInput;
                     this.crossButtons[2].inputRelease();
                 }
             }
-            for (var i = 0; i < this.crossButtons.length; i++) {
-                var button = this.crossButtons[i];
+            for (var _b = 0, _c = this.crossButtons; _b < _c.length; _b++) {
+                var button = _c[_b];
                 button.processPollingDoublePress(time, this.doublePressMilliSecond);
             }
         };
         GamepadDevice.prototype.updateStates = function () {
-            for (var i = 0; i < this.buttons.length; i++) {
-                var button = this.buttons[i];
+            for (var _i = 0, _a = this.buttons; _i < _a.length; _i++) {
+                var button = _a[_i];
                 button.updateStates();
             }
-            for (var i = 0; i < this.crossButtons.length; i++) {
-                var button = this.crossButtons[i];
+            for (var _b = 0, _c = this.crossButtons; _b < _c.length; _b++) {
+                var button = _c[_b];
                 button.updateStates();
             }
         };
         GamepadDevice.prototype.getButtonControlByName = function (name) {
-            for (var i = 0; i < this.buttons.length; i++) {
-                var button = this.buttons[i];
+            for (var _i = 0, _a = this.buttons; _i < _a.length; _i++) {
+                var button = _a[_i];
                 if (button.name == name) {
                     return button;
                 }
             }
-            for (var i = 0; i < this.crossButtons.length; i++) {
-                var button = this.crossButtons[i];
+            for (var _b = 0, _c = this.crossButtons; _b < _c.length; _b++) {
+                var button = _c[_b];
                 if (button.name == name) {
                     return button;
                 }
@@ -469,8 +456,8 @@ var PTWTipsInput;
             return null;
         };
         GamepadDevice.prototype.getAxisControlByName = function (name) {
-            for (var i = 0; i < this.sticks.length; i++) {
-                var axis = this.sticks[i];
+            for (var _i = 0, _a = this.sticks; _i < _a.length; _i++) {
+                var axis = _a[_i];
                 if (axis.name == name) {
                     return axis;
                 }

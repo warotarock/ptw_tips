@@ -142,7 +142,7 @@ namespace InputMnagement {
             this.input.analog2 = this.inputManager.addAxis('analog2');
             this.input.analog3 = this.inputManager.addAxis('analog3');
 
-            this.input.pointer = this.inputManager.addPointingInputs('pointer');
+            this.input.pointer = this.inputManager.addPointingInput('pointer');
 
             this.inputManager.setMappingFromConfig(this.config);
 
@@ -157,15 +157,15 @@ namespace InputMnagement {
 
         run() {
 
-            var time = DateGetTime();
+            let time = DateGetTime();
 
             this.inputManager.processPolling(time);
         }
 
         draw() {
 
-            var texts = [];
-            var tab1 = '  ';
+            let texts = [];
+            let tab1 = '  ';
 
             texts.push('[Integrated]');
 
@@ -192,8 +192,8 @@ namespace InputMnagement {
             texts.push('');
 
             texts.push('[Keyboard]');
-            var buttonTexts = [];
-            for (var key in this.keyboard.buttons) {
+            let buttonTexts = [];
+            for (let key in this.keyboard.buttons) {
 
                 let button: PTWTipsInput.ButtonInputControl = this.keyboard.buttons[key];
 
@@ -217,7 +217,7 @@ namespace InputMnagement {
             texts.push('');
 
             texts.push('[Gamepad]');
-            var padButtonTexts = [];
+            let padButtonTexts = [];
             for (let button of this.gamepad.buttons) {
 
                 if (button == null) {
@@ -227,7 +227,7 @@ namespace InputMnagement {
                 padButtonTexts.push(button.name + this.getButtonStateText(button));
             }
             texts.push(padButtonTexts.join(' '));
-            var padAxisTexts = [];
+            let padAxisTexts = [];
             for (let stickAxis of this.gamepad.sticks) {
 
                 if (stickAxis == null) {
@@ -254,12 +254,12 @@ namespace InputMnagement {
         }
     }
 
-    var _Main: Main;
+    let _Main: Main;
 
     window.onload = () => {
 
-        var canvas = <HTMLCanvasElement>document.getElementById('canvas');
-        var display = <HTMLElement>document.getElementById('display');
+        let canvas = <HTMLCanvasElement>document.getElementById('canvas');
+        let display = <HTMLElement>document.getElementById('display');
         _Main = new Main();
         _Main.initialize(canvas, display);
 
