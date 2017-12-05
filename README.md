@@ -6,10 +6,7 @@
 ![ファンタスティック　トリノワールド](https://raw.github.com/wiki/warotarock/ptw_tips/images/ptw_beta_ban016.jpg)  
 [ファンタスティック トリノワールド](https://play.google.com/store/apps/details?id=com.warotarock.games.ptw001pro)
 
-なお、読者にはある程度WebGLプログラミングの経験がある方を想定しています。WebGLで簡単なゲームまたはサイトを作ったことがあるか、ある程度ストーリー性のあるデモを作成した経験があれば（たぶん）問題なく読んでいただけると思います。
-
-初Gitのためしばらく試行錯誤のコミットが続くと思われます。
-ブレークしてお待ちください。
+なお、読者にはある程度WebGLプログラミングの経験がある方を想定しています。WebGLで簡単なゲームまたはサイトを作ったことがあるか、ある程度ストーリー性のあるデモを作成した経験があれば問題なく読んでいただけると思います。
 
 筆者：柏崎ワロタロ
 <br />
@@ -28,9 +25,9 @@
 
 ## ライブデモ
 
-[Github Pages](https://warotarock.github.io/ptw_tips/tips/) でライブデモを実行できます。
+各フォルダのREADME.mdにライブデモへのリンクがあります。または[Github Pages](https://warotarock.github.io/ptw_tips/tips/) からアクセスすることも可能です。
 
-※ソースコードのリポジトリがそのままページになっていますので、ファイル書き込みなどElectronの機能を使用しているデモは動作しない場合があります。
+一部のプログラムはElectronやNode.jsの機能を使用してファイルの書き込みを行います。それらはライブデモではファイルへの出力のかわりにHTMLに出力するようになっています。
 <br />
 <br />
 
