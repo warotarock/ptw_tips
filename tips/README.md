@@ -15,8 +15,6 @@
 ### ２．補助技術
 - [基本的な型の扱いについて](./basic_type_conversion/) - Basic type conversion
 - [オブジェクト・プーリング（メモリ管理手法）](./object_pooling/) - Object pooling (for memory management)
-- コーディングによるアニメーションのための補助関数（予定）
-- IPOによる滑らかな補間（予定）
 - [.blendファイルからのデータ抽出](./blend_file_reader_sample/) - BlendFileReader.ts sample
 
 <br />
