@@ -78,6 +78,7 @@
   <ItemGroup>
     <TypeScriptCompile Include="basic_model_converting\main.ts" />
     <TypeScriptCompile Include="canvas_drawing\main.ts" />
+    <TypeScriptCompile Include="code_converting\sample_code.ts" />
     <TypeScriptCompile Include="input_management\main.ts" />
     <TypeScriptCompile Include="basic_model_drawing\main.ts" />
     <TypeScriptCompile Include="basic_webgl_ts\main.ts" />

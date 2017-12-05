@@ -159,12 +159,12 @@ namespace SkinModelDrawing {
 
             // set parameter not dependent on parts
             this.render.setShader(this.bone2Shader);
-            this.render.setModelViewMatrix(this.modelViewMatrix);
-            this.render.setProjectionMatrix(this.projectionMatrix);
+            this.bone2Shader.setModelViewMatrix(this.modelViewMatrix);
+            this.bone2Shader.setProjectionMatrix(this.projectionMatrix);
 
             this.render.setShader(this.bone4Shader);
-            this.render.setModelViewMatrix(this.modelViewMatrix);
-            this.render.setProjectionMatrix(this.projectionMatrix);
+            this.bone4Shader.setModelViewMatrix(this.modelViewMatrix);
+            this.bone4Shader.setProjectionMatrix(this.projectionMatrix);
 
             // drawing for each part
             let parts = skinModel.data.parts;
@@ -187,19 +187,19 @@ namespace SkinModelDrawing {
                     let model_BoneIndex = part.boneIndices[part_BoneIndex];
 
                     mat4.copy(this.boneMatrix, boneMatrixList[model_BoneIndex]);
-                    shader.setBoneMatrix(part_BoneIndex, this.boneMatrix, this.render.gl);
+                    shader.setBoneMatrix(part_BoneIndex, this.boneMatrix);
                 }
 
                 // set material
                 if (part.material == 0) {
-                    shader.setColor(this.noColor, this.render.gl);
+                    shader.setColor(this.noColor);
                 }
                 else {
-                    shader.setColor(this.redColor, this.render.gl);
+                    shader.setColor(this.redColor);
                 }
 
                 // draw
-                this.render.setBuffers(part.renderModel, images);
+                shader.setBuffers(part.renderModel, images);
 
                 this.render.setDepthTest(true)
                 this.render.setCulling(false);
@@ -330,50 +330,52 @@ namespace SkinModelDrawing {
                 + '}';
         }
 
-        initializeAttributes(gl: WebGLRenderingContext) {
+        initializeAttributes() {
 
-            this.initializeAttributes_RenderShader(gl);
-            this.initializeAttributes_Bone2Shader(gl);
+            this.initializeAttributes_RenderShader();
+            this.initializeAttributes_Bone2Shader();
         }
 
-        initializeAttributes_Bone2Shader(gl: WebGLRenderingContext) {
+        initializeAttributes_Bone2Shader() {
 
-            this.aWeight1 = this.getAttribLocation('aWeight1', gl);
-            this.aPosition1 = this.getAttribLocation('aPosition1', gl);
+            this.aWeight1 = this.getAttribLocation('aWeight1');
+            this.aPosition1 = this.getAttribLocation('aPosition1');
 
-            this.aWeight2 = this.getAttribLocation('aWeight2', gl);
-            this.aPosition2 = this.getAttribLocation('aPosition2', gl);
+            this.aWeight2 = this.getAttribLocation('aWeight2');
+            this.aPosition2 = this.getAttribLocation('aPosition2');
 
-            this.aTexCoord1 = this.getAttribLocation('aTexCoord1', gl);
+            this.aTexCoord1 = this.getAttribLocation('aTexCoord1');
 
-            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix1', gl));
-            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix2', gl));
+            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix1'));
+            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix2'));
 
-            this.uTexture0 = this.getUniformLocation('uTexture0', gl);
+            this.uTexture0 = this.getUniformLocation('uTexture0');
 
-            this.uColor = this.getUniformLocation('uColor', gl);
+            this.uColor = this.getUniformLocation('uColor');
         }
 
-        setBuffers(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
+        setBuffers(model: RenderModel, images: List<RenderImage>) {
 
-            this.setBuffers_Bone2Shader(model, images, gl);
-            this.setBuffers_Bone2Shader_UV(model, gl);
+            this.setBuffers_Bone2Shader(model, images);
+            this.setBuffers_Bone2Shader_UV(model);
         }
 
-        setBuffers_Bone2Shader(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
+        setBuffers_Bone2Shader(model: RenderModel, images: List<RenderImage>) {
+
+            let gl = this.gl;
 
             gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexBuffer);
 
-            this.enableVertexAttributes(gl);
+            this.enableVertexAttributes();
             this.resetVertexAttribPointerOffset();
 
-            this.vertexAttribPointer(this.aWeight1, 1, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aPosition1, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.skipVertexAttribPointer(gl.FLOAT, 3, gl);// skip normal data
+            this.vertexAttribPointer(this.aWeight1, 1, gl.FLOAT, model.vertexDataStride);
+            this.vertexAttribPointer(this.aPosition1, 3, gl.FLOAT, model.vertexDataStride);
+            this.skipVertexAttribPointer(gl.FLOAT, 3);// skip normal data
 
-            this.vertexAttribPointer(this.aWeight2, 1, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aPosition2, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.skipVertexAttribPointer(gl.FLOAT, 3, gl);// skip normal data
+            this.vertexAttribPointer(this.aWeight2, 1, gl.FLOAT, model.vertexDataStride);
+            this.vertexAttribPointer(this.aPosition2, 3, gl.FLOAT, model.vertexDataStride);
+            this.skipVertexAttribPointer(gl.FLOAT, 3);// skip normal data
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
 
@@ -382,20 +384,23 @@ namespace SkinModelDrawing {
             gl.uniform1i(this.uTexture0, 0);
         }
 
-        setBuffers_Bone2Shader_UV(model: RenderModel, gl: WebGLRenderingContext) {
+        setBuffers_Bone2Shader_UV(model: RenderModel) {
 
-            this.vertexAttribPointer(this.aTexCoord1, 2, gl.FLOAT, model.vertexDataStride, gl);
-            //this.vertexAttribPointer(this.aTexCoord2, 2, gl.FLOAT, model.vertexDataStride, gl); skip (not used in this sample)
-            //this.vertexAttribPointer(this.aTexCoord3, 2, gl.FLOAT, model.vertexDataStride, gl); skip (not used in this sample)
+            let gl = this.gl;
+
+            this.vertexAttribPointer(this.aTexCoord1, 2, gl.FLOAT, model.vertexDataStride);
+            //this.vertexAttribPointer(this.aTexCoord2, 2, gl.FLOAT, model.vertexDataStride); skip (not used in this sample)
+            //this.vertexAttribPointer(this.aTexCoord3, 2, gl.FLOAT, model.vertexDataStride); skip (not used in this sample)
         }
 
-        setBoneMatrix(boneIndex: int, matrix: Mat4, gl: WebGLRenderingContext) {
-            gl.uniformMatrix4fv(this.uBoneMatrixList[boneIndex], false, matrix);
+        setBoneMatrix(boneIndex: int, matrix: Mat4) {
+
+            this.gl.uniformMatrix4fv(this.uBoneMatrixList[boneIndex], false, matrix);
         }
 
-        setColor(color: Vec4, gl: WebGLRenderingContext) {
+        setColor(color: Vec4) {
 
-            gl.uniform4fv(this.uColor, color);
+            this.gl.uniform4fv(this.uColor, color);
         }
     }
 
@@ -448,40 +453,42 @@ namespace SkinModelDrawing {
                 + '}';
         }
 
-        initializeAttributes(gl: WebGLRenderingContext) {
+        initializeAttributes() {
 
-            this.initializeAttributes_RenderShader(gl);
-            this.initializeAttributes_Bone2Shader(gl);
-            this.initializeAttributes_Bone4Shader(gl);
+            this.initializeAttributes_RenderShader();
+            this.initializeAttributes_Bone2Shader();
+            this.initializeAttributes_Bone4Shader();
         }
 
-        initializeAttributes_Bone4Shader(gl: WebGLRenderingContext) {
+        initializeAttributes_Bone4Shader() {
 
-            this.aWeight3 = this.getAttribLocation('aWeight3', gl);
-            this.aPosition3 = this.getAttribLocation('aPosition3', gl);
+            this.aWeight3 = this.getAttribLocation('aWeight3');
+            this.aPosition3 = this.getAttribLocation('aPosition3');
 
-            this.aWeight4 = this.getAttribLocation('aWeight4', gl);
-            this.aPosition4 = this.getAttribLocation('aPosition4', gl);
+            this.aWeight4 = this.getAttribLocation('aWeight4');
+            this.aPosition4 = this.getAttribLocation('aPosition4');
 
-            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix3', gl));
-            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix4', gl));
+            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix3'));
+            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix4'));
         }
 
-        setBuffers(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
+        setBuffers(model: RenderModel, images: List<RenderImage>) {
 
-            this.setBuffers_Bone2Shader(model, images, gl);
-            this.setBuffers_Bone4Shader(model, images, gl);
-            this.setBuffers_Bone2Shader_UV(model, gl);
+            this.setBuffers_Bone2Shader(model, images);
+            this.setBuffers_Bone4Shader(model, images);
+            this.setBuffers_Bone2Shader_UV(model);
         }
 
-        setBuffers_Bone4Shader(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
+        setBuffers_Bone4Shader(model: RenderModel, images: List<RenderImage>) {
 
-            this.vertexAttribPointer(this.aWeight3, 1, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aPosition3, 3, gl.FLOAT, model.vertexDataStride, gl);
+            let gl = this.gl;
+
+            this.vertexAttribPointer(this.aWeight3, 1, gl.FLOAT, model.vertexDataStride);
+            this.vertexAttribPointer(this.aPosition3, 3, gl.FLOAT, model.vertexDataStride);
             this.vertexAttribPointerOffset += 4 * 3;// skip normal data
 
-            this.vertexAttribPointer(this.aWeight4, 1, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aPosition4, 3, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aWeight4, 1, gl.FLOAT, model.vertexDataStride);
+            this.vertexAttribPointer(this.aPosition4, 3, gl.FLOAT, model.vertexDataStride);
             this.vertexAttribPointerOffset += 4 * 3;// skip normal data
         }
     }

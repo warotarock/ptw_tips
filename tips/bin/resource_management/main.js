@@ -373,9 +373,9 @@ var ResourceManagement;
         Main.prototype.drawModel = function (modelMatrix, modelResource) {
             mat4.multiply(this.modelViewMatrix, this.viewMatrix, modelMatrix);
             this.render.setShader(this.shader);
-            this.render.setProjectionMatrix(this.projectionMatrix);
-            this.render.setModelViewMatrix(this.modelViewMatrix);
-            this.render.setBuffers(modelResource.model, modelResource.images);
+            this.shader.setProjectionMatrix(this.projectionMatrix);
+            this.shader.setModelViewMatrix(this.modelViewMatrix);
+            this.shader.setBuffers(modelResource.model, modelResource.images);
             this.render.setDepthTest(true);
             this.render.setCulling(false);
             this.render.drawElements(modelResource.model);

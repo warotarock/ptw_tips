@@ -46,31 +46,33 @@ namespace SampleShaders {
                 + '}';
         }
 
-        initializeAttributes(gl: WebGLRenderingContext) {
+        initializeAttributes() {
 
-            this.initializeAttributes_RenderShader(gl);
-            this.initializeAttributes_BasicShader(gl);
+            this.initializeAttributes_RenderShader();
+            this.initializeAttributes_BasicShader();
         }
 
-        initializeAttributes_BasicShader(gl: WebGLRenderingContext) {
+        initializeAttributes_BasicShader() {
 
-            this.aPosition = this.getAttribLocation('aPosition', gl);
-            this.aNormal = this.getAttribLocation('aNormal', gl);
-            this.aTexCoord = this.getAttribLocation('aTexCoord', gl);
+            this.aPosition = this.getAttribLocation('aPosition');
+            this.aNormal = this.getAttribLocation('aNormal');
+            this.aTexCoord = this.getAttribLocation('aTexCoord');
 
-            this.uTexture0 = this.getUniformLocation('uTexture0', gl);
+            this.uTexture0 = this.getUniformLocation('uTexture0');
         }
 
-        setBuffers(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
+        setBuffers(model: RenderModel, images: List<RenderImage>) {
+
+            let gl = this.gl;
 
             gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexBuffer);
 
-            this.enableVertexAttributes(gl);
+            this.enableVertexAttributes();
             this.resetVertexAttribPointerOffset();
 
-            this.vertexAttribPointer(this.aPosition, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aNormal, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aTexCoord, 2, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aPosition, 3, gl.FLOAT, model.vertexDataStride);
+            this.vertexAttribPointer(this.aNormal, 3, gl.FLOAT, model.vertexDataStride);
+            this.vertexAttribPointer(this.aTexCoord, 2, gl.FLOAT, model.vertexDataStride);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
 

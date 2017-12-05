@@ -98,10 +98,10 @@ namespace BasicWebGL {
             mat4.multiply(this.modelViewMatrix, this.viewMatrix, modelMatrix);
 
             this.render.setShader(this.shader);
-            this.render.setProjectionMatrix(this.projectionMatrix);
-            this.render.setModelViewMatrix(this.modelViewMatrix);
 
-            this.render.setBuffers(model, images);
+            this.shader.setProjectionMatrix(this.projectionMatrix);
+            this.shader.setModelViewMatrix(this.modelViewMatrix);
+            this.shader.setBuffers(model, images);
 
             this.render.setDepthTest(true)
             this.render.setCulling(false);
@@ -162,29 +162,31 @@ namespace BasicWebGL {
                 + '}';
         }
 
-        initializeAttributes(gl: WebGLRenderingContext) {
+        initializeAttributes() {
 
-            this.initializeAttributes_RenderShader(gl);
-            this.initializeAttributes_SampleShader(gl);
+            this.initializeAttributes_RenderShader();
+            this.initializeAttributes_SampleShader();
         }
 
-        initializeAttributes_SampleShader(gl: WebGLRenderingContext) {
+        initializeAttributes_SampleShader() {
 
-            this.aPosition = this.getAttribLocation('aPosition', gl);
-            this.aTexCoord = this.getAttribLocation('aTexCoord', gl);
+            this.aPosition = this.getAttribLocation('aPosition');
+            this.aTexCoord = this.getAttribLocation('aTexCoord');
 
-            this.uTexture0 = this.getUniformLocation('uTexture0', gl);
+            this.uTexture0 = this.getUniformLocation('uTexture0');
         }
 
-        setBuffers(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
+        setBuffers(model: RenderModel, images: List<RenderImage>) {
+
+            let gl = this.gl;
 
             gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexBuffer);
 
-            this.enableVertexAttributes(gl);
+            this.enableVertexAttributes();
             this.resetVertexAttribPointerOffset();
 
-            this.vertexAttribPointer(this.aPosition, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aTexCoord, 2, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aPosition, 3, gl.FLOAT, model.vertexDataStride);
+            this.vertexAttribPointer(this.aTexCoord, 2, gl.FLOAT, model.vertexDataStride);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
 

@@ -42,55 +42,57 @@ var RenderShader = (function () {
     RenderShader.prototype.initializeFragmentSourceCode = function () {
         // Override method
     };
-    RenderShader.prototype.initializeAttributes = function (gl) {
-        this.initializeAttributes_RenderShader(gl);
+    RenderShader.prototype.initializeAttributes = function () {
+        this.initializeAttributes_RenderShader();
     };
-    RenderShader.prototype.initializeAttributes_RenderShader = function (gl) {
-        this.uPMatrix = this.getUniformLocation('uPMatrix', gl);
-        this.uMVMatrix = this.getUniformLocation('uMVMatrix', gl);
+    RenderShader.prototype.initializeAttributes_RenderShader = function () {
+        this.uPMatrix = this.getUniformLocation('uPMatrix');
+        this.uMVMatrix = this.getUniformLocation('uMVMatrix');
     };
-    RenderShader.prototype.getAttribLocation = function (name, gl) {
-        var attribLocation = gl.getAttribLocation(this.program, name);
+    RenderShader.prototype.getAttribLocation = function (name) {
+        var attribLocation = this.gl.getAttribLocation(this.program, name);
         this.attribLocationList.push(attribLocation);
         return attribLocation;
     };
-    RenderShader.prototype.getUniformLocation = function (name, gl) {
-        return gl.getUniformLocation(this.program, name);
+    RenderShader.prototype.getUniformLocation = function (name) {
+        return this.gl.getUniformLocation(this.program, name);
     };
-    RenderShader.prototype.setBuffers = function (model, images, gl) {
+    RenderShader.prototype.setBuffers = function (model, images) {
         // Override method
     };
-    RenderShader.prototype.enableVertexAttributes = function (gl) {
+    RenderShader.prototype.enableVertexAttributes = function () {
         for (var _i = 0, _a = this.attribLocationList; _i < _a.length; _i++) {
             var attribLocation = _a[_i];
-            gl.enableVertexAttribArray(attribLocation);
+            this.gl.enableVertexAttribArray(attribLocation);
         }
     };
-    RenderShader.prototype.disableVertexAttributes = function (gl) {
+    RenderShader.prototype.disableVertexAttributes = function () {
         for (var _i = 0, _a = this.attribLocationList; _i < _a.length; _i++) {
             var attribLocation = _a[_i];
-            gl.disableVertexAttribArray(attribLocation);
+            this.gl.disableVertexAttribArray(attribLocation);
         }
     };
     RenderShader.prototype.resetVertexAttribPointerOffset = function () {
         this.vertexAttribPointerOffset = 0;
     };
-    RenderShader.prototype.vertexAttribPointer = function (indx, size, type, stride, gl) {
+    RenderShader.prototype.vertexAttribPointer = function (indx, size, type, stride) {
+        var gl = this.gl;
         if (type == gl.FLOAT || type == gl.INT) {
             gl.vertexAttribPointer(indx, size, type, false, stride, this.vertexAttribPointerOffset);
             this.vertexAttribPointerOffset += 4 * size;
         }
     };
-    RenderShader.prototype.skipVertexAttribPointer = function (type, size, gl) {
+    RenderShader.prototype.skipVertexAttribPointer = function (type, size) {
+        var gl = this.gl;
         if (type == gl.FLOAT || type == gl.INT) {
             this.vertexAttribPointerOffset += 4 * size;
         }
     };
-    RenderShader.prototype.setProjectionMatrix = function (matrix, gl) {
-        gl.uniformMatrix4fv(this.uPMatrix, false, matrix);
+    RenderShader.prototype.setProjectionMatrix = function (matrix) {
+        this.gl.uniformMatrix4fv(this.uPMatrix, false, matrix);
     };
-    RenderShader.prototype.setModelViewMatrix = function (matrix, gl) {
-        gl.uniformMatrix4fv(this.uMVMatrix, false, matrix);
+    RenderShader.prototype.setModelViewMatrix = function (matrix) {
+        this.gl.uniformMatrix4fv(this.uMVMatrix, false, matrix);
     };
     return RenderShader;
 }());
@@ -195,6 +197,7 @@ var WebGLRender = (function () {
     };
     WebGLRender.prototype.initializeShader = function (shader) {
         var gl = this.gl;
+        shader.gl = gl;
         shader.initializeSourceCode(this.floatPrecisionText);
         var program = gl.createProgram();
         var vertexShader = this.createShader(shader.vertexShaderSourceCode, true, gl);
@@ -206,7 +209,7 @@ var WebGLRender = (function () {
             shader.program = program;
             shader.vertexShader = vertexShader;
             shader.fragmentShader = fragmentShader;
-            shader.initializeAttributes(gl);
+            shader.initializeAttributes();
             return program;
         }
         else {
@@ -250,17 +253,8 @@ var WebGLRender = (function () {
         this.currentShader = shader;
         if (lastShader != null
             && lastShader.attribLocationList.length != this.currentShader.attribLocationList.length) {
-            lastShader.disableVertexAttributes(this.gl);
+            lastShader.disableVertexAttributes();
         }
-    };
-    WebGLRender.prototype.setBuffers = function (model, images) {
-        this.currentShader.setBuffers(model, images, this.gl);
-    };
-    WebGLRender.prototype.setProjectionMatrix = function (matrix) {
-        this.currentShader.setProjectionMatrix(matrix, this.gl);
-    };
-    WebGLRender.prototype.setModelViewMatrix = function (matrix) {
-        this.currentShader.setModelViewMatrix(matrix, this.gl);
     };
     WebGLRender.prototype.clearColorBufferDepthBuffer = function (r, g, b, a) {
         this.gl.clearColor(r, g, b, a);
@@ -299,6 +293,16 @@ var WebGLRender = (function () {
         }
         return this;
     };
+    WebGLRender.prototype.setCullingBackFace = function (cullBackFace) {
+        var gl = this.gl;
+        if (cullBackFace) {
+            gl.cullFace(gl.BACK);
+        }
+        else {
+            gl.cullFace(gl.FRONT);
+        }
+        return this;
+    };
     WebGLRender.prototype.setBlendType = function (blendType) {
         var gl = this.gl;
         gl.enable(gl.BLEND);
@@ -314,6 +318,16 @@ var WebGLRender = (function () {
     };
     WebGLRender.prototype.drawElements = function (model) {
         this.gl.drawElements(this.gl.TRIANGLES, model.indexCount, this.gl.UNSIGNED_SHORT, 0);
+    };
+    WebGLRender.prototype.setTextureFilterNearest = function () {
+        var gl = this.gl;
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    };
+    WebGLRender.prototype.setTextureFilterLinear = function () {
+        var gl = this.gl;
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     };
     return WebGLRender;
 }());

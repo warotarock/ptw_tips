@@ -22,6 +22,8 @@ class RenderImage {
 
 class RenderShader {
 
+    gl: WebGLRenderingContext;
+
     floatPrecisionDefinitionCode = '';
     vertexShaderSourceCode = '';
     fragmentShaderSourceCode = '';
@@ -55,48 +57,48 @@ class RenderShader {
         // Override method
     }
 
-    initializeAttributes(gl: WebGLRenderingContext) {
+    initializeAttributes() {
 
-        this.initializeAttributes_RenderShader(gl);
+        this.initializeAttributes_RenderShader();
     }
 
-    initializeAttributes_RenderShader(gl: WebGLRenderingContext) {
+    initializeAttributes_RenderShader() {
 
-        this.uPMatrix = this.getUniformLocation('uPMatrix', gl);
-        this.uMVMatrix = this.getUniformLocation('uMVMatrix', gl);
+        this.uPMatrix = this.getUniformLocation('uPMatrix');
+        this.uMVMatrix = this.getUniformLocation('uMVMatrix');
     }
 
-    protected getAttribLocation(name: string, gl: WebGLRenderingContext): int {
+    protected getAttribLocation(name: string): int {
 
-        let attribLocation = gl.getAttribLocation(this.program, name);
+        let attribLocation = this.gl.getAttribLocation(this.program, name);
         this.attribLocationList.push(attribLocation);
 
         return attribLocation;
     }
 
-    protected getUniformLocation(name: string, gl: WebGLRenderingContext): WebGLUniformLocation {
+    protected getUniformLocation(name: string): WebGLUniformLocation {
 
-        return gl.getUniformLocation(this.program, name);
+        return this.gl.getUniformLocation(this.program, name);
     }
 
-    setBuffers(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
+    setBuffers(model: RenderModel, images: List<RenderImage>) {
 
         // Override method
     }
 
-    enableVertexAttributes(gl: WebGLRenderingContext) {
+    enableVertexAttributes() {
 
         for (let attribLocation of this.attribLocationList) {
 
-            gl.enableVertexAttribArray(attribLocation);
+            this.gl.enableVertexAttribArray(attribLocation);
         }
     }
 
-    disableVertexAttributes(gl: WebGLRenderingContext) {
+    disableVertexAttributes() {
 
         for (let attribLocation of this.attribLocationList) {
 
-            gl.disableVertexAttribArray(attribLocation);
+            this.gl.disableVertexAttribArray(attribLocation);
         }
     }
 
@@ -104,7 +106,9 @@ class RenderShader {
         this.vertexAttribPointerOffset = 0;
     }
 
-    vertexAttribPointer(indx: number, size: number, type: number, stride: number, gl: WebGLRenderingContext) {
+    vertexAttribPointer(indx: number, size: number, type: number, stride: number) {
+
+        let gl = this.gl;
 
         if (type == gl.FLOAT || type == gl.INT) {
 
@@ -113,7 +117,9 @@ class RenderShader {
         }
     }
 
-    skipVertexAttribPointer(type: number, size: number, gl: WebGLRenderingContext) {
+    skipVertexAttribPointer(type: number, size: number) {
+
+        let gl = this.gl;
 
         if (type == gl.FLOAT || type == gl.INT) {
 
@@ -121,14 +127,14 @@ class RenderShader {
         }
     }
 
-    setProjectionMatrix(matrix: Mat4, gl: WebGLRenderingContext) {
+    setProjectionMatrix(matrix: Mat4) {
 
-        gl.uniformMatrix4fv(this.uPMatrix, false, matrix);
+        this.gl.uniformMatrix4fv(this.uPMatrix, false, matrix);
     }
 
-    setModelViewMatrix(matrix: Mat4, gl: WebGLRenderingContext) {
+    setModelViewMatrix(matrix: Mat4) {
 
-        gl.uniformMatrix4fv(this.uMVMatrix, false, matrix);
+        this.gl.uniformMatrix4fv(this.uMVMatrix, false, matrix);
     }
 }
 
@@ -291,6 +297,8 @@ class WebGLRender {
 
         let gl = this.gl;
 
+        shader.gl = gl;
+
         shader.initializeSourceCode(this.floatPrecisionText);
 
         let program = gl.createProgram();
@@ -307,7 +315,7 @@ class WebGLRender {
             shader.vertexShader = vertexShader;
             shader.fragmentShader = fragmentShader;
 
-            shader.initializeAttributes(gl);
+            shader.initializeAttributes();
 
             return program;
         }
@@ -374,23 +382,8 @@ class WebGLRender {
         if (lastShader != null
             && lastShader.attribLocationList.length != this.currentShader.attribLocationList.length) {
 
-            lastShader.disableVertexAttributes(this.gl);
+            lastShader.disableVertexAttributes();
         }
-    }
-
-    setBuffers(model: RenderModel, images: List<RenderImage>) {
-
-        this.currentShader.setBuffers(model, images, this.gl);
-    }
-
-    setProjectionMatrix(matrix: Mat4) {
-
-        this.currentShader.setProjectionMatrix(matrix, this.gl);
-    }
-
-    setModelViewMatrix(matrix: Mat4) {
-
-        this.currentShader.setModelViewMatrix(matrix, this.gl);
     }
 
     clearColorBufferDepthBuffer(r: float, g: float, b: float, a: float) {
@@ -451,6 +444,22 @@ class WebGLRender {
         return this;
     }
 
+    setCullingBackFace(cullBackFace: boolean): WebGLRender {
+
+        let gl = this.gl;
+
+        if (cullBackFace) {
+
+            gl.cullFace(gl.BACK);
+        }
+        else {
+
+            gl.cullFace(gl.FRONT);
+        }
+
+        return this;
+    }
+
     setBlendType(blendType: WebGLRenderBlendType): WebGLRender {
 
         let gl = this.gl;
@@ -474,5 +483,21 @@ class WebGLRender {
     drawElements(model: RenderModel) {
 
         this.gl.drawElements(this.gl.TRIANGLES, model.indexCount, this.gl.UNSIGNED_SHORT, 0);
+    }
+
+    setTextureFilterNearest() {
+
+        let gl = this.gl;
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    }
+
+    setTextureFilterLinear() {
+
+        let gl = this.gl;
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     }
 }

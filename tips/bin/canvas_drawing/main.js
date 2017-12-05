@@ -149,9 +149,9 @@ var CanvasDrawing;
         Main.prototype.drawModel = function (modelMatrix, model, images) {
             mat4.multiply(this.modelViewMatrix, this.viewMatrix, modelMatrix);
             this.render.setShader(this.shader);
-            this.render.setProjectionMatrix(this.projectionMatrix);
-            this.render.setModelViewMatrix(this.modelViewMatrix);
-            this.render.setBuffers(model, images);
+            this.shader.setProjectionMatrix(this.projectionMatrix);
+            this.shader.setModelViewMatrix(this.modelViewMatrix);
+            this.shader.setBuffers(model, images);
             this.render.setDepthTest(true);
             this.render.setCulling(false);
             this.render.drawElements(model);

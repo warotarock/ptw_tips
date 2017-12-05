@@ -143,11 +143,13 @@ namespace ComplexToonDrawing {
             this.render.initializeShader(this.bone4Shader_Toons);
             this.render.initializeShader(this.bone2Shader_Toons);
 
-            this.render.initializeModelBuffer(this.screen_ModelResource, [
+            this.render.initializeModelBuffer(this.screen_ModelResource,
+                [
                 -1.0, -1.0, 0.0, 0.00, 0.00,
                 1.00, -1.0, 0.0, 1.00, 0.00,
                 -1.0, 1.00, 0.0, 0.00, 1.00,
-                1.00, 1.00, 0.0, 1.00, 1.00]
+                1.00, 1.00, 0.0, 1.00, 1.00
+                ]
                 , [0, 1, 2, 3, 2, 1]
                 , 4 * 5);
 
@@ -166,9 +168,9 @@ namespace ComplexToonDrawing {
             this.skinBase_FrameBuffer = this.createRenderTargetBuffer(this.logicalScreenWidth, this.logicalScreenHeight);
 
             this.render.setShader(this.bone2Shader_Toons);
-            this.bone2Shader_Toons.setResolution(this.skinBase_FrameBuffer.textureWidth, this.skinBase_FrameBuffer.textureHeight, this.gl);
+            this.bone2Shader_Toons.setResolution(this.skinBase_FrameBuffer.textureWidth, this.skinBase_FrameBuffer.textureHeight);
             this.render.setShader(this.bone4Shader_Toons);
-            this.bone4Shader_Toons.setResolution(this.skinBase_FrameBuffer.textureWidth, this.skinBase_FrameBuffer.textureHeight, this.gl);
+            this.bone4Shader_Toons.setResolution(this.skinBase_FrameBuffer.textureWidth, this.skinBase_FrameBuffer.textureHeight);
         }
 
         processLoading() {
@@ -336,13 +338,13 @@ namespace ComplexToonDrawing {
 
             // set parameter not dependent on parts
             this.render.setShader(this.drawer_Bone2Shader);
-            this.render.setModelViewMatrix(this.mvMatrix);
-            this.render.setProjectionMatrix(this.pMatrix);
+            this.drawer_Bone2Shader.setModelViewMatrix(this.mvMatrix);
+            this.drawer_Bone2Shader.setProjectionMatrix(this.pMatrix);
             this.drawer_Bone2Shader.setNormalMatrix(this.normalMatrix, this.gl);
 
             this.render.setShader(this.drawer_Bone4Shader);
-            this.render.setModelViewMatrix(this.mvMatrix);
-            this.render.setProjectionMatrix(this.pMatrix);
+            this.drawer_Bone4Shader.setModelViewMatrix(this.mvMatrix);
+            this.drawer_Bone4Shader.setProjectionMatrix(this.pMatrix);
             this.drawer_Bone4Shader.setNormalMatrix(this.normalMatrix, this.gl);
 
             // drawing for each part
@@ -368,11 +370,11 @@ namespace ComplexToonDrawing {
                 }
 
                 // draw
-                this.render.setBuffers(part.renderModel, imageResources);
+                shader.setBuffers(part.renderModel, imageResources);
 
                 this.render.drawElements(part.renderModel);
 
-                shader.disableVertexAttributes(this.gl);
+                shader.disableVertexAttributes();
             }
         }
 
@@ -531,7 +533,9 @@ namespace ComplexToonDrawing {
         private drawScreenModel(renderImages: List<RenderImage>) {
 
             this.render.setShader(this.screenShader);
-            this.render.setBuffers(this.screen_ModelResource, renderImages);
+
+            this.screenShader.setBuffers(this.screen_ModelResource, renderImages);
+
             this.render.drawElements(this.screen_ModelResource);
         }
     }
@@ -573,23 +577,25 @@ namespace ComplexToonDrawing {
                 + '}';
         }
 
-        initializeAttributes(gl: WebGLRenderingContext) {
+        initializeAttributes() {
 
-            this.aVertexPosition = this.getAttribLocation('aVertexPosition', gl);
-            this.aTexCoord = this.getAttribLocation('aTexCoord', gl);
+            this.aVertexPosition = this.getAttribLocation('aVertexPosition');
+            this.aTexCoord = this.getAttribLocation('aTexCoord');
 
-            this.uTexture0 = this.getUniformLocation('uTexture0', gl);
+            this.uTexture0 = this.getUniformLocation('uTexture0');
         }
 
-        setBuffers(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
+        setBuffers(model: RenderModel, images: List<RenderImage>) {
+
+            let gl = this.gl;
 
             gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexBuffer);
 
-            this.enableVertexAttributes(gl);
+            this.enableVertexAttributes();
             this.resetVertexAttribPointerOffset();
 
-            this.vertexAttribPointer(this.aVertexPosition, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aTexCoord, 2, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aVertexPosition, 3, gl.FLOAT, model.vertexDataStride);
+            this.vertexAttribPointer(this.aTexCoord, 2, gl.FLOAT, model.vertexDataStride);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
 
@@ -668,52 +674,54 @@ namespace ComplexToonDrawing {
                 + '}';
         }
 
-        initializeAttributes(gl: WebGLRenderingContext) {
+        initializeAttributes() {
 
-            this.initializeAttributes_RenderShader(gl);
-            this.initializeAttributes_Bone2Shader(gl);
+            this.initializeAttributes_RenderShader();
+            this.initializeAttributes_Bone2Shader();
         }
 
-        initializeAttributes_Bone2Shader(gl: WebGLRenderingContext) {
+        initializeAttributes_Bone2Shader() {
 
-            this.aWeight1 = this.getAttribLocation('aWeight1', gl);
-            this.aVertexPosition1 = this.getAttribLocation('aVertexPosition1', gl);
-            this.aVertexNormal1 = this.getAttribLocation('aVertexNormal1', gl);
+            this.aWeight1 = this.getAttribLocation('aWeight1');
+            this.aVertexPosition1 = this.getAttribLocation('aVertexPosition1');
+            this.aVertexNormal1 = this.getAttribLocation('aVertexNormal1');
 
-            this.aWeight2 = this.getAttribLocation('aWeight2', gl);
-            this.aVertexPosition2 = this.getAttribLocation('aVertexPosition2', gl);
-            this.aVertexNormal2 = this.getAttribLocation('aVertexNormal2', gl);
+            this.aWeight2 = this.getAttribLocation('aWeight2');
+            this.aVertexPosition2 = this.getAttribLocation('aVertexPosition2');
+            this.aVertexNormal2 = this.getAttribLocation('aVertexNormal2');
 
-            this.aTexCoord1 = this.getAttribLocation('aTexCoord1', gl);
+            this.aTexCoord1 = this.getAttribLocation('aTexCoord1');
 
-            this.uNormalMatrix = this.getUniformLocation('uNormalMatrix', gl);
+            this.uNormalMatrix = this.getUniformLocation('uNormalMatrix');
 
-            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix1', gl));
-            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix2', gl));
+            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix1'));
+            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix2'));
 
-            this.uTexture0 = this.getUniformLocation('uTexture0', gl);
+            this.uTexture0 = this.getUniformLocation('uTexture0');
         }
 
-        setBuffers(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
+        setBuffers(model: RenderModel, images: List<RenderImage>) {
 
-            this.setBuffers_Bone2Shader(model, images, gl);
-            this.setBuffers_Bone2Shader_UV(model, gl);
+            this.setBuffers_Bone2Shader(model, images);
+            this.setBuffers_Bone2Shader_UV(model);
         }
 
-        setBuffers_Bone2Shader(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
+        setBuffers_Bone2Shader(model: RenderModel, images: List<RenderImage>) {
+
+            let gl = this.gl;
 
             gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexBuffer);
 
-            this.enableVertexAttributes(gl);
+            this.enableVertexAttributes();
             this.resetVertexAttribPointerOffset();
 
-            this.vertexAttribPointer(this.aWeight1, 1, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aVertexPosition1, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aVertexNormal1, 3, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aWeight1, 1, gl.FLOAT, model.vertexDataStride);
+            this.vertexAttribPointer(this.aVertexPosition1, 3, gl.FLOAT, model.vertexDataStride);
+            this.vertexAttribPointer(this.aVertexNormal1, 3, gl.FLOAT, model.vertexDataStride);
 
-            this.vertexAttribPointer(this.aWeight2, 1, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aVertexPosition2, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aVertexNormal2, 3, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aWeight2, 1, gl.FLOAT, model.vertexDataStride);
+            this.vertexAttribPointer(this.aVertexPosition2, 3, gl.FLOAT, model.vertexDataStride);
+            this.vertexAttribPointer(this.aVertexNormal2, 3, gl.FLOAT, model.vertexDataStride);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
 
@@ -722,9 +730,11 @@ namespace ComplexToonDrawing {
             gl.uniform1i(this.uTexture0, 0);
         }
 
-        setBuffers_Bone2Shader_UV(model: RenderModel, gl: WebGLRenderingContext) {
+        setBuffers_Bone2Shader_UV(model: RenderModel) {
 
-            this.vertexAttribPointer(this.aTexCoord1, 2, gl.FLOAT, model.vertexDataStride, gl);
+            let gl = this.gl;
+
+            this.vertexAttribPointer(this.aTexCoord1, 2, gl.FLOAT, model.vertexDataStride);
             //this.vertexAttribPointer(this.aTexCoord2, 2, gl.FLOAT, model.vertexDataStride, gl); skip (not used in this sample)
             //this.vertexAttribPointer(this.aTexCoord3, 2, gl.FLOAT, model.vertexDataStride, gl); skip (not used in this sample)
         }
@@ -800,43 +810,45 @@ namespace ComplexToonDrawing {
                 + '}';
         }
 
-        initializeAttributes(gl: WebGLRenderingContext) {
+        initializeAttributes() {
 
-            this.initializeAttributes_RenderShader(gl);
-            this.initializeAttributes_Bone2Shader(gl);
-            this.initializeAttributes_Bone4Shader(gl);
+            this.initializeAttributes_RenderShader();
+            this.initializeAttributes_Bone2Shader();
+            this.initializeAttributes_Bone4Shader();
         }
 
-        initializeAttributes_Bone4Shader(gl: WebGLRenderingContext) {
+        initializeAttributes_Bone4Shader() {
 
-            this.aWeight3 = this.getAttribLocation('aWeight3', gl);
-            this.aVertexPosition3 = this.getAttribLocation('aVertexPosition3', gl);
-            this.aVertexNormal3 = this.getAttribLocation('aVertexNormal3', gl);
+            this.aWeight3 = this.getAttribLocation('aWeight3');
+            this.aVertexPosition3 = this.getAttribLocation('aVertexPosition3');
+            this.aVertexNormal3 = this.getAttribLocation('aVertexNormal3');
 
-            this.aWeight4 = this.getAttribLocation('aWeight4', gl);
-            this.aVertexPosition4 = this.getAttribLocation('aVertexPosition4', gl);
-            this.aVertexNormal4 = this.getAttribLocation('aVertexNormal4', gl);
+            this.aWeight4 = this.getAttribLocation('aWeight4');
+            this.aVertexPosition4 = this.getAttribLocation('aVertexPosition4');
+            this.aVertexNormal4 = this.getAttribLocation('aVertexNormal4');
 
-            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix3', gl));
-            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix4', gl));
+            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix3'));
+            this.uBoneMatrixList.push(this.getUniformLocation('uBoneMatrix4'));
         }
 
-        setBuffers(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
+        setBuffers(model: RenderModel, images: List<RenderImage>) {
 
-            this.setBuffers_Bone2Shader(model, images, gl);
-            this.setBuffers_Bone4Shader(model, images, gl);
-            this.setBuffers_Bone2Shader_UV(model, gl);
+            this.setBuffers_Bone2Shader(model, images);
+            this.setBuffers_Bone4Shader(model, images);
+            this.setBuffers_Bone2Shader_UV(model);
         }
 
-        setBuffers_Bone4Shader(model: RenderModel, images: List<RenderImage>, gl: WebGLRenderingContext) {
+        setBuffers_Bone4Shader(model: RenderModel, images: List<RenderImage>) {
 
-            this.vertexAttribPointer(this.aWeight3, 1, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aVertexPosition3, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aVertexNormal3, 3, gl.FLOAT, model.vertexDataStride, gl);
+            let gl = this.gl;
 
-            this.vertexAttribPointer(this.aWeight4, 1, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aVertexPosition4, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aVertexNormal4, 3, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aWeight3, 1, gl.FLOAT, model.vertexDataStride);
+            this.vertexAttribPointer(this.aVertexPosition3, 3, gl.FLOAT, model.vertexDataStride);
+            this.vertexAttribPointer(this.aVertexNormal3, 3, gl.FLOAT, model.vertexDataStride);
+
+            this.vertexAttribPointer(this.aWeight4, 1, gl.FLOAT, model.vertexDataStride);
+            this.vertexAttribPointer(this.aVertexPosition4, 3, gl.FLOAT, model.vertexDataStride);
+            this.vertexAttribPointer(this.aVertexNormal4, 3, gl.FLOAT, model.vertexDataStride);
         }
     }
 
@@ -889,20 +901,21 @@ namespace ComplexToonDrawing {
                 + toonFragmentShaderCode;
         }
 
-        initializeAttributes(gl: WebGLRenderingContext) {
+        initializeAttributes() {
 
-            this.initializeAttributes_RenderShader(gl);
-            this.initializeAttributes_Bone2Shader(gl);
-            this.initializeAttributes_Bone2Shader_Toons(gl);
+            this.initializeAttributes_RenderShader();
+            this.initializeAttributes_Bone2Shader();
+            this.initializeAttributes_Bone2Shader_Toons();
         }
 
-        initializeAttributes_Bone2Shader_Toons(gl: WebGLRenderingContext) {
+        initializeAttributes_Bone2Shader_Toons() {
 
-            this.uResolution = this.getUniformLocation('uResolution', gl);
+            this.uResolution = this.getUniformLocation('uResolution');
         }
 
-        setResolution(width: int, height: int, gl: WebGLRenderingContext) {
-            gl.uniform2fv(this.uResolution, vec2.fromValues(width, height));
+        setResolution(width: int, height: int) {
+
+            this.gl.uniform2fv(this.uResolution, vec2.fromValues(width, height));
         }
     }
 
@@ -916,21 +929,22 @@ namespace ComplexToonDrawing {
                 + toonFragmentShaderCode;
         }
 
-        initializeAttributes(gl: WebGLRenderingContext) {
+        initializeAttributes() {
 
-            this.initializeAttributes_RenderShader(gl);
-            this.initializeAttributes_Bone2Shader(gl);
-            this.initializeAttributes_Bone4Shader(gl);
-            this.initializeAttributes_Bone2Shader_Toons(gl);
+            this.initializeAttributes_RenderShader();
+            this.initializeAttributes_Bone2Shader();
+            this.initializeAttributes_Bone4Shader();
+            this.initializeAttributes_Bone2Shader_Toons();
         }
 
-        initializeAttributes_Bone2Shader_Toons(gl: WebGLRenderingContext) {
+        initializeAttributes_Bone2Shader_Toons() {
 
-            this.uResolution = this.getUniformLocation('uResolution', gl);
+            this.uResolution = this.getUniformLocation('uResolution');
         }
 
-        setResolution(width: int, height: int, gl: WebGLRenderingContext) {
-            gl.uniform2fv(this.uResolution, vec2.fromValues(width, height));
+        setResolution(width: int, height: int) {
+
+            this.gl.uniform2fv(this.uResolution, vec2.fromValues(width, height));
         }
     }
 

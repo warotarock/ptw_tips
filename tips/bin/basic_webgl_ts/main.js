@@ -81,9 +81,9 @@ var BasicWebGL;
         Main.prototype.drawModel = function (modelMatrix, model, images) {
             mat4.multiply(this.modelViewMatrix, this.viewMatrix, modelMatrix);
             this.render.setShader(this.shader);
-            this.render.setProjectionMatrix(this.projectionMatrix);
-            this.render.setModelViewMatrix(this.modelViewMatrix);
-            this.render.setBuffers(model, images);
+            this.shader.setProjectionMatrix(this.projectionMatrix);
+            this.shader.setModelViewMatrix(this.modelViewMatrix);
+            this.shader.setBuffers(model, images);
             this.render.setDepthTest(true);
             this.render.setCulling(false);
             this.render.drawElements(model);
@@ -129,21 +129,22 @@ var BasicWebGL;
                 + '    gl_FragColor = texture2D(uTexture0, vTexCoord);'
                 + '}';
         };
-        SampleShader.prototype.initializeAttributes = function (gl) {
-            this.initializeAttributes_RenderShader(gl);
-            this.initializeAttributes_SampleShader(gl);
+        SampleShader.prototype.initializeAttributes = function () {
+            this.initializeAttributes_RenderShader();
+            this.initializeAttributes_SampleShader();
         };
-        SampleShader.prototype.initializeAttributes_SampleShader = function (gl) {
-            this.aPosition = this.getAttribLocation('aPosition', gl);
-            this.aTexCoord = this.getAttribLocation('aTexCoord', gl);
-            this.uTexture0 = this.getUniformLocation('uTexture0', gl);
+        SampleShader.prototype.initializeAttributes_SampleShader = function () {
+            this.aPosition = this.getAttribLocation('aPosition');
+            this.aTexCoord = this.getAttribLocation('aTexCoord');
+            this.uTexture0 = this.getUniformLocation('uTexture0');
         };
-        SampleShader.prototype.setBuffers = function (model, images, gl) {
+        SampleShader.prototype.setBuffers = function (model, images) {
+            var gl = this.gl;
             gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexBuffer);
-            this.enableVertexAttributes(gl);
+            this.enableVertexAttributes();
             this.resetVertexAttribPointerOffset();
-            this.vertexAttribPointer(this.aPosition, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aTexCoord, 2, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aPosition, 3, gl.FLOAT, model.vertexDataStride);
+            this.vertexAttribPointer(this.aTexCoord, 2, gl.FLOAT, model.vertexDataStride);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, images[0].texture);

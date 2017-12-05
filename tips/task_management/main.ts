@@ -364,10 +364,11 @@ namespace TaskManagement {
             mat4.multiply(this.modelViewMatrix, this.viewMatrix, renderObject.matrix);
 
             this.render.setShader(this.shader);
-            this.render.setProjectionMatrix(this.projectionMatrix);
-            this.render.setModelViewMatrix(this.modelViewMatrix);
 
-            this.render.setBuffers(renderObject.model, renderObject.images);
+            this.shader.setProjectionMatrix(this.projectionMatrix);
+            this.shader.setModelViewMatrix(this.modelViewMatrix);
+
+            this.shader.setBuffers(renderObject.model, renderObject.images);
 
             this.render.setDepthTest(renderObject.depthTest);
             this.render.setDepthMask(renderObject.depthMask);

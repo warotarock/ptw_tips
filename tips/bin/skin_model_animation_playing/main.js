@@ -142,11 +142,11 @@ var SkinModelAnimationPlaying;
             mat4.multiply(this.modelViewMatrix, this.viewMatrix, modelMatrix);
             // set parameter not dependent on parts
             this.render.setShader(this.bone2Shader);
-            this.render.setModelViewMatrix(this.modelViewMatrix);
-            this.render.setProjectionMatrix(this.projectionMatrix);
+            this.bone2Shader.setModelViewMatrix(this.modelViewMatrix);
+            this.bone2Shader.setProjectionMatrix(this.projectionMatrix);
             this.render.setShader(this.bone4Shader);
-            this.render.setModelViewMatrix(this.modelViewMatrix);
-            this.render.setProjectionMatrix(this.projectionMatrix);
+            this.bone4Shader.setModelViewMatrix(this.modelViewMatrix);
+            this.bone4Shader.setProjectionMatrix(this.projectionMatrix);
             // drawing for each part
             var bones = skinModel.data.bones;
             var parts = skinModel.data.parts;
@@ -165,17 +165,17 @@ var SkinModelAnimationPlaying;
                 for (var part_BoneIndex = 0; part_BoneIndex < part.boneIndices.length; part_BoneIndex++) {
                     var model_BoneIndex = part.boneIndices[part_BoneIndex];
                     mat4.copy(this.boneMatrix, matrixBuffer.boneMatrixList[model_BoneIndex]);
-                    shader.setBoneMatrix(part_BoneIndex, this.boneMatrix, this.render.gl);
+                    shader.setBoneMatrix(part_BoneIndex, this.boneMatrix);
                 }
                 // set material
                 if (part.material == 0) {
-                    shader.setColor(this.noColor, this.render.gl);
+                    shader.setColor(this.noColor);
                 }
                 else {
-                    shader.setColor(this.redColor, this.render.gl);
+                    shader.setColor(this.redColor);
                 }
                 // draw
-                this.render.setBuffers(part.renderModel, images);
+                shader.setBuffers(part.renderModel, images);
                 this.render.setDepthTest(true);
                 this.render.setCulling(false);
                 this.render.drawElements(part.renderModel);
@@ -280,48 +280,50 @@ var SkinModelAnimationPlaying;
                 + '    gl_FragColor = vec4(mix(texColor.rgb, uColor.rgb, uColor.a), texColor.a);'
                 + '}';
         };
-        Bone2Shader.prototype.initializeAttributes = function (gl) {
-            this.initializeAttributes_RenderShader(gl);
-            this.initializeAttributes_Bone2Shader(gl);
+        Bone2Shader.prototype.initializeAttributes = function () {
+            this.initializeAttributes_RenderShader();
+            this.initializeAttributes_Bone2Shader();
         };
-        Bone2Shader.prototype.initializeAttributes_Bone2Shader = function (gl) {
-            this.aWeight1 = this.getAttribLocation('aWeight1', gl);
-            this.aPosition1 = this.getAttribLocation('aPosition1', gl);
-            this.aWeight2 = this.getAttribLocation('aWeight2', gl);
-            this.aPosition2 = this.getAttribLocation('aPosition2', gl);
-            this.aTexCoord1 = this.getAttribLocation('aTexCoord1', gl);
-            this.uBoneMatrixs.push(this.getUniformLocation('uBoneMatrix1', gl));
-            this.uBoneMatrixs.push(this.getUniformLocation('uBoneMatrix2', gl));
-            this.uTexture0 = this.getUniformLocation('uTexture0', gl);
-            this.uColor = this.getUniformLocation('uColor', gl);
+        Bone2Shader.prototype.initializeAttributes_Bone2Shader = function () {
+            this.aWeight1 = this.getAttribLocation('aWeight1');
+            this.aPosition1 = this.getAttribLocation('aPosition1');
+            this.aWeight2 = this.getAttribLocation('aWeight2');
+            this.aPosition2 = this.getAttribLocation('aPosition2');
+            this.aTexCoord1 = this.getAttribLocation('aTexCoord1');
+            this.uBoneMatrixs.push(this.getUniformLocation('uBoneMatrix1'));
+            this.uBoneMatrixs.push(this.getUniformLocation('uBoneMatrix2'));
+            this.uTexture0 = this.getUniformLocation('uTexture0');
+            this.uColor = this.getUniformLocation('uColor');
         };
-        Bone2Shader.prototype.setBuffers = function (model, images, gl) {
-            this.setBuffers_Bone2Shader(model, images, gl);
-            this.setBuffers_Bone2Shader_UV(model, gl);
+        Bone2Shader.prototype.setBuffers = function (model, images) {
+            this.setBuffers_Bone2Shader(model, images);
+            this.setBuffers_Bone2Shader_UV(model);
         };
-        Bone2Shader.prototype.setBuffers_Bone2Shader = function (model, images, gl) {
+        Bone2Shader.prototype.setBuffers_Bone2Shader = function (model, images) {
+            var gl = this.gl;
             gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexBuffer);
-            this.enableVertexAttributes(gl);
+            this.enableVertexAttributes();
             this.resetVertexAttribPointerOffset();
-            this.vertexAttribPointer(this.aWeight1, 1, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aPosition1, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.skipVertexAttribPointer(gl.FLOAT, 3, gl); // skip normal data
-            this.vertexAttribPointer(this.aWeight2, 1, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aPosition2, 3, gl.FLOAT, model.vertexDataStride, gl);
-            this.skipVertexAttribPointer(gl.FLOAT, 3, gl); // skip normal data
+            this.vertexAttribPointer(this.aWeight1, 1, gl.FLOAT, model.vertexDataStride);
+            this.vertexAttribPointer(this.aPosition1, 3, gl.FLOAT, model.vertexDataStride);
+            this.skipVertexAttribPointer(gl.FLOAT, 3); // skip normal data
+            this.vertexAttribPointer(this.aWeight2, 1, gl.FLOAT, model.vertexDataStride);
+            this.vertexAttribPointer(this.aPosition2, 3, gl.FLOAT, model.vertexDataStride);
+            this.skipVertexAttribPointer(gl.FLOAT, 3); // skip normal data
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, images[0].texture);
             gl.uniform1i(this.uTexture0, 0);
         };
-        Bone2Shader.prototype.setBuffers_Bone2Shader_UV = function (model, gl) {
-            this.vertexAttribPointer(this.aTexCoord1, 2, gl.FLOAT, model.vertexDataStride, gl);
+        Bone2Shader.prototype.setBuffers_Bone2Shader_UV = function (model) {
+            var gl = this.gl;
+            this.vertexAttribPointer(this.aTexCoord1, 2, gl.FLOAT, model.vertexDataStride);
         };
-        Bone2Shader.prototype.setBoneMatrix = function (boneIndex, matrix, gl) {
-            gl.uniformMatrix4fv(this.uBoneMatrixs[boneIndex], false, matrix);
+        Bone2Shader.prototype.setBoneMatrix = function (boneIndex, matrix) {
+            this.gl.uniformMatrix4fv(this.uBoneMatrixs[boneIndex], false, matrix);
         };
-        Bone2Shader.prototype.setColor = function (color, gl) {
-            gl.uniform4fv(this.uColor, color);
+        Bone2Shader.prototype.setColor = function (color) {
+            this.gl.uniform4fv(this.uColor, color);
         };
         return Bone2Shader;
     }(RenderShader));
@@ -363,30 +365,31 @@ var SkinModelAnimationPlaying;
                 + '                                          + uBoneMatrix4 * vec4(aPosition4, 1.0) * aWeight4);'
                 + '}';
         };
-        Bone4Shader.prototype.initializeAttributes = function (gl) {
-            this.initializeAttributes_RenderShader(gl);
-            this.initializeAttributes_Bone2Shader(gl);
-            this.initializeAttributes_Bone4Shader(gl);
+        Bone4Shader.prototype.initializeAttributes = function () {
+            this.initializeAttributes_RenderShader();
+            this.initializeAttributes_Bone2Shader();
+            this.initializeAttributes_Bone4Shader();
         };
-        Bone4Shader.prototype.initializeAttributes_Bone4Shader = function (gl) {
-            this.aWeight3 = this.getAttribLocation('aWeight3', gl);
-            this.aPosition3 = this.getAttribLocation('aPosition3', gl);
-            this.aWeight4 = this.getAttribLocation('aWeight4', gl);
-            this.aPosition4 = this.getAttribLocation('aPosition4', gl);
-            this.uBoneMatrixs.push(this.getUniformLocation('uBoneMatrix3', gl));
-            this.uBoneMatrixs.push(this.getUniformLocation('uBoneMatrix4', gl));
+        Bone4Shader.prototype.initializeAttributes_Bone4Shader = function () {
+            this.aWeight3 = this.getAttribLocation('aWeight3');
+            this.aPosition3 = this.getAttribLocation('aPosition3');
+            this.aWeight4 = this.getAttribLocation('aWeight4');
+            this.aPosition4 = this.getAttribLocation('aPosition4');
+            this.uBoneMatrixs.push(this.getUniformLocation('uBoneMatrix3'));
+            this.uBoneMatrixs.push(this.getUniformLocation('uBoneMatrix4'));
         };
-        Bone4Shader.prototype.setBuffers = function (model, images, gl) {
-            this.setBuffers_Bone2Shader(model, images, gl);
-            this.setBuffers_Bone4Shader(model, images, gl);
-            this.setBuffers_Bone2Shader_UV(model, gl);
+        Bone4Shader.prototype.setBuffers = function (model, images) {
+            this.setBuffers_Bone2Shader(model, images);
+            this.setBuffers_Bone4Shader(model, images);
+            this.setBuffers_Bone2Shader_UV(model);
         };
-        Bone4Shader.prototype.setBuffers_Bone4Shader = function (model, images, gl) {
-            this.vertexAttribPointer(this.aWeight3, 1, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aPosition3, 3, gl.FLOAT, model.vertexDataStride, gl);
+        Bone4Shader.prototype.setBuffers_Bone4Shader = function (model, images) {
+            var gl = this.gl;
+            this.vertexAttribPointer(this.aWeight3, 1, gl.FLOAT, model.vertexDataStride);
+            this.vertexAttribPointer(this.aPosition3, 3, gl.FLOAT, model.vertexDataStride);
             this.vertexAttribPointerOffset += 4 * 3; // skip normal data
-            this.vertexAttribPointer(this.aWeight4, 1, gl.FLOAT, model.vertexDataStride, gl);
-            this.vertexAttribPointer(this.aPosition4, 3, gl.FLOAT, model.vertexDataStride, gl);
+            this.vertexAttribPointer(this.aWeight4, 1, gl.FLOAT, model.vertexDataStride);
+            this.vertexAttribPointer(this.aPosition4, 3, gl.FLOAT, model.vertexDataStride);
             this.vertexAttribPointerOffset += 4 * 3; // skip normal data
         };
         return Bone4Shader;
