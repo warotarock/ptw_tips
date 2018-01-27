@@ -2,6 +2,7 @@
 namespace CodeConverter {
 
     export enum StatementType {
+
         None,
         WhiteSpaces,
         Comment,
@@ -21,6 +22,8 @@ namespace CodeConverter {
         Else,
         ElseIf,
         For,
+        While,
+        Switch,
 
         Try,
         Catch,
@@ -91,6 +94,7 @@ namespace CodeConverter.StatementAnalyzer {
         TS_if = 'if';
         TS_else = 'else';
         TS_for = 'for';
+        TS_while = 'while';
         TS_switch = 'switch';
         TS_case = 'case';
         TS_break = 'break';
@@ -103,8 +107,6 @@ namespace CodeConverter.StatementAnalyzer {
             'protected': 'protected',
             'export': 'export',
         };
-
-        FilePath: string = null;
     }
 
     export class AnalyzerResult {
@@ -116,6 +118,7 @@ namespace CodeConverter.StatementAnalyzer {
         NeedsNewTokensBeforeAppendToken = true;
 
         SetCurrentStatementType(type: StatementType) {
+
             this.CurrentStatement.Type = type;
         }
 
@@ -221,6 +224,7 @@ namespace CodeConverter.StatementAnalyzer {
     }
 
     export enum ScopeLevel {
+
         None,
         Global,
         Module,
@@ -228,16 +232,8 @@ namespace CodeConverter.StatementAnalyzer {
         Function,
     }
 
-    export enum SyntaxProcessingMode {
-        None,
-        Blank,
-        Module,
-        Enum,
-        Class,
-        Interface,
-    }
-
     export enum CodeBlockProcessingMode {
+
         None,
         Continue,
         BlockEnd,
@@ -245,6 +241,7 @@ namespace CodeConverter.StatementAnalyzer {
     }
 
     export enum TracingState {
+
         None,
         UnexpectedEOF,
 
@@ -283,14 +280,12 @@ namespace CodeConverter.StatementAnalyzer {
     export class AnalyzerState {
 
         Setting: AnalyzerSetting = null;
-        TargetTokens: List<TextToken> = null;
+        TargetTokens: TextTokenCollection = null;
+        FilePath: string = '';
 
         // State variables
-        CurrentMode = SyntaxProcessingMode.None;
         CurrentIndex = 0;
         LastIndex = 0;
-
-        public CurrentMode2: SyntaxProcessingMode;
 
         TracingState = TracingState.None;
         Trace_NestingCounter = new NestingCounter();
@@ -308,21 +303,25 @@ namespace CodeConverter.StatementAnalyzer {
         Result: AnalyzerResult = null;
         Erros = new List<string>();
 
-        initialize(setting: AnalyzerSetting) {
-            this.Setting = setting;
-            this.clear();
+        initialize() {
         }
 
         clear() {
-            this.CurrentMode = SyntaxProcessingMode.None;
+
             this.CurrentIndex = 0;
             this.LastIndex = 0;
             this.TargetTokens = null;
 
             this.Result = null;
+
+            if (this.Erros.length > 0) {
+
+                this.Erros = new List<string>();
+            }
         }
 
         startTracing(startingTracingState: TracingState) {
+
             this.TracingState = startingTracingState;
             this.Trace_NestingCounter.reset();
             this.Trace_DetectedAccesibilityTypeToken = null;
@@ -337,6 +336,7 @@ namespace CodeConverter.StatementAnalyzer {
         }
 
         setTracingState(tracingState: TracingState) {
+
             this.TracingState = tracingState;
         }
 
@@ -344,6 +344,7 @@ namespace CodeConverter.StatementAnalyzer {
 
             var state = new AnalyzerState();
             state.Setting = this.Setting;
+            state.FilePath = this.FilePath;
             state.TargetTokens = this.TargetTokens;
             state.Result = this.Result;
             state.Erros = this.Erros;
@@ -354,7 +355,7 @@ namespace CodeConverter.StatementAnalyzer {
 
         addError(message: string) {
 
-            this.Erros.push(this.Setting.FilePath
+            this.Erros.push(this.FilePath
                 + '(' + this.TargetTokens[this.CurrentIndex].LineNumber + '): '
                 + message);
         }
@@ -362,12 +363,9 @@ namespace CodeConverter.StatementAnalyzer {
 
     export class Analyzer {
 
-        analyze(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
+        analyze(state: AnalyzerState) {
 
-            state.Result = result;
-            state.TargetTokens = tokens;
-
-            this.analyzeStatementsRecursive(ScopeLevel.Global, result, tokens, state);
+            this.analyzeStatementsRecursive(ScopeLevel.Global, state.Result, state.TargetTokens, state);
         }
 
         private analyzeStatementsRecursive(scopeLevel: ScopeLevel, result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
@@ -432,42 +430,52 @@ namespace CodeConverter.StatementAnalyzer {
 
                 // Blank
                 if (token.isBlank()) {
+
                     state.CurrentIndex++;
                 }
                 // Accesibility
                 else if (this.isAccessibilityToken(token, state)) {
+
                     this.processAccessibility(token, state)
                 }
                 // module or namespace
                 else if (token.isAlphaNumericOf(state.Setting.TS_module) || token.isAlphaNumericOf(state.Setting.TS_namespace)) {
+
                     return this.processModule(result, tokens, state);
                 }
                 // class
                 else if (token.isAlphaNumericOf(state.Setting.TS_class)) {
+
                     return this.processClass(result, tokens, state);
                 }
                 // interface
                 else if (token.isAlphaNumericOf(state.Setting.TS_interface)) {
+
                     return this.processInterface(result, tokens, state);
                 }
                 // enum
                 else if (token.isAlphaNumericOf(state.Setting.TS_enum)) {
+
                     return this.processEnum(result, tokens, state);
                 }
                 // var
                 else if (token.isAlphaNumericOf(state.Setting.TS_var)) {
+
                     return this.statementSyntax_ProcessVariable(result, tokens, state);
                 }
                 // function
                 else if (token.isAlphaNumericOf(state.Setting.TS_function)) {
+
                     return this.statementSyntax_ProcessFunction(result, tokens, state);
                 }
                 // Ggeneral statement
                 else {
+
                     return this.statementSyntax_ProcessGeneralStatement(result, tokens, state);
                 }
 
                 if (this.checkEOF(tokens, state)) {
+
                     return false;
                 }
             }
@@ -490,38 +498,47 @@ namespace CodeConverter.StatementAnalyzer {
 
                 // Blank
                 if (token.isBlank()) {
+
                     state.CurrentIndex++;
                 }
                 // Accesibility
                 else if (this.isAccessibilityToken(token, state)) {
-                    this.processAccessibility(token, state)
+
+                    this.processAccessibility(token, state);
                 }
                 // class
                 else if (token.isAlphaNumericOf(state.Setting.TS_class)) {
+
                     return this.processClass(result, tokens, state);
                 }
                 // interface
                 else if (token.isAlphaNumericOf(state.Setting.TS_interface)) {
+
                     return this.processInterface(result, tokens, state);
                 }
                 // enum
                 else if (token.isAlphaNumericOf(state.Setting.TS_enum)) {
+
                     return this.processEnum(result, tokens, state);
                 }
                 // var
                 else if (token.isAlphaNumericOf(state.Setting.TS_var)) {
+
                     return this.statementSyntax_ProcessVariable(result, tokens, state);
                 }
                 // function
                 else if (token.isAlphaNumericOf(state.Setting.TS_function)) {
+
                     return this.statementSyntax_ProcessFunction(result, tokens, state);
                 }
                 // Ggeneral statement
                 else {
+
                     return this.statementSyntax_ProcessGeneralStatement(result, tokens, state);
                 }
 
                 if (this.checkEOF(tokens, state)) {
+
                     return false;
                 }
             }
@@ -548,24 +565,30 @@ namespace CodeConverter.StatementAnalyzer {
 
                 // Blank
                 if (token.isBlank()) {
+
                     state.CurrentIndex++;
                 }
                 // Accesibility
                 else if (this.isAccessibilityToken(token, state)) {
-                    this.processAccessibility(token, state)
+
+                    this.processAccessibility(token, state);
                 }
                 // Property
                 else if (token.isAlphaNumericOf(state.Setting.TS_get) || token.isAlphaNumericOf(state.Setting.TS_set)) {
+
                     return this.classSyntax_ProcessProperty(result, tokens, state);
                 }
                 else if (token.isAlphaNumeric()) {
+
                     // Identifier detected... to next step
                     state.Trace_IdentifierDetected = true;
                     state.CurrentIndex++;
                     break;
                 }
                 else {
+
                     if (!isUnexpectedTokenDetected) {
+
                         state.addError('Expected a class, interface, enum or variable.');
                         isUnexpectedTokenDetected = true;
                     }
@@ -573,6 +596,7 @@ namespace CodeConverter.StatementAnalyzer {
                 }
 
                 if (this.checkEOF(tokens, state)) {
+
                     return false;
                 }
             }
@@ -584,29 +608,36 @@ namespace CodeConverter.StatementAnalyzer {
                 let token = tokens[state.CurrentIndex];
 
                 if (token.isSeperatorOf(':')) {
+
                     state.Trace_TypeNameSeperatorDeteced = true;
                     return this.classSyntax_ProcessVariable(result, TracingState.TracingVariableTypeName, tokens, state);
                 }
                 else if (token.isSeperatorOf('=')) {
+
                     state.Trace_AsignmentDeteced = true;
                     return this.classSyntax_ProcessVariable(result, TracingState.TracingVariableDefinitionDefaultValue, tokens, state);
                 }
                 else if (token.isSeperatorOf('(')) {
+
                     return this.classSyntax_ProcessFunction(result, TracingState.TracingFunctionArguments, tokens, state);
                 }
                 else if (token.isSeperatorOf('<')) {
+
                     state.Trace_FunctionGenericsArgumentDeteced = true;
                     return this.classSyntax_ProcessFunction(result, TracingState.TracingFunctionGenericsArguments, tokens, state);
                 }
                 else if (!token.isBlank()) {
+
                     state.addError('= or : or function argument expected.');
                     state.CurrentIndex++;
                 }
                 else {
+
                     state.CurrentIndex++;
                 }
 
                 if (this.checkEOF(tokens, state)) {
+
                     return false;
                 }
             }
@@ -627,26 +658,31 @@ namespace CodeConverter.StatementAnalyzer {
             state.CurrentIndex++;
 
             // Serching module name
-            let indentiferNameToken: TextToken = null;
+            let indentiferNameStartIndex = -1;
+            let indentiferNameEndIndex = -1;
 
             while (state.CurrentIndex < tokens.length) {
 
                 let token = tokens[state.CurrentIndex];
 
                 if (token.isAlphaNumeric()) {
-                    indentiferNameToken = token;
+
+                    indentiferNameStartIndex = state.CurrentIndex;
                     state.CurrentIndex++;
                     break;
                 }
                 else if (!token.isBlank()) {
+
                     state.addError('Identifier name expected.');
                     state.CurrentIndex++;
                 }
                 else {
+
                     state.CurrentIndex++;
                 }
 
                 if (this.checkEOF(tokens, state)) {
+
                     return false;
                 }
             }
@@ -657,17 +693,21 @@ namespace CodeConverter.StatementAnalyzer {
                 let token = tokens[state.CurrentIndex];
 
                 if (token.isSeperatorOf('{')) {
+
                     break;
                 }
                 else if (!token.isBlank()) {
-                    state.addError('{ expected.');
+
+                    indentiferNameEndIndex = state.CurrentIndex;
                     state.CurrentIndex++;
                 }
                 else {
+
                     state.CurrentIndex++;
                 }
 
                 if (this.checkEOF(tokens, state)) {
+
                     return false;
                 }
             }
@@ -698,19 +738,23 @@ namespace CodeConverter.StatementAnalyzer {
                 let token = tokens[state.CurrentIndex];
 
                 if (token.isAlphaNumeric()) {
+
                     indentiferNameToken = token;
                     state.CurrentIndex++;
                     break;
                 }
                 else if (!token.isBlank()) {
+
                     state.addError('Identifier name expected.');
                     state.CurrentIndex++;
                 }
                 else {
+
                     state.CurrentIndex++;
                 }
 
                 if (this.checkEOF(tokens, state)) {
+
                     return false;
                 }
             }
@@ -721,13 +765,16 @@ namespace CodeConverter.StatementAnalyzer {
                 let token = tokens[state.CurrentIndex];
 
                 if (token.isSeperatorOf('{')) {
+
                     break;
                 }
                 else if (!token.isBlank()) {
+
                     state.addError('{ expected.');
                     state.CurrentIndex++;
                 }
                 else {
+
                     state.CurrentIndex++;
                 }
 
@@ -910,7 +957,6 @@ namespace CodeConverter.StatementAnalyzer {
 
             result.FlushStatement();
 
-
             return true;
         }
 
@@ -1017,13 +1063,6 @@ namespace CodeConverter.StatementAnalyzer {
             // Start with specified state
             state.startTracing(startingTracingState);
 
-            if (startingTracingState == TracingState.TracingFunctionArguments
-                || startingTracingState == TracingState.TracingFunctionGenericsArguments) {
-
-                // Skip "(", "<"
-                state.CurrentIndex++;
-            }
-
             if (state.TracingState == TracingState.TracingFunctionGenericsArguments) {
 
                 while (state.CurrentIndex < tokens.length) {
@@ -1033,20 +1072,25 @@ namespace CodeConverter.StatementAnalyzer {
                     state.Trace_NestingCounter.countParenthesis(token);
 
                     if (!state.Trace_NestingCounter.isInNest()) {
+
                         if (token.isSeperatorOf('>')) {
+
                             state.setTracingState(TracingState.SearchingAfterIdentifer);
                             state.CurrentIndex++;
                             break;
                         }
                         else {
+
                             state.CurrentIndex++;
                         }
                     }
                     else {
+
                         state.CurrentIndex++;
                     }
 
                     if (this.checkEOF(tokens, state)) {
+
                         return false;
                     }
                 }
@@ -1059,15 +1103,17 @@ namespace CodeConverter.StatementAnalyzer {
                     let token = tokens[state.CurrentIndex];
 
                     if (token.isSeperatorOf('(')) {
+
                         state.setTracingState(TracingState.TracingFunctionArguments);
-                        state.CurrentIndex++;
                         break;
                     }
                     else {
+
                         state.CurrentIndex++;
                     }
 
                     if (this.checkEOF(tokens, state)) {
+
                         return false;
                     }
                 }
@@ -1082,20 +1128,25 @@ namespace CodeConverter.StatementAnalyzer {
                     state.Trace_NestingCounter.countParenthesis(token);
 
                     if (!state.Trace_NestingCounter.isInNest()) {
+
                         if (token.isSeperatorOf(')')) {
+
                             state.setTracingState(TracingState.SearchingFunctionReturnValueTypeOrBlockStart);
                             state.CurrentIndex++;
                             break;
                         }
                         else {
+
                             state.CurrentIndex++;
                         }
                     }
                     else {
+
                         state.CurrentIndex++;
                     }
 
                     if (this.checkEOF(tokens, state)) {
+
                         return false;
                     }
                 }
@@ -1108,23 +1159,28 @@ namespace CodeConverter.StatementAnalyzer {
                     let token = tokens[state.CurrentIndex];
 
                     if (token.isSeperatorOf('{')) {
+
                         break;
                     }
 
                     if (token.isSeperatorOf(':')) {
+
                         state.setTracingState(TracingState.TracingFunctionReturnValueType);
                         state.CurrentIndex++;
                         break;
                     }
                     else if (!token.isBlank()) {
+
                         state.addError(': or { expected.');
                         state.CurrentIndex++;
                     }
                     else {
+
                         state.CurrentIndex++;
                     }
 
                     if (this.checkEOF(tokens, state)) {
+
                         return false;
                     }
                 }
@@ -1137,7 +1193,9 @@ namespace CodeConverter.StatementAnalyzer {
                     let token = tokens[state.CurrentIndex];
 
                     if (!state.Trace_NestingCounter.isInNest()) {
+
                         if (token.isSeperatorOf('{')) {
+
                             break;
                         }
                     }
@@ -1145,26 +1203,26 @@ namespace CodeConverter.StatementAnalyzer {
                     state.Trace_NestingCounter.countParenthesis(token);
 
                     if (!state.Trace_NestingCounter.isInNest()) {
+
                         if (token.isSeperatorOf(';')) {
+
                             // TODO: Supprt only for interface
                             state.Trace_AbstructFunctionDeteced = true;
                             break;
                         }
-                        else if (!token.isBlank()) {
-                            // TODO: Change error message whether class or interface
-                            state.addError('{ or ; expected.');
-                            break;
-                        }
                         else {
+
                             state.CurrentIndex++;
                         }
                     }
                     else {
+
                         state.CurrentIndex++;
                     }
                 }
 
                 if (this.checkEOF(tokens, state)) {
+
                     return false;
                 }
             }
@@ -1176,6 +1234,7 @@ namespace CodeConverter.StatementAnalyzer {
             if (!state.Trace_AbstructFunctionDeteced) {
 
                 if (!this.processStatementBlockBody(result, tokens, state)) {
+
                     return false;
                 }
 
@@ -1184,6 +1243,7 @@ namespace CodeConverter.StatementAnalyzer {
                 return true;
             }
             else {
+
                 state.CurrentIndex++;
                 return true;
             }
@@ -1235,18 +1295,21 @@ namespace CodeConverter.StatementAnalyzer {
                 let token = tokens[state.CurrentIndex];
 
                 if (token.isSeperatorOf('(')) {
-                    state.CurrentIndex++;
+
                     break;
                 }
                 else if (!token.isBlank()) {
-                    state.addError('( expected.');
+
+                    state.addError('( expected. Detected ' + token.Text);
                     state.CurrentIndex++;
                 }
                 else {
+
                     state.CurrentIndex++;
                 }
 
                 if (this.checkEOF(tokens, state)) {
+
                     return false;
                 }
             }
@@ -1259,19 +1322,24 @@ namespace CodeConverter.StatementAnalyzer {
                 state.Trace_NestingCounter.countParenthesis(token);
 
                 if (!state.Trace_NestingCounter.isInNest()) {
+
                     if (token.isSeperatorOf(')')) {
+
                         state.CurrentIndex++;
                         break;
                     }
                     else {
+
                         state.CurrentIndex++;
                     }
                 }
                 else {
+
                     state.CurrentIndex++;
                 }
 
                 if (this.checkEOF(tokens, state)) {
+
                     return false;
                 }
             }
@@ -1283,34 +1351,42 @@ namespace CodeConverter.StatementAnalyzer {
                 let token = tokens[state.CurrentIndex];
 
                 if (token.isSeperatorOf(':')) {
+
                     state.CurrentIndex++;
                     existsTypeName = true;
                     break;
                 }
                 else if (token.isSeperatorOf('{')) {
+
                     break;
                 }
                 else if (!token.isBlank()) {
+
                     state.addError(': or { expected.');
                     state.CurrentIndex++;
                 }
                 else {
+
                     state.CurrentIndex++;
                 }
 
                 if (this.checkEOF(tokens, state)) {
+
                     return false;
                 }
             }
 
             // Tracing return type
             if (existsTypeName) {
+
                 while (state.CurrentIndex < tokens.length) {
 
                     let token = tokens[state.CurrentIndex];
 
                     if (!state.Trace_NestingCounter.isInNest()) {
+
                         if (token.isSeperatorOf('{')) {
+
                             break;
                         }
                     }
@@ -1326,6 +1402,7 @@ namespace CodeConverter.StatementAnalyzer {
 
             // Process inner code
             if (!this.processStatementBlockBody(result, tokens, state)) {
+
                 return false;
             }
 
@@ -1351,18 +1428,24 @@ namespace CodeConverter.StatementAnalyzer {
 
                 let token = tokens[state.CurrentIndex];
 
+                state.Trace_NestingCounter.countParenthesis(token);
+
                 if (token.isSeperatorOf('{')) {
+
                     existsLeftBrace = true;
                     break;
                 }
                 else if (!token.isBlank()) {
+
                     break;
                 }
                 else {
+
                     state.CurrentIndex++;
                 }
 
                 if (this.checkEOF(tokens, state)) {
+
                     return false;
                 }
             }
@@ -1370,6 +1453,7 @@ namespace CodeConverter.StatementAnalyzer {
             let isImplicitBlock = !existsLeftBrace;
 
             if (existsLeftBrace) {
+
                 result.AppendToken(tokens[state.CurrentIndex]);
                 state.CurrentIndex++;
             }
@@ -1387,8 +1471,11 @@ namespace CodeConverter.StatementAnalyzer {
 
                 let token = tokens[innerState.CurrentIndex];
 
+                state.Trace_NestingCounter.countParenthesis(token);
+
                 // Block End
                 if (token.isSeperatorOf('}')) {
+
                     break;
                 }
                 else if (isImplicitBlock && token.isSeperatorOf(';')) {
@@ -1416,6 +1503,7 @@ namespace CodeConverter.StatementAnalyzer {
                 }
 
                 if (this.checkEOF(tokens, innerState)) {
+
                     return false;
                 }
             }
@@ -1451,22 +1539,27 @@ namespace CodeConverter.StatementAnalyzer {
 
                 // Blank
                 if (token.isBlank()) {
+
                     state.CurrentIndex++;
                 }
                 // var
                 else if (token.isAlphaNumericOf(state.Setting.TS_var)) {
+
                     return this.statementSyntax_ProcessVariable(result, tokens, state);
                 }
                 // function
                 else if (token.isAlphaNumericOf(state.Setting.TS_function)) {
+
                     return this.statementSyntax_ProcessFunction(result, tokens, state);
                 }
                 // if
                 else if (token.isAlphaNumericOf(state.Setting.TS_if)) {
+
                     return this.statementSyntax_ProcessIf(result, tokens, state);
                 }
                 // else, else if
                 else if (token.isAlphaNumericOf(state.Setting.TS_else)) {
+
 
                     if (state.CurrentIndex + 2 < tokens.length
                         && tokens[state.CurrentIndex + 2].isAlphaNumericOf(state.Setting.TS_if)) {
@@ -1474,27 +1567,43 @@ namespace CodeConverter.StatementAnalyzer {
                         return this.statementSyntax_ProcessElseIf(result, tokens, state);
                     }
                     else {
+
                         return this.statementSyntax_ProcessElse(result, tokens, state);
                     }
                 }
                 // for
                 else if (token.isAlphaNumericOf(state.Setting.TS_for)) {
-                    return this.statementSyntax_ProcessFor(result, tokens, state);
+
+                    return this.statementSyntax_ProcessForWhileSwitch(result, StatementType.For, tokens, state);
+                }
+                // while
+                else if (token.isAlphaNumericOf(state.Setting.TS_while)) {
+
+                    return this.statementSyntax_ProcessForWhileSwitch(result, StatementType.While, tokens, state);
+                }
+                // switch
+                else if (token.isAlphaNumericOf(state.Setting.TS_switch)) {
+
+                    return this.statementSyntax_ProcessForWhileSwitch(result, StatementType.Switch, tokens, state);
                 }
                 // try
                 else if (token.isAlphaNumericOf(state.Setting.TS_try)) {
+
                     return this.statementSyntax_ProcessTry(result, tokens, state);
                 }
                 // catch
                 else if (token.isAlphaNumericOf(state.Setting.TS_catch)) {
+
                     return this.statementSyntax_ProcessChatch(result, tokens, state);
                 }
                 // Ggeneral statement
                 else {
+
                     return this.statementSyntax_ProcessGeneralStatement(result, tokens, state);
                 }
 
                 if (this.checkEOF(tokens, state)) {
+
                     return false;
                 }
             }
@@ -1514,22 +1623,32 @@ namespace CodeConverter.StatementAnalyzer {
 
                 let token = tokens[state.CurrentIndex];
 
-                state.Trace_NestingCounter.countParenthesis(token);
-
                 if (state.Trace_NestingCounter.isInNest()) {
+
                     state.CurrentIndex++;
                 }
                 else {
-                    if (token.isSeperatorOf(';')) {
+
+                    if (token.isSeperatorOf('}')) {
+
+                        state.addError('; expected. Detected }');
+                        break;
+                    }
+                    else if (token.isSeperatorOf(';')) {
+
                         state.CurrentIndex++;
                         break;
                     }
                     else {
+
                         state.CurrentIndex++;
                     }
                 }
 
+                state.Trace_NestingCounter.countParenthesis(token); // must do this afer process above. for detect '}'
+
                 if (this.checkEOF(tokens, state)) {
+
                     return false;
                 }
             }
@@ -1588,20 +1707,24 @@ namespace CodeConverter.StatementAnalyzer {
                 let token = tokens[state.CurrentIndex];
 
                 if (token.isAlphaNumeric()) {
+
                     state.CurrentIndex++;
                     break;
                 }
                 else {
+
                     state.CurrentIndex++;
                 }
 
                 if (this.checkEOF(tokens, state)) {
+
                     return false;
                 }
             }
 
             // Trace the block body
             if (!this.classSyntax_ProcessFunction(result, TracingState.SearchingAfterIdentifer, tokens, state)) {
+
                 return false;
             }
 
@@ -1620,6 +1743,7 @@ namespace CodeConverter.StatementAnalyzer {
 
             // Trace the argument
             if (!this.processStatementBlockArgument(result, tokens, state)) {
+
                 return false;
             }
 
@@ -1628,6 +1752,7 @@ namespace CodeConverter.StatementAnalyzer {
 
             // Trace the block body
             if (!this.processStatementBlockBody(result, tokens, state)) {
+
                 return false;
             }
 
@@ -1642,10 +1767,11 @@ namespace CodeConverter.StatementAnalyzer {
             result.SetCurrentStatementType(StatementType.ElseIf);
 
             // Now current index is on "else"
-            state.CurrentIndex += 2;
+            state.CurrentIndex += 3;
 
             // Trace the argument
             if (!this.processStatementBlockArgument(result, tokens, state)) {
+
                 return false;
             }
 
@@ -1654,6 +1780,7 @@ namespace CodeConverter.StatementAnalyzer {
 
             // Trace the block body
             if (!this.processStatementBlockBody(result, tokens, state)) {
+
                 return false;
             }
 
@@ -1675,6 +1802,7 @@ namespace CodeConverter.StatementAnalyzer {
 
             // Trace the block body
             if (!this.processStatementBlockBody(result, tokens, state)) {
+
                 return false;
             }
 
@@ -1683,18 +1811,19 @@ namespace CodeConverter.StatementAnalyzer {
             return true;
         }
 
-        private statementSyntax_ProcessFor(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
+        private statementSyntax_ProcessForWhileSwitch(result: AnalyzerResult, statementType: StatementType, tokens: TextTokenCollection, state: AnalyzerState): boolean {
 
             let currentIndex = state.CurrentIndex;
 
             // Set statement type
-            result.SetCurrentStatementType(StatementType.For);
+            result.SetCurrentStatementType(statementType);
 
             // Now current index is on "for"
             state.CurrentIndex++;
 
             // Trace the argument
             if (!this.processStatementBlockArgument(result, tokens, state)) {
+
                 return false;
             }
 
@@ -1703,6 +1832,7 @@ namespace CodeConverter.StatementAnalyzer {
 
             // Trace the block body
             if (!this.processStatementBlockBody(result, tokens, state)) {
+
                 return false;
             }
 
@@ -1726,6 +1856,7 @@ namespace CodeConverter.StatementAnalyzer {
 
             // Trace the block body
             if (!this.processStatementBlockBody(result, tokens, state)) {
+
                 return false;
             }
 
@@ -1746,6 +1877,7 @@ namespace CodeConverter.StatementAnalyzer {
 
             // Trace the argument
             if (!this.processStatementBlockArgument(result, tokens, state)) {
+
                 return false;
             }
 
@@ -1754,6 +1886,7 @@ namespace CodeConverter.StatementAnalyzer {
 
             // Trace the block body
             if (!this.processStatementBlockBody(result, tokens, state)) {
+
                 return false;
             }
 
@@ -1767,10 +1900,12 @@ namespace CodeConverter.StatementAnalyzer {
         private checkEOF(tokens: TextTokenCollection, state: AnalyzerState): boolean {
 
             if (state.CurrentIndex >= tokens.length) {
+
                 state.setTracingState(TracingState.UnexpectedEOF);
                 return true;
             }
             else {
+
                 return false;
             }
         }
@@ -1783,12 +1918,15 @@ namespace CodeConverter.StatementAnalyzer {
         private processAccessibility(token: TextToken, state: AnalyzerState): boolean {
 
             if (!state.Trace_AccessTypeDetected) {
+
                 state.Trace_AccessTypeDetected = true;
                 state.Trace_DetectedAccesibilityTypeToken = token;
             }
             else {
+
                 state.addError('Accessibility modifier already seen.');
             }
+
             state.CurrentIndex++;
 
             return false;
@@ -1844,16 +1982,21 @@ namespace CodeConverter.StatementAnalyzer {
             // Indent tokens for next statement
             let startIndex: int;
             if (lastLineEndIndex != -1) {
+
                 startIndex = lastLineEndIndex + 1;
+
                 if (startIndex > endIndex) {
+
                     startIndex = -1;// When only line end, this occurs. No indent tokens.
                 }
             }
             else {
+
                 startIndex = state.CurrentIndex;
             }
 
             if (endIndex == -1) {
+
                 endIndex = tokens.length - 1;
             }
 
@@ -1871,6 +2014,8 @@ namespace CodeConverter.StatementAnalyzer {
         }
 
         private processFollowingTokens(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
+
+            let currentIndex = state.CurrentIndex;
 
             let existsFollowingTokens = false;
             let endIndex = -1;
@@ -1912,6 +2057,8 @@ namespace CodeConverter.StatementAnalyzer {
 
         private processVariable(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState) {
 
+            let currentIndex = state.CurrentIndex;
+
             if (state.TracingState == TracingState.SearchingIdentifierName) {
 
                 while (state.CurrentIndex < tokens.length) {
@@ -1919,20 +2066,24 @@ namespace CodeConverter.StatementAnalyzer {
                     let token = tokens[state.CurrentIndex];
 
                     if (token.isAlphaNumeric()) {
+
                         state.Trace_IdentifierDetected = true;
                         state.setTracingState(TracingState.SearchingAfterIdentifer);
                         state.CurrentIndex++;
                         break;
                     }
                     else if (!token.isBlank()) {
+
                         state.addError('Identifier name expected.');
                         state.CurrentIndex++;
                     }
                     else {
+
                         state.CurrentIndex++;
                     }
 
                     if (this.checkEOF(tokens, state)) {
+
                         return false;
                     }
                 }
@@ -1945,31 +2096,37 @@ namespace CodeConverter.StatementAnalyzer {
                     let token = tokens[state.CurrentIndex];
 
                     if (token.isSeperatorOf(':')) {
+
                         state.Trace_TypeNameSeperatorDeteced = true;
                         state.setTracingState(TracingState.TracingVariableTypeName);
                         state.CurrentIndex++;
                         break;
                     }
                     else if (token.isSeperatorOf('=')) {
+
                         state.Trace_AsignmentDeteced = true;
                         state.setTracingState(TracingState.TracingVariableDefinitionDefaultValue);
                         state.CurrentIndex++;
                         break;
                     }
                     else if (token.isSeperatorOf(';')) {
+
                         state.setTracingState(TracingState.TracingVariableFinished);
                         state.CurrentIndex++;
                         break;
                     }
                     else if (!token.isBlank()) {
+
                         state.addError('= or : expected.');
                         state.CurrentIndex++;
                     }
                     else {
+
                         state.CurrentIndex++;
                     }
 
                     if (this.checkEOF(tokens, state)) {
+
                         return false;
                     }
                 }
@@ -1979,6 +2136,7 @@ namespace CodeConverter.StatementAnalyzer {
 
                 // Tracing type name by common function
                 if (!this.processTypeName(result, tokens, state)) {
+
                     return false;
                 }
 
@@ -1990,25 +2148,30 @@ namespace CodeConverter.StatementAnalyzer {
                     state.Trace_NestingCounter.countParenthesis(token);
 
                     if (token.isSeperatorOf('=')) {
+
                         state.Trace_AsignmentDeteced = true;
                         state.setTracingState(TracingState.TracingVariableDefinitionDefaultValue);
                         state.CurrentIndex++;
                         break;
                     }
                     else if (token.isSeperatorOf(';')) {
+
                         state.setTracingState(TracingState.TracingVariableFinished);
                         state.CurrentIndex++;
                         break;
                     }
                     else if (!token.isBlank()) {
+
                         state.addError('= or : expected.');
                         state.CurrentIndex++;
                     }
                     else {
+
                         state.CurrentIndex++;
                     }
 
                     if (this.checkEOF(tokens, state)) {
+
                         return false;
                     }
                 }
@@ -2023,23 +2186,29 @@ namespace CodeConverter.StatementAnalyzer {
                     state.Trace_NestingCounter.countParenthesis(token);
 
                     if (!state.Trace_NestingCounter.isInNest()) {
+
                         if (token.isSeperatorOf(';')) {
+
                             state.CurrentIndex++;
                             break;
                         }
                         else if (token.isLineEnd()) {
-                            state.addError('; expected.');
+
+                            state.addError('; expected. Detected line end.');
                             break;
                         }
                         else {
+
                             state.CurrentIndex++;
                         }
                     }
                     else {
+
                         state.CurrentIndex++;
                     }
 
                     if (this.checkEOF(tokens, state)) {
+
                         return false;
                     }
                 }
@@ -2051,19 +2220,24 @@ namespace CodeConverter.StatementAnalyzer {
 
         private processTypeName(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
 
+            let currentIndex = state.CurrentIndex;
+
             // Search start token
             while (state.CurrentIndex < tokens.length) {
 
                 let token = tokens[state.CurrentIndex];
 
                 if (token.isAlphaNumeric()) {
+
                     break;
                 }
                 else if (!token.isBlank()) {
+
                     state.addError('Type name expected.');
                     return false;
                 }
                 else {
+
                     state.CurrentIndex++;
                 }
             }
@@ -2081,22 +2255,28 @@ namespace CodeConverter.StatementAnalyzer {
                 state.Trace_NestingCounter.countParenthesis(token);
 
                 if (!state.Trace_NestingCounter.isInNest()) {
+
                     if (token.isBlank()) {
+
                         state.CurrentIndex++;
                         break;
                     }
                     else if (token.isSeperatorOf(';')) {
+
                         break;
                     }
                     else {
+
                         state.CurrentIndex++;
                     }
                 }
                 else {
+
                     state.CurrentIndex++;
                 }
 
                 if (this.checkEOF(tokens, state)) {
+
                     return false;
                 }
             }
@@ -2106,24 +2286,32 @@ namespace CodeConverter.StatementAnalyzer {
 
         private processStatementBlockArgument(result: AnalyzerResult, tokens: TextTokenCollection, state: AnalyzerState): boolean {
 
+            let currentIndex = state.CurrentIndex;
+
             // Searching argument (
             while (state.CurrentIndex < tokens.length) {
 
                 let token = tokens[state.CurrentIndex];
 
+                state.Trace_NestingCounter.countParenthesis(token);
+
                 if (token.isSeperatorOf('(')) {
+
                     state.CurrentIndex++;
                     break;
                 }
                 else if (!token.isBlank()) {
-                    state.addError('( expected.');
+
+                    state.addError('( expected. Detected ' + token.Text);
                     state.CurrentIndex++;
                 }
                 else {
+
                     state.CurrentIndex++;
                 }
 
                 if (this.checkEOF(tokens, state)) {
+
                     return false;
                 }
             }
@@ -2133,22 +2321,26 @@ namespace CodeConverter.StatementAnalyzer {
 
                 let token = tokens[state.CurrentIndex];
 
+                state.Trace_NestingCounter.countParenthesis(token);
+
                 if (!state.Trace_NestingCounter.isInNest()) {
+
                     if (token.isSeperatorOf(')')) {
                         state.CurrentIndex++;
                         break;
                     }
                     else {
+
                         state.CurrentIndex++;
                     }
                 }
                 else {
+
                     state.CurrentIndex++;
                 }
 
-                state.Trace_NestingCounter.countParenthesis(token);
-
                 if (this.checkEOF(tokens, state)) {
+
                     return false;
                 }
             }

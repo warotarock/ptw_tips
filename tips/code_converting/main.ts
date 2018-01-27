@@ -3,9 +3,9 @@ namespace CodeConverter {
 
     window.onload = () => {
 
-        //let filePath = './statement_analyzer.ts';
+        let filePath = './statement_analyzer.ts';
         //let filePath = '../skinning_model_drawing/main.ts';
-        let filePath = './sample_code.ts';
+        //let filePath = './sample_code.ts';
 
         let data: any = null;
         let xhr = new XMLHttpRequest();
@@ -39,9 +39,14 @@ namespace CodeConverter {
         let tokenizerSetting = new TextTokenizer.TokenizerSetting();
         let tokenizerState = new TextTokenizer.TokenizerState();
         let tokenizerResult = new TextTokenizer.TokenizerResult();
-        tokenizerState.initialize(tokenizerSetting);
 
-        tokenizer.tokenize(tokenizerResult, data, tokenizerState);
+        tokenizerState.Setting = tokenizerSetting;
+        tokenizerState.TargetText = data;
+        tokenizerState.Result = tokenizerResult;
+        tokenizerState.FilePath = filePath;
+        tokenizerState.initialize();
+
+        tokenizer.tokenize(tokenizerState);
         //showTokens(tokenizerResult.Tokens);
 
         // ステートメント解析
@@ -49,10 +54,14 @@ namespace CodeConverter {
         let statementAnalyzerSetting = new StatementAnalyzer.AnalyzerSetting();
         let analyzerState = new StatementAnalyzer.AnalyzerState();
         let analyzerResult = new StatementAnalyzer.AnalyzerResult();
-        statementAnalyzerSetting.FilePath = filePath;
-        analyzerState.initialize(statementAnalyzerSetting);
 
-        statementAnalyzer.analyze(analyzerResult, tokenizerResult.Tokens, analyzerState);
+        analyzerState.Setting = statementAnalyzerSetting;
+        analyzerState.TargetTokens = tokenizerResult.Tokens;
+        analyzerState.Result = analyzerResult;
+        analyzerState.FilePath = filePath;
+        analyzerState.initialize();
+
+        statementAnalyzer.analyze(analyzerState);
         showStatements(analyzerResult.Statements);
     }
 

@@ -428,9 +428,18 @@ namespace CodeConverter {
         }
 
         reset() {
+
             this.parenthesisNestCount = 0;
             this.braceNestCount = 0;
             this.angleNestCount = 0;
+        }
+
+        // TODO: 使っていない
+        copyTo(target: NestingCounter) {
+
+            target.parenthesisNestCount = this.parenthesisNestCount;
+            target.braceNestCount = this.braceNestCount;
+            target.angleNestCount = this.angleNestCount;
         }
 
         countParenthesis(token: TextToken) {
@@ -465,10 +474,28 @@ namespace CodeConverter {
                     this.angleNestCount = 0;
                 }
             }
+
+            if (this.parenthesisNestCount < 0 || this.braceNestCount < 0 || this.angleNestCount < 0) {
+                throw ('DEBUG MODE ONLY Illegal nest count!');
+            }
         }
 
         isInNest() {
+
             return (this.parenthesisNestCount > 0 || this.braceNestCount > 0 || this.angleNestCount > 0);
+        }
+
+        // TODO: 使っていない
+        isOutFromParenthesisNest(token: TextToken) {
+
+            if (token.Text == ')' && this.parenthesisNestCount == 0) {
+
+                return true;
+            }
+            else {
+
+                return false;
+            }
         }
     }
 

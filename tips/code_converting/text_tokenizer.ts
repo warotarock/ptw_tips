@@ -55,6 +55,8 @@ namespace CodeConverter.TextTokenizer {
     export class TokenizerState {
 
         Setting: TokenizerSetting = null;
+        FilePath: string = '';
+        TargetText: string = null;
 
         // Temporary variables for setting
         CommentStartLetters: string = null;
@@ -69,10 +71,11 @@ namespace CodeConverter.TextTokenizer {
         // Result variables
         Result: TokenizerResult = null;
 
-        initialize(setting: TokenizerSetting) {
+        initialize() {
+
+            let setting = this.Setting;
 
             // Initialize variables for setting
-            this.Setting = setting;
 
             this.CommentStartLetters = StringSubstring(setting.CommentLineStartLetter, 0, 1);
             this.CommentStartLetters += StringSubstring(setting.CommentBlockStartLetter, 0, 1);
@@ -80,6 +83,7 @@ namespace CodeConverter.TextTokenizer {
             let letters = new List<string>();
             letters.push(setting.SingleSeperatorLetters);
             for (let i = 0; i < setting.MultiLengthSeperators.length; i++) {
+
                 let seperator = setting.MultiLengthSeperators[i];
                 letters.push(seperator[0]);
             }
@@ -98,13 +102,17 @@ namespace CodeConverter.TextTokenizer {
 
     export class Tokenizer {
 
-        tokenize(result: TokenizerResult, targetText: string, state: TokenizerState) {
+        tokenize(state: TokenizerState) {
+
+            let result = state.Result;
+            let targetText = state.TargetText;
 
             state.Result = result;
 
             let lineTextLength = targetText.length;
 
             while (state.CurrentIndex < lineTextLength) {
+
                 let mode = this.getProcessingMode(targetText, state);
 
                 switch (mode) {
