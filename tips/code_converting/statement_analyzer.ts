@@ -377,6 +377,10 @@ namespace CodeConverter.StatementAnalyzer {
             // Searching a syntax
             while (state.CurrentIndex < tokens.length) {
 
+                if (this.checkEOF(tokens, state)) {
+                    return false;
+                }
+
                 let token = tokens[state.CurrentIndex];
 
                 // Block End
@@ -405,10 +409,6 @@ namespace CodeConverter.StatementAnalyzer {
                             this.processClassLevelSyntax(result, tokens, state);
                             break;
                     }
-                }
-
-                if (this.checkEOF(tokens, state)) {
-                    return false;
                 }
             }
 
@@ -973,37 +973,51 @@ namespace CodeConverter.StatementAnalyzer {
             var innerResult = new AnalyzerResult();
             var counter = new NestingCounter();
             while (state.CurrentIndex < tokens.length) {
+
+                this.processContinueingBlankTokens(innerResult, tokens, state);
+
                 let token = tokens[state.CurrentIndex];
 
                 let isItemEndLetter = (token.isSeperatorOf(',') || token.isSeperatorOf('}'));
 
                 let isZeroLevel = !counter.isInNest();
 
-                let isArrayEnd = (
-                    (state.CurrentIndex == tokens.length - 1)
-                    || (isZeroLevel && token.isSeperatorOf('}'))
-                );
+                let isArrayEnd = (isZeroLevel && token.isSeperatorOf('}'));
 
                 let isItemEnd = (isArrayEnd || (isZeroLevel && isItemEndLetter));
 
+                if (!isArrayEnd) {
+
+                    counter.countParenthesis(token);
+                }
+
                 if (isItemEnd) {
+
+                    if (isItemEndLetter && token.isSeperatorOf(',')) {
+
+                        innerResult.AppendFollowingToken(token);
+                        state.CurrentIndex++;
+                    }
+
+                    this.processFollowingTokens(innerResult, tokens, state);
+
                     innerResult.FlushCurrentStatementTokens();
                     innerResult.FlushStatement();
                 }
                 else {
+
                     innerResult.AppendToken(token);
+                    state.CurrentIndex++;
+                }
+
+                if (this.checkEOF(tokens, state)) {
+
+                    return false;
                 }
 
                 if (isArrayEnd) {
+
                     break;
-                }
-
-                counter.countParenthesis(token);
-
-                state.CurrentIndex++;
-
-                if (this.checkEOF(tokens, state)) {
-                    return false;
                 }
             }
 
