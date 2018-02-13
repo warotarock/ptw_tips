@@ -40,7 +40,7 @@ class RenderShader {
 
     initializeSourceCode(precisionText: string) {
 
-        this.floatPrecisionDefinitionCode = '#ifdef GL_ES\n precision ' + precisionText + ' float;\n #endif\n';
+        this.floatPrecisionDefinitionCode = 'precision ' + precisionText + ' float;\n';
 
         this.initializeVertexSourceCode();
 
