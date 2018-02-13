@@ -63,6 +63,7 @@ namespace Converters {
 
         name: string = null;
         parent: SkinMeshBone = null;
+        boneIndex: int = -1;
         originalBoneIndex: int = -1;
 
         nestLevel: int = -1;
@@ -381,6 +382,12 @@ namespace Converters {
                 .ThenBy(skiningBone => skiningBone.name)
                 .ToArray();
 
+            for (let boneIndex = 0; boneIndex < result.length; boneIndex++) {
+                let skiningBone = result[boneIndex];
+
+                skiningBone.boneIndex = boneIndex;
+            }
+
             return result;
         }
 
@@ -518,7 +525,10 @@ namespace Converters {
                         for (let candidate_GroupIndex = 0; candidate_GroupIndex < faceGoups.length; candidate_GroupIndex++) {
                             let candidate_Group = faceGoups[candidate_GroupIndex];
 
-                            if (candidate_GroupIndex != sourceGroupIndex && candidate_Group.materialIndex == sourceGroup.materialIndex && candidate_Group.boneCount == 1) {
+                            if (candidate_GroupIndex != sourceGroupIndex
+                                && !candidate_Group.combined
+                                && candidate_Group.materialIndex == sourceGroup.materialIndex
+                                && candidate_Group.boneCount == 1) {
 
                                 combineTo_Group = candidate_Group;
                                 ndeedsNewBoneSlot = true;
@@ -532,7 +542,10 @@ namespace Converters {
                         for (let candidate_GroupIndex = 0; candidate_GroupIndex < faceGoups.length; candidate_GroupIndex++) {
                             let candidate_Group = faceGoups[candidate_GroupIndex];
 
-                            if (candidate_GroupIndex != sourceGroupIndex && candidate_Group.materialIndex == sourceGroup.materialIndex && candidate_Group.boneCount == 3) {
+                            if (candidate_GroupIndex != sourceGroupIndex
+                                && !candidate_Group.combined
+                                && candidate_Group.materialIndex == sourceGroup.materialIndex
+                                && candidate_Group.boneCount == 3) {
 
                                 combineTo_Group = candidate_Group;
                                 ndeedsNewBoneSlot = true;
